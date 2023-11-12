@@ -1,0 +1,173 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-compound-inner)))
+
+Name: Delete function inner t1
+
+=-=
+def main():
+    |v=3
+    return v
+=-=
+def main():
+    |
+=-=-=
+
+Name: Delete loop inner t1
+
+=-=
+def main():
+    for i in range(3):
+        |i * 3
+=-=
+def main():
+    for i in range(3):
+        |
+=-=-=
+
+Name: Delete elif inner t1
+
+=-=
+if True:
+    pass
+elif not b is not None and a == 3:
+    b |= 38
+else:
+    pass
+=-=
+if True:
+    pass
+elif not b is not None and a == 3:
+    |
+else:
+    pass
+=-=-=
+
+Name: Delete function inner t2
+
+=-=
+def main():
+    for i in range(3):
+   |     i * 3
+=-=
+def main():
+    |
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-compound-around)))
+
+Name: Delete function around t1
+
+=-=
+def main():
+    |v=3
+    return v
+=-=
+|
+=-=-=
+
+Name: Delete function with decorator around t2
+
+=-=
+@decorator(arg1=1,
+           arg2=2)
+def main():
+    pa|ss
+=-=
+|
+=-=-=
+
+Name: Delete loop around t1
+
+=-=
+def main():
+    for i in range(3):
+   |     i * 3
+=-=
+def main():
+    |
+=-=-=
+
+Name: Delete elif around t1
+
+=-=
+if True:
+    pass
+elif not b is not None and a == 3:
+    b |= 38
+else:
+    pass
+=-=
+if True:
+    pass
+|
+else:
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-around)))
+
+Name: Delete param around t1
+
+=-=
+def func(a, temp:d|ict[int, int], temp1:TempC=TempC(a=1, c=8), set:str='s, tr', e):
+    pass
+=-=
+def func(a, |temp1:TempC=TempC(a=1, c=8), set:str='s, tr', e):
+    pass
+=-=-=
+
+Name: Delete param around t2
+
+=-=
+def func(a, temp1:TempC=TempC|(a=1, c=8), set:str='s, tr', e):
+    pass
+=-=
+def func(a, |set:str='s, tr', e):
+    pass
+=-=-=
+
+Name: Delete param around t3
+
+=-=
+def func(a, |set:str='s, tr', e):
+    pass
+=-=
+def func(a, |e):
+    pass
+=-=-=
+
+Name: Delete param around t4
+
+=-=
+def func(a, ab='83|, 8',):
+    pass
+=-=
+def func(a, |):
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-statement-around)))
+
+Name: Delete statement around t1
+
+=-=
+def func(a, e):
+    this_is = func(1, temp={'1':1, '2':2},
+                   te|mp1=TempC([1], [3]), ab='83, 8',)
+=-=
+def func(a, e):
+    |
+=-=-=

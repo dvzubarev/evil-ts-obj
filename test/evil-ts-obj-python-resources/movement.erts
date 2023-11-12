@@ -1,0 +1,165 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-next-sibling-dwim))
+
+Name: next sibling dwim t1
+
+=-=
+def |temp(t, **kwargs):
+    t = 3
+
+def func(*args):
+    a = 3
+=-=
+def temp(t, **kwargs):
+    t = 3
+
+|def func(*args):
+    a = 3
+=-=-=
+
+Name: next sibling dwim t2
+
+=-=
+def temp(t, **kwargs):
+    t = |3
+
+def func(*args):
+    a = 3
+=-=
+def temp(t, **kwargs):
+    t = 3
+
+def func(*args):
+    |a = 3
+=-=-=
+
+Name: next sibling dwim t2
+
+=-=
+def temp(t, **kwa|rgs):
+    t = 3
+
+def func(*args):
+    a = 3
+=-=
+def temp(t, **kwargs):
+    t = 3
+
+def func(|*args):
+    a = 3
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-begin-of-thing-dwim))
+
+Name: begin of thing dwim t1
+
+=-=
+def temp(t, **kwa|rgs):
+    t = 3
+=-=
+def temp(t, |**kwargs):
+    t = 3
+=-=-=
+
+Name: begin of thing dwim t2
+
+=-=
+def temp(t, |**kwargs):
+    t = 3
+=-=
+|def temp(t, **kwargs):
+    t = 3
+=-=-=
+
+Name: begin of thing else/if clause t1
+
+=-=
+if True:
+    pass
+else:
+    p|ass
+=-=
+if True:
+    pass
+|else:
+    pass
+=-=-=
+
+Name: begin of thing else/if clause t2
+
+=-=
+if True:
+    pass
+|else:
+    pass
+=-=
+|if True:
+    pass
+else:
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-end-of-thing-dwim))
+
+Name: end of thing dwim t1
+
+=-=
+def temp(t, **|kwargs):
+    t = 3
+=-=
+def temp(t, **kwarg|s):
+    t = 3
+=-=-=
+
+Name: end of thing dwim t2
+
+=-=
+def temp(t, **kwargs|):
+    t = 3
+=-=
+def temp(t, **kwargs):
+    t = |3
+=-=-=
+
+Name: end of thing dwim t3
+
+=-=
+def temp(t, **kwargs| ):
+    t = 3
+=-=
+def temp(t, **kwargs ):
+    t = |3
+=-=-=
+
+This test does not work without better-jumper
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (let ((evil--jumps-window-jumps (make-hash-table)))
+        (evil-ts-obj-end-of-thing-dwim)
+        (evil-jump-backward)))
+
+Name: end of thing dwim jump backward
+
+Skip: t
+
+=-=
+def temp(t, **kwargs|):
+    t = 3
+=-=
+def temp(t, **kwargs|):
+    t = 3
+=-=-=
+
+=-=-=
