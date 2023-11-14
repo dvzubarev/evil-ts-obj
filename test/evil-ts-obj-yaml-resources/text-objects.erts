@@ -1,0 +1,59 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-inner)))
+
+Name: Delete list item inner t1
+
+=-=
+---
+- a:
+    - te|mp1
+    - temp2
+=-=
+---
+- a:
+    - |
+    - temp2
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-around)))
+
+Name: Delete list item around t2
+
+=-=
+---
+- a:
+    - te|mp1
+    - temp2
+=-=
+---
+- a:
+    |- temp2
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-compound-inner)))
+
+Name: Delete multiline string
+
+=-=
+---
+- a:
+    golden-rings: >
+     temp 111
+     te|sm fen
+- aa
+=-=
+---
+- a:
+    golden-rings: |
+- aa
+=-=-=

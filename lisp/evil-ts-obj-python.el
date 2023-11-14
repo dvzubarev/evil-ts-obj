@@ -78,8 +78,8 @@ See `treesit-thing-settings' for more information.")
   )
 
 (defun evil-ts-obj-python-param-pred (node)
-  (when-let ((named (treesit-node-check node 'named))
-             (parent (treesit-node-parent node)))
+  (when-let* ((named (treesit-node-check node 'named))
+              (parent (treesit-node-parent node)))
     (string-match evil-ts-obj-python-param-parent-regex
                   (treesit-node-type parent))))
 

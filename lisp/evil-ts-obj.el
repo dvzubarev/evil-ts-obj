@@ -40,17 +40,39 @@ which see; it can also be a predicate."
 
 (defun evil-ts-obj-begin-of-thing (thing)
   (when-let ((node (evil-ts-obj--thing-around (point) thing)))
-    (when-let ((on-start (= (treesit-node-start node) (point)))
-               (parent-thing (treesit-parent-until
+    (while (and node
+                (= (treesit-node-start node) (point)))
+      ;; jump to beginning of a parent.
+      ;; Take into consideration that parent may start on the same position as the child.
+      (if-let ((parent-thing (treesit-parent-until
                               node (lambda (n) (treesit-node-match-p n thing t)))))
-      (setq node parent-thing)
-      (evil-set-jump))
-    (goto-char (treesit-node-start node))))
+          (progn
+            (setq node parent-thing)
+            (evil-set-jump))
+        (setq node nil)))
+    (when node
+      (goto-char (treesit-node-start node)))))
+
+(defun evil-ts-obj-end-of-thing (thing)
+  (when-let ((node (evil-ts-obj--thing-around (point) thing)))
+    ;; point can be on the next whitespace after the end
+    (while (and node
+                (>= (point) (1- (treesit-node-end node))))
+      (if-let (parent-thing (treesit-parent-until
+                             node (lambda (n) (treesit-node-match-p n thing t))))
+          (progn
+            (setq node parent-thing)
+            (evil-set-jump))
+        (setq node nil)))
+
+    (when node
+      (goto-char (1- (treesit-node-end node))))))
+
 
 
 (defun evil-ts-obj--jump-param-boundaries ()
   (interactive)
-  (when-let* ((thing evil-ts-obj-nav-thing)
+  (when-let* ((thing evil-ts-obj-conf-nav-thing)
               (node (evil-ts-obj--thing-around (point) thing)))
     (cond
      ((= (treesit-node-start node) (point)) (goto-char (1- (treesit-node-end node))))
@@ -94,17 +116,6 @@ which see; it can also be a predicate."
                                backward))
              when result
              return result)))
-
-(defun evil-ts-obj-end-of-thing (thing)
-  (when-let ((node (evil-ts-obj--thing-around (point) thing)))
-    ;; point can be on the next whitespace after the end
-    (when-let ((on-end (>= (point) (1- (treesit-node-end node))))
-               (parent-thing (treesit-parent-until
-                              node (lambda (n) (treesit-node-match-p n thing t)))))
-      ;; already at end of node; go to parent's end
-      (setq node parent-thing)
-      (evil-set-jump))
-    (goto-char (1- (treesit-node-end node)))))
 
 
 
@@ -196,8 +207,10 @@ which see; it can also be a predicate."
 (evil-define-text-object evil-ts-obj-param-inner (count &optional _beg _end _type)
   "Select a param object."
   (when-let ((node (evil-ts-obj--thing-around (point) 'param-inner)))
-    (list (treesit-node-start node)
-          (treesit-node-end node))))
+    (if-let ((ext-func (alist-get (treesit-language-at (point)) evil-ts-obj-conf-param-inner-ext)))
+        (funcall ext-func node)
+      (list (treesit-node-start node)
+            (treesit-node-end node)))))
 
 (evil-define-text-object evil-ts-obj-compound-around (count &optional _beg _end _type)
   "Select a compound object."

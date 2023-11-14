@@ -21,6 +21,8 @@
 
 
 (defvar-local evil-ts-obj-conf-compound-around-ext nil)
+(defvar-local evil-ts-obj-conf-compound-inner-ext nil)
+(defvar-local evil-ts-obj-conf-param-inner-ext nil)
 
 (defvar-local evil-ts-obj-conf-avy-jump-query nil)
 (defvar-local evil-ts-obj-conf-nav-thing nil)

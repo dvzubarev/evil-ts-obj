@@ -1,0 +1,62 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (evil-ts-obj-begin-of-thing-dwim))
+
+Name: to beginning t1
+
+=-=
+---
+- key:
+    - li|st1
+=-=
+---
+- key:
+    |- list1
+=-=-=
+
+Name: to beginning t2
+
+=-=
+---
+- key:
+    |- list1
+=-=
+---
+- |key:
+    - list1
+=-=-=
+
+Name: to beginning t3
+
+=-=
+---
+- |key:
+    - list1
+=-=
+---
+|- key:
+    - list1
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (evil-ts-obj-end-of-thing-dwim))
+
+Name: to end t1
+
+=-=
+---
+- a:
+    - temp1|
+  aa: temp
+=-=
+---
+- a:
+    - temp1
+  aa: temp|
+=-=-=
+
