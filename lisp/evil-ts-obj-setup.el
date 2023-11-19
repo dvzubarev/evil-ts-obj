@@ -23,13 +23,21 @@
 ;; languages support
 (require 'evil-ts-obj)
 (require 'evil-ts-obj-python)
+(require 'evil-ts-obj-bash)
+
+(require 'evil-ts-obj-yaml)
 
 ;;;###autoload
 (defun evil-ts-obj-setup ()
 
   (cond
-   ((derived-mode-p 'python-ts-mode)
-    (evil-ts-obj-python-setup-things)))
+   ((treesit-parser-list nil 'python)
+    (evil-ts-obj-python-setup-things))
+   ((treesit-parser-list nil 'bash)
+    (evil-ts-obj-bash-setup-things))
+
+   ((treesit-parser-list nil 'yaml)
+    (evil-ts-obj-yaml-setup-things)))
 
   (evil-ts-obj-mode 1))
 

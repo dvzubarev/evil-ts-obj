@@ -14,10 +14,22 @@ Name: to beginning t1
 =-=
 ---
 - key:
-    |- list1
+    - |list1
 =-=-=
 
 Name: to beginning t2
+
+=-=
+---
+- key:
+    - |list1
+=-=
+---
+- key:
+    |- list1
+=-=-=
+
+Name: to beginning t3
 
 =-=
 ---
@@ -29,7 +41,7 @@ Name: to beginning t2
     - list1
 =-=-=
 
-Name: to beginning t3
+Name: to beginning t4
 
 =-=
 ---
@@ -39,6 +51,20 @@ Name: to beginning t3
 ---
 |- key:
     - list1
+=-=-=
+
+Name: to beginning t5
+
+=-=
+---
+- 1
+- |a:
+   - temp2
+=-=
+---
+|- 1
+- a:
+   - temp2
 =-=-=
 
 Code:
@@ -60,3 +86,282 @@ Name: to end t1
   aa: temp|
 =-=-=
 
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (evil-ts-obj-prev-sibling-dwim))
+
+Name: to prev dwim t1
+
+=-=
+- aa
+- ab:
+    - tem|p2
+=-=
+- aa
+- |ab:
+    - temp2
+=-=-=
+
+Name: to prev dwim t2
+
+=-=
+- aa
+- |ab:
+    - temp2
+=-=
+- |aa
+- ab:
+    - temp2
+=-=-=
+
+Name: to prev dwim t3
+
+=-=
+- k1: 1
+  k2: 3
+  k3: |4
+=-=
+- k1: 1
+  |k2: 3
+  k3: 4
+=-=-=
+
+Name: to prev dwim t4
+
+=-=
+- k1: 1
+  |k2: 3
+  k3: 4
+=-=
+- |k1: 1
+  k2: 3
+  k3: 4
+=-=-=
+
+Name: to prev dwim t5
+
+Point is on the list, so thing is inferred to be compound.
+So jump to its parent mapping thats starts with key 'a'
+
+=-=
+- >
+    str
+- a:
+    - temp2
+|    - temp1
+=-=
+- >
+    str
+- |a:
+    - temp2
+    - temp1
+=-=-=
+
+Name: to prev dwim t6
+
+Point is on the list item, so thing is inferred to be param.
+So jump to the parent mapping item with key 'bb'
+
+=-=
+aa: t
+bb:
+    |- temp2
+    - temp1
+=-=
+aa: t
+|bb:
+    - temp2
+    - temp1
+=-=-=
+
+
+Name: to prev dwim t8
+
+Point is on a key value pair, so thing is inferred to be param.
+thats no previous sibling for 'a' key
+So jump to its parent - list param, that starts on the same position as 'a' key
+
+=-=
+- >
+    str
+- a:
+|    - temp2
+    - temp1
+=-=
+- >
+    str
+- |a:
+    - temp2
+    - temp1
+=-=-=
+
+Name: to prev dwim t9
+
+Point is on a list, so thing is inferred to be compound.
+jump to the previous sibling compound
+
+=-=
+- a:
+    - temp2
+    - temp1
+  aa: temp
+  bb:
+    - - 1
+      - 2
+|    - temp1
+=-=
+- a:
+    |- temp2
+    - temp1
+  aa: temp
+  bb:
+    - - 1
+      - 2
+    - temp1
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (evil-ts-obj-next-sibling-dwim))
+
+Name: to next dwim t1
+
+=-=
+|- aa
+- ab
+- ac
+=-=
+- aa
+- |ab
+- ac
+=-=-=
+
+Name: to next dwim t2
+
+=-=
+- aa
+- |ab
+  - aab
+- ac
+=-=
+- aa
+- ab
+  - aab
+- |ac
+=-=-=
+
+Name: to next dwim t3
+
+=-=
+- k1:| >
+    str
+    str
+  k2: 3
+  k3: 4
+=-=
+- k1: >
+    str
+    str
+  |k2: 3
+  k3: 4
+=-=-=
+
+Name: to next dwim t4
+
+=-=
+- k1: 1
+  |k2: 3
+  k3: 4
+=-=
+- k1: 1
+  k2: 3
+  |k3: 4
+=-=-=
+
+Name: to next dwim t5
+
+Point is inside map's key value pair, so thing is inferred to be param.
+jump to the next sibling param
+
+=-=
+- a:
+|    - temp2
+    - temp1
+  aa: >
+    temp
+- b: t
+=-=
+- a:
+    - temp2
+    - temp1
+  |aa: >
+    temp
+- b: t
+=-=-=
+
+Name: to next dwim t6
+
+Point is on a list, so thing is inferred to be compound.
+jump to the next compound
+
+=-=
+- a:
+    - temp2
+|    - - 1
+      - 2
+  aa: >
+    temp
+- b: t
+=-=
+- a:
+    - temp2
+    - - 1
+      - 2
+  aa: >
+    temp
+- |b: t
+=-=-=
+
+Name: to next dwim t7
+
+Point is inside of a map, so thing is inferred to be compound.
+No sibling compound for next jump
+
+=-=
+- a: t
+|
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=
+- a: t
+|
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=-=
+
+Name: to next dwim t8
+
+Point is inside of a map, so thing is inferred to be compound.
+jump to next sibling compound
+
+=-=
+- a: t
+|
+  bb:
+    - temp2
+    - temp1
+- map: t
+=-=
+- a: t
+
+  bb:
+    - temp2
+    - temp1
+- |map: t
+=-=-=

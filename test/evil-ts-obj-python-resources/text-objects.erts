@@ -28,25 +28,7 @@ def main():
         |
 =-=-=
 
-Name: Delete elif inner t1
-
-=-=
-if True:
-    pass
-elif not b is not None and a == 3:
-    b |= 38
-else:
-    pass
-=-=
-if True:
-    pass
-elif not b is not None and a == 3:
-    |
-else:
-    pass
-=-=-=
-
-Name: Delete function inner t2
+Name: Delete loop inner t2
 
 =-=
 def main():
@@ -54,8 +36,43 @@ def main():
    |     i * 3
 =-=
 def main():
-    |
+    for i in range(3):
+        |
 =-=-=
+
+Name: Delete if inner t1
+
+=-=
+if Tr|ue:
+    pass
+else:
+    pass
+=-=
+if True:
+    |
+else:
+    pass
+=-=-=
+
+Name: Delete elif inner t1
+
+=-=
+if True:
+    pass
+elif not b is not None and a == 3:
+ |   b = 38
+else:
+    pass
+=-=
+if True:
+    pass
+elif not b is not None and a == 3:
+    |
+else:
+    pass
+=-=-=
+
+
 
 Code:
   (lambda ()
@@ -97,18 +114,18 @@ def main():
 Name: Delete elif around t1
 
 =-=
-if True:
-    pass
-elif not b is not None and a == 3:
-    b |= 38
-else:
-    pass
+    if True:
+        pass
+    elif not b is not None and a == 3:
+        b |= 38
+    else:
+        pass
 =-=
-if True:
-    pass
-|
-else:
-    pass
+    if True:
+        pass
+    |
+    else:
+        pass
 =-=-=
 
 Code:

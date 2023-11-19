@@ -21,6 +21,7 @@
 
 (require 'treesit)
 (require 'evil-ts-obj-conf)
+(require 'evil-ts-obj-common)
 
 (defvar evil-ts-obj-python-compound-nodes
   '("class_definition"
@@ -39,14 +40,14 @@
 See `treesit-thing-settings' for more information.")
 
 (defvar evil-ts-obj-python-compound-regex
-  (format "^%s$" (regexp-opt evil-ts-obj-python-compound-nodes)))
+  (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-compound-nodes))
 
 
 (defvar evil-ts-obj-python-statement-nodes
   '("return_statement" "expression_statement" "named_expression"))
 
 (defvar evil-ts-obj-python-statement-regex
-  (format "^%s$" (regexp-opt evil-ts-obj-python-statement-nodes)))
+  (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-statement-nodes))
 
 
 (defvar evil-ts-obj-python-param-parent-nodes
@@ -58,7 +59,7 @@ See `treesit-thing-settings' for more information.")
     "tuple"))
 
 (defvar evil-ts-obj-python-param-parent-regex
-  (format "^%s$" (regexp-opt evil-ts-obj-python-param-parent-nodes)))
+  (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-param-parent-nodes))
 
 
 (defvar evil-ts-obj-python-avy-jump-query
@@ -70,12 +71,7 @@ See `treesit-thing-settings' for more information.")
                    (mapconcat (lambda (n) (format "(%s (_) @p) " n))
                               evil-ts-obj-python-param-parent-nodes)))))
 
-(defun evil-ts-obj-python-inner-pred (node)
-  (string-match evil-ts-obj-python-compound-regex
-                (treesit-node-type (treesit-node-parent node)))
 
-  ;; (member (treesit-node-type (treesit-node-parent node)) evil-ts-obj-python-compound-nodes)
-  )
 
 (defun evil-ts-obj-python-param-pred (node)
   (when-let* ((named (treesit-node-check node 'named))
@@ -83,28 +79,44 @@ See `treesit-thing-settings' for more information.")
     (string-match evil-ts-obj-python-param-parent-regex
                   (treesit-node-type parent))))
 
+
 (defun evil-ts-obj-python-compound-around-ext (node)
   (when-let* ((is-func (equal (treesit-node-type node) "function_definition"))
               (parent (treesit-node-parent node))
               (is-decorator (equal (treesit-node-type parent) "decorated_definition")))
-    (setq node parent))
-  (list (treesit-node-start node)
-        (treesit-node-end node)))
+    (list (treesit-node-start parent)
+          (treesit-node-end parent))))
+
+(defun evil-ts-obj-python-extract-compound-inner (node)
+  (when-let* ((block-node (if (equal (treesit-node-type node) "if_statement")
+                              (treesit-node-child-by-field-name node "consequence")
+                            (treesit-node-child node -1)))
+              ((equal (treesit-node-type block-node) "block")))
+    (list (treesit-node-start block-node)
+          (treesit-node-end block-node))))
 
 ;;;###autoload
 (defun evil-ts-obj-python-setup-things ()
-  (setf (alist-get 'python evil-ts-obj-conf-compound-around-ext)
-        #'evil-ts-obj-python-compound-around-ext)
-  (setq-local evil-ts-obj-conf-avy-jump-query evil-ts-obj-python-avy-jump-query)
   (setq-local treesit-thing-settings
               `((python
-                 (compound-around ,evil-ts-obj-python-compound-regex)
-                 (compound-inner ,(cons "block" #'evil-ts-obj-python-inner-pred))
-                 (statement-around ,evil-ts-obj-python-statement-regex)
-                 (param-inner evil-ts-obj-python-param-pred))))
+                 (compound ,evil-ts-obj-python-compound-regex)
+                 (statement ,evil-ts-obj-python-statement-regex)
+                 (param evil-ts-obj-python-param-pred))))
+
+  (setq-local evil-ts-obj-conf-thing-modifiers
+              '(python
+                (
+                 compound ((:scope around
+                            :func evil-ts-obj-python-compound-around-ext)
+                           (:scope inner
+                            :func evil-ts-obj-python-extract-compound-inner))
+                 param ((:scope around
+                         :func evil-ts-obj-common-param-around-mod)))))
+
+  (setq-local evil-ts-obj-conf-avy-jump-query evil-ts-obj-python-avy-jump-query)
 
   (setq-local evil-ts-obj-conf-nav-dwim-thing
-              '(or param-inner statement-around compound-around)))
+              '(or param statement compound)))
 
 
 

@@ -1,0 +1,288 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-compound-around)))
+
+Name: Delete function around t1
+
+=-=
+func (){
+     e|cho ""
+}
+=-=
+|
+=-=-=
+
+
+Name: Delete function around t2
+
+=-=
+function fu|nc {
+     echo ""
+}
+=-=
+|
+=-=-=
+
+Name: Delete for loop around t1
+
+=-=
+func () {
+    fo|r ((i = 0 ; i < 100 ; i++)); do
+        echo $i
+    done
+}
+=-=
+func () {
+    |
+}
+=-=-=
+
+Name: Delete if around t1
+
+=-=
+    if [[ -n "$SSH_CLIENT" ]]; then
+        |return 0
+    else
+        return 1
+    fi
+=-=
+    |
+=-=-=
+
+Name: Delete if around t2
+
+=-=
+    if true; then
+        test
+    elif true; then
+        e|cho lol
+        return 0
+    fi
+=-=
+    if true; then
+        test
+    |
+    fi
+=-=-=
+
+
+Name: Delete if around t3
+
+=-=
+    if [[ -n "$SSH_CLIENT" ]]; then
+        return 0
+    else
+        retu|rn 1
+    fi
+=-=
+    if [[ -n "$SSH_CLIENT" ]]; then
+        return 0
+    |
+    fi
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-compound-inner)))
+
+Name: Delete function inner t1
+
+=-=
+func (){
+    e|cho ""
+    echo -n ""
+}
+=-=
+func (){
+    |
+}
+=-=-=
+
+Name: Delete function inner t2
+
+=-=
+function fun|c {
+    echo ""
+    echo -n ""
+}
+=-=
+function func {
+    |
+}
+=-=-=
+
+
+Name: Delete for loop inner t1
+
+=-=
+    for ((i = 0 ;| i < 100 ; i++)); do
+        echo $i
+        sleep 3
+    done
+=-=
+    for ((i = 0 ; i < 100 ; i++)); do
+        |
+    done
+=-=-=
+
+Name: Delete while loop inner t1
+
+=-=
+while [ $# -gt 0 ]; do
+  |  1
+     exit
+done
+=-=
+while [ $# -gt 0 ]; do
+    |
+done
+=-=-=
+
+Name: Delete if inner t1
+
+=-=
+    if true; then
+ |       echo 0
+        return 0
+    fi
+=-=
+    if true; then
+        |
+    fi
+=-=-=
+
+Name: Delete if inner t2
+
+=-=
+if tru|e; then
+    echo 0
+    return 0
+else
+    return 1
+fi
+=-=
+if true; then
+    |
+else
+    return 1
+fi
+=-=-=
+
+Name: Delete if inner t3
+
+=-=
+if tru|e; then
+    echo 0
+    return 0
+elif true; then
+    echo ""
+fi
+=-=
+if true; then
+    |
+elif true; then
+    echo ""
+fi
+=-=-=
+
+
+Name: Delete elif inner t1
+
+=-=
+    if true; then
+        test
+    elif true; then
+        e|cho lol
+        return 0
+    fi
+=-=
+    if true; then
+        test
+    elif true; then
+        |
+    fi
+=-=-=
+
+Name: Delete else inner t1
+
+=-=
+    if true; then
+        return 0
+    el|se
+        echo 11
+        return 1
+    fi
+=-=
+    if true; then
+        return 0
+    else
+        |
+    fi
+=-=-=
+
+Name: Delete case inner t1
+
+=-=
+        ca|se $key in
+            -sn) send_mode="1"; shift ;;
+            *) files+=("$1"); shift ;;
+        esac
+=-=
+        case $key in
+            |
+        esac
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-statement-around)))
+
+Name: Delete statement around t1
+
+=-=
+buffer=$(cat |/dev/stdin ; echo .)
+=-=
+buffer=$(| echo .)
+=-=-=
+
+Name: Delete statement around t2
+
+=-=
+buffer=$(cat /dev/stdin ; |echo .)
+=-=
+buffer=$(cat /dev/stdin ; |)
+=-=-=
+
+Name: Delete statement around t3
+
+=-=
+buffer=$(cat /dev/stdin ; echo .)|
+=-=
+|
+=-=-=
+
+Name: Delete statement around t4
+
+=-=
+buffer=$(cat /dev/stdin ; echo . |)
+=-=
+|
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-statement-inner)))
+
+Name: Delete statement inner t1
+
+=-=
+buffer=$(cat |/dev/stdin ; echo .)
+=-=
+buffer=$(| ; echo .)
+=-=-=

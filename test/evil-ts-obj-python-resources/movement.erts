@@ -37,7 +37,7 @@ def func(*args):
     |a = 3
 =-=-=
 
-Name: next sibling dwim t2
+Name: next sibling dwim t3
 
 =-=
 def temp(t, **kwa|rgs):
@@ -53,6 +53,280 @@ def func(|*args):
     a = 3
 =-=-=
 
+Name: next sibling dwim t4
+
+=-=
+def temp(|temp1:TempC=TempC(a=1, c=8), s:str='s, tr'):
+    t = 3
+=-=
+def temp(temp1:TempC=TempC(a=1, c=8), |s:str='s, tr'):
+    t = 3
+=-=-=
+
+Name: next sibling dwim t5
+
+=-=
+def temp(temp1:TempC=Te|mpC(a=1, c=8), s:str='s, tr'):
+    t = 3
+=-=
+def temp(temp1:TempC=TempC(a=1, c=8), |s:str='s, tr'):
+    t = 3
+=-=-=
+
+Name: next sibling dwim t6
+
+Enclosing thing is func1.
+So jump to its next sibling func2.
+
+=-=
+def func1():
+  |  tempf()
+    for stream_key, records in resp:
+        pass
+    return 2
+
+def func2():
+    pass
+=-=
+def func1():
+    tempf()
+    for stream_key, records in resp:
+        pass
+    return 2
+
+|def func2():
+    pass
+=-=-=
+
+Name: next sibling dwim t7
+
+=-=
+def func1():
+    for i in| range(3, 10):
+        a = 3
+        if i % 2 == 0:
+            pass
+    if True:
+        pass
+=-=
+def func1():
+    for i in range(3, 10):
+        a = 3
+        if i % 2 == 0:
+            pass
+    |if True:
+        pass
+=-=-=
+
+Name: next sibling dwim t8
+
+=-=
+def func1():
+    for i in range(3, 10):
+        a = 3
+  |      if i % 2 == 0:
+            pass
+        if False:
+            pass
+    if True:
+        pass
+=-=
+def func1():
+    for i in range(3, 10):
+        a = 3
+        if i % 2 == 0:
+            pass
+        if False:
+            pass
+    |if True:
+        pass
+=-=-=
+
+Name: next sibling dwim t9
+
+=-=
+def func1():
+    |aa *= 8
+    if i % 2 == 0:
+        aa *= 3
+    print(here)
+=-=
+def func1():
+    aa *= 8
+    if i % 2 == 0:
+        aa *= 3
+    |print(here)
+=-=-=
+
+Name: next sibling dwim t10
+
+=-=
+|
+
+def func1():
+    print()
+=-=
+
+
+|def func1():
+    print()
+=-=-=
+
+Name: next sibling dwim t11
+
+=-=
+def func1():
+    aa *= 8
+    if i % 2 == 0:
+        |aa *= 3
+    print(here)
+=-=
+def func1():
+    aa *= 8
+    if i % 2 == 0:
+        aa *= 3
+    |print(here)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-prev-sibling-dwim))
+
+Name: prev sibling dwim t1
+
+=-=
+def temp(temp1:TempC=TempC(a=1, c=8), |s:str='s, tr'):
+    t = 3
+=-=
+def temp(|temp1:TempC=TempC(a=1, c=8), s:str='s, tr'):
+    t = 3
+=-=-=
+
+Name: prev sibling dwim t2
+
+=-=
+def temp(temp1:TempC=TempC(a=1, c=8), s:str|='s, tr'):
+    t = 3
+=-=
+def temp(|temp1:TempC=TempC(a=1, c=8), s:str='s, tr'):
+    t = 3
+=-=-=
+
+Name: prev sibling dwim t3
+
+Enclosing thing is func1.
+So jump to its prev sibling func2.
+
+=-=
+def func2():
+    pass
+
+def func1():
+    tempf()
+    for stream_key, records in resp:
+        pass
+|    return 2
+=-=
+|def func2():
+    pass
+
+def func1():
+    tempf()
+    for stream_key, records in resp:
+        pass
+    return 2
+=-=-=
+
+Name: prev sibling dwim t4
+
+=-=
+def func1():
+    for i in range(3, 10):
+        a = 3
+        if i % 2 == 0:
+            pass
+    if T|rue:
+        pass
+=-=
+def func1():
+    |for i in range(3, 10):
+        a = 3
+        if i % 2 == 0:
+            pass
+    if True:
+        pass
+=-=-=
+
+Name: prev sibling dwim t5
+
+=-=
+def func1():
+    for i in range(3, 10):
+        pass
+    if True:
+        a = 3
+        if i % 2 == 0:
+            pass
+  |      if False:
+            pass
+=-=
+def func1():
+    |for i in range(3, 10):
+        pass
+    if True:
+        a = 3
+        if i % 2 == 0:
+            pass
+        if False:
+            pass
+=-=-=
+
+Name: prev sibling dwim t6
+
+=-=
+def func1():
+    aa *= 8
+    if i % 2 == 0:
+        aa *= 3
+    |print(here)
+=-=
+def func1():
+    |aa *= 8
+    if i % 2 == 0:
+        aa *= 3
+    print(here)
+=-=-=
+
+Name: prev sibling dwim t7
+
+=-=
+def func1():
+    print()
+
+|
+=-=
+|def func1():
+    print()
+
+
+=-=-=
+
+Name: prev sibling dwim t8
+
+=-=
+def func1():
+    aa *= 8
+    if i % 2 == 0:
+        |aa *= 3
+    print(here)
+=-=
+def func1():
+    |aa *= 8
+    if i % 2 == 0:
+        aa *= 3
+    print(here)
+=-=-=
 
 Code:
   (lambda ()

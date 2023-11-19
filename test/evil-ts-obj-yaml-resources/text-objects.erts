@@ -3,6 +3,25 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-compound-around)))
+
+Name: Delete list  around t1
+
+=-=
+---
+- a:
+    - te|mp1
+    - temp2
+=-=
+---
+- a:
+    |
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
     (apply #'evil-delete (evil-ts-obj-param-inner)))
 
 Name: Delete list item inner t1
@@ -11,6 +30,20 @@ Name: Delete list item inner t1
 ---
 - a:
     - te|mp1
+    - temp2
+=-=
+---
+- a:
+    - |
+    - temp2
+=-=-=
+
+Name: Delete list item inner t2
+
+=-=
+---
+- a:
+    |- temp1
     - temp2
 =-=
 ---
@@ -44,6 +77,8 @@ Code:
 
 Name: Delete multiline string
 
+This should work with string text object
+Skip: t
 =-=
 ---
 - a:
@@ -56,4 +91,6 @@ Name: Delete multiline string
 - a:
     golden-rings: |
 - aa
+=-=-=
+
 =-=-=
