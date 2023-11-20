@@ -3,9 +3,9 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (apply #'evil-delete (evil-ts-obj-compound-around)))
+    (apply #'evil-delete (evil-ts-obj-compound-outer)))
 
-Name: Delete function around t1
+Name: Delete function outer t1
 
 =-=
 func (){
@@ -16,7 +16,7 @@ func (){
 =-=-=
 
 
-Name: Delete function around t2
+Name: Delete function outer t2
 
 =-=
 function fu|nc {
@@ -26,7 +26,7 @@ function fu|nc {
 |
 =-=-=
 
-Name: Delete for loop around t1
+Name: Delete for loop outer t1
 
 =-=
 func () {
@@ -40,7 +40,7 @@ func () {
 }
 =-=-=
 
-Name: Delete if around t1
+Name: Delete if outer t1
 
 =-=
     if [[ -n "$SSH_CLIENT" ]]; then
@@ -52,7 +52,7 @@ Name: Delete if around t1
     |
 =-=-=
 
-Name: Delete if around t2
+Name: Delete if outer t2
 
 =-=
     if true; then
@@ -69,7 +69,7 @@ Name: Delete if around t2
 =-=-=
 
 
-Name: Delete if around t3
+Name: Delete if outer t3
 
 =-=
     if [[ -n "$SSH_CLIENT" ]]; then
@@ -240,9 +240,9 @@ Name: Delete case inner t1
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (apply #'evil-delete (evil-ts-obj-statement-around)))
+    (apply #'evil-delete (evil-ts-obj-statement-outer)))
 
-Name: Delete statement around t1
+Name: Delete statement outer t1
 
 =-=
 buffer=$(cat |/dev/stdin ; echo .)
@@ -250,7 +250,7 @@ buffer=$(cat |/dev/stdin ; echo .)
 buffer=$(| echo .)
 =-=-=
 
-Name: Delete statement around t2
+Name: Delete statement outer t2
 
 =-=
 buffer=$(cat /dev/stdin ; |echo .)
@@ -258,7 +258,7 @@ buffer=$(cat /dev/stdin ; |echo .)
 buffer=$(cat /dev/stdin ; |)
 =-=-=
 
-Name: Delete statement around t3
+Name: Delete statement outer t3
 
 =-=
 buffer=$(cat /dev/stdin ; echo .)|
@@ -266,7 +266,7 @@ buffer=$(cat /dev/stdin ; echo .)|
 |
 =-=-=
 
-Name: Delete statement around t4
+Name: Delete statement outer t4
 
 =-=
 buffer=$(cat /dev/stdin ; echo . |)

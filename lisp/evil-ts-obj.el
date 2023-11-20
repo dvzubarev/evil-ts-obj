@@ -25,8 +25,8 @@
 
 (require 'evil-ts-obj-conf)
 
-(defun evil-ts-obj--thing-around (pos thing)
-  "Return the enclosing thing around POS.
+(defun evil-ts-obj--thing-outer (pos thing)
+  "Return the enclosing thing outer POS.
 
 THING should be a thing defined in `treesit-thing-settings',
 which see; it can also be a predicate."
@@ -38,15 +38,15 @@ which see; it can also be a predicate."
                           (treesit-node-match-p node thing t)))))
     (treesit-parent-until cursor iter-pred t)))
 
-(defun evil-ts-obj--current-thing (node dwim-thing)
-  (pcase dwim-thing
+(defun evil-ts-obj--current-thing (node nav-thing)
+  (pcase nav-thing
     ((or (pred symbolp)
          (pred stringp))
-     dwim-thing)
+     nav-thing)
     ((pred listp)
      (seq-find (lambda (thing) (treesit-node-match-p node thing t))
-               (cdr dwim-thing) nil))
-    (_ (error "Unsupported dwim thing %s" dwim-thing))))
+               (cdr nav-thing) nil))
+    (_ (error "Unsupported thing %s" nav-thing))))
 
 (defun evil-ts-obj--check-modifier-scope (modifier-plist scope)
   (when-let ((scopes (plist-get modifier-plist :scope)))
@@ -77,13 +77,13 @@ which see; it can also be a predicate."
 
 
 (defun evil-ts-obj--get-thing-range (pos thing scope &optional return-node)
-  (when-let ((node (evil-ts-obj--thing-around pos thing)))
+  (when-let ((node (evil-ts-obj--thing-outer pos thing)))
     (append
      (evil-ts-obj--apply-modifiers node pos thing scope)
      (when return-node (list node)))))
 
 
-(defun evil-ts-obj-begin-of-thing (thing)
+(defun evil-ts-obj--begin-of-thing (thing)
   (when-let* ((range (evil-ts-obj--get-thing-range (point) thing 'nav t))
               (node (car (last range))))
     (while (and range
@@ -101,13 +101,13 @@ which see; it can also be a predicate."
     (when range
       (goto-char (car range)))))
 
-(defun evil-ts-obj-end-of-thing (thing)
+(defun evil-ts-obj--end-of-thing (thing)
   (when-let ((range (evil-ts-obj--get-thing-range (point) thing 'nav t))
              (node (car (last range))))
     (while (and range
                 (<= (1- (cadr range)) (point)))
       (if-let (parent-node (treesit-parent-until
-                             node (lambda (n) (treesit-node-match-p n thing t))))
+                            node (lambda (n) (treesit-node-match-p n thing t))))
           (progn
             (setq node parent-node
                   range (evil-ts-obj--apply-modifiers
@@ -122,8 +122,8 @@ which see; it can also be a predicate."
 
 (defun evil-ts-obj--jump-boundaries ()
   (interactive)
-  (when-let* ((thing evil-ts-obj-conf-nav-dwim-thing)
-              (node (evil-ts-obj--thing-around (point) thing)))
+  (when-let* ((thing evil-ts-obj-conf-nav-thing)
+              (node (evil-ts-obj--thing-outer (point) thing)))
     (cond
      ((= (treesit-node-start node) (point)) (goto-char (1- (treesit-node-end node))))
      ((= (1- (treesit-node-end node)) (point)) (goto-char (treesit-node-start node)))
@@ -229,21 +229,21 @@ which see; it can also be a predicate."
       (evil-ts-obj--maybe-set-jump init-enclosing-node prev init-pos)
       (goto-char (car range)))))
 
-(defun evil-ts-obj--dwim-thing-sibling (dir)
-  (let ((thing (or evil-ts-obj-conf-nav-dwim-thing
+(defun evil-ts-obj--thing-sibling (dir)
+  (let ((thing (or evil-ts-obj-conf-nav-thing
                    'compound)))
     (if (> dir 0)
         (evil-ts-obj--next-sibling thing)
       (evil-ts-obj--prev-sibling thing))))
 
 (defun evil-ts-obj--current-thing-sibling (dir)
-  (let ((thing (or evil-ts-obj-conf-nav-dwim-thing
+  (let ((thing (or evil-ts-obj-conf-nav-thing
                    'compound)))
 
     ;; try to guess to what thing to move
-    (when-let* ((dwim-thing evil-ts-obj-conf-nav-dwim-thing)
-                (node (evil-ts-obj--thing-around (point) dwim-thing))
-                (cur-thing (evil-ts-obj--current-thing node dwim-thing)))
+    (when-let* ((nav-thing evil-ts-obj-conf-nav-thing)
+                (node (evil-ts-obj--thing-outer (point) nav-thing))
+                (cur-thing (evil-ts-obj--current-thing node nav-thing)))
       ;; find next sibling of the thing we are currently at
       (setq thing cur-thing))
 
@@ -295,8 +295,8 @@ which see; it can also be a predicate."
 
 (defun evil-ts-obj--goto-prev-thing (thing)
   (pcase-let* ((init-pos (point))
-              (enclosing-node (treesit-node-at init-pos))
-              (`(,prev . ,range) (evil-ts-obj--prev-thing thing enclosing-node init-pos)))
+               (enclosing-node (treesit-node-at init-pos))
+               (`(,prev . ,range) (evil-ts-obj--prev-thing thing enclosing-node init-pos)))
 
 
     (when-let ((node prev)
@@ -310,63 +310,63 @@ which see; it can also be a predicate."
 
 
 
-;; * dwim functions
+;; * interactive functions
 
 ;;;###autoload
-(defun evil-ts-obj-next-dwim-thing-sibling ()
+(defun evil-ts-obj-next-sibling-thing ()
   (interactive)
-  (evil-ts-obj--dwim-thing-sibling 1))
+  (evil-ts-obj--thing-sibling 1))
 
 ;;;###autoload
-(defun evil-ts-obj-next-current-thing-sibling ()
+(defun evil-ts-obj-same-next-sibling-thing ()
   (interactive)
   (evil-ts-obj--current-thing-sibling 1))
 
 ;;;###autoload
-(defun evil-ts-obj-prev-dwim-thing-sibling ()
+(defun evil-ts-obj-prev-sibling-thing ()
   (interactive)
-  (evil-ts-obj--dwim-thing-sibling -1))
+  (evil-ts-obj--thing-sibling -1))
 
 ;;;###autoload
-(defun evil-ts-obj-prev-current-thing-sibling ()
+(defun evil-ts-obj-same-prev-sibling-thing ()
   (interactive)
   (evil-ts-obj--current-thing-sibling -1))
 
 
 ;;;###autoload
-(defun evil-ts-obj-begin-of-thing-dwim ()
+(defun evil-ts-obj-begin-of-thing ()
   (interactive)
   (if current-prefix-arg
-      (evil-ts-obj-begin-of-thing 'compound)
-    (evil-ts-obj-begin-of-thing evil-ts-obj-conf-nav-dwim-thing)))
+      (evil-ts-obj--begin-of-thing 'compound)
+    (evil-ts-obj--begin-of-thing evil-ts-obj-conf-nav-thing)))
 
 ;;;###autoload
-(defun evil-ts-obj-end-of-thing-dwim ()
+(defun evil-ts-obj-end-of-thing ()
   (interactive)
   (if current-prefix-arg
-      (evil-ts-obj-end-of-thing 'compound)
-    (evil-ts-obj-end-of-thing evil-ts-obj-conf-nav-dwim-thing)))
+      (evil-ts-obj--end-of-thing 'compound)
+    (evil-ts-obj--end-of-thing evil-ts-obj-conf-nav-thing)))
 
 
 
 ;;;###autoload
-(defun evil-ts-obj-next-dwim-thing ()
+(defun evil-ts-obj-next-thing ()
   (interactive)
-  (let ((thing (or evil-ts-obj-conf-nav-dwim-thing
+  (let ((thing (or evil-ts-obj-conf-nav-thing
                    'compound)))
     (evil-ts-obj--goto-next-thing thing)))
 
 ;;;###autoload
-(defun evil-ts-obj-prev-dwim-thing ()
+(defun evil-ts-obj-prev-thing ()
   (interactive)
-  (let ((thing (or evil-ts-obj-conf-nav-dwim-thing
+  (let ((thing (or evil-ts-obj-conf-nav-thing
                    'compound)))
     (evil-ts-obj--goto-prev-thing thing)))
 
 
-(evil-define-text-object evil-ts-obj-param-around (count &optional _beg _end _type)
+(evil-define-text-object evil-ts-obj-param-outer (count &optional _beg _end _type)
   "Select a param object."
-  (evil-ts-obj--get-thing-range (point) 'param 'around))
+  (evil-ts-obj--get-thing-range (point) 'param 'outer))
 
 (evil-define-text-object evil-ts-obj-param-inner (count &optional _beg _end _type)
   "Select a param object."
@@ -378,19 +378,19 @@ which see; it can also be a predicate."
       (setq last-pos (1- last-pos)))
     (list first-pos last-pos)))
 
-(evil-define-text-object evil-ts-obj-compound-around (count &optional _beg _end _type)
+(evil-define-text-object evil-ts-obj-compound-outer (count &optional _beg _end _type)
   "Select a compound object."
   (evil-ts-obj--finalize-compound
-   (evil-ts-obj--get-thing-range (point) 'compound 'around)))
+   (evil-ts-obj--get-thing-range (point) 'compound 'outer)))
 
 
 (evil-define-text-object evil-ts-obj-compound-inner (count &optional _beg _end _type)
   "Select a compound inner object."
   (evil-ts-obj--get-thing-range (point) 'compound 'inner))
 
-(evil-define-text-object evil-ts-obj-statement-around (count &optional _beg _end _type)
+(evil-define-text-object evil-ts-obj-statement-outer (count &optional _beg _end _type)
   "Select a compound object."
-  (evil-ts-obj--get-thing-range (point) 'statement 'around))
+  (evil-ts-obj--get-thing-range (point) 'statement 'outer))
 
 (evil-define-text-object evil-ts-obj-statement-inner (count &optional _beg _end _type)
   "Select a compound object."
@@ -421,11 +421,11 @@ which see; it can also be a predicate."
     (define-key map (kbd "a") #'evil-ts-obj-param-inner)
     (define-key map (kbd "s") #'evil-ts-obj-statement-inner)
     map))
-(defvar evil-ts-obj-around-text-objects-map
-  (let ((map (make-sparse-keymap "Around text objects")))
-    (define-key map (kbd "e") #'evil-ts-obj-compound-around)
-    (define-key map (kbd "a") #'evil-ts-obj-param-around)
-    (define-key map (kbd "s") #'evil-ts-obj-statement-around)
+(defvar evil-ts-obj-outer-text-objects-map
+  (let ((map (make-sparse-keymap "Outer text objects")))
+    (define-key map (kbd "e") #'evil-ts-obj-compound-outer)
+    (define-key map (kbd "a") #'evil-ts-obj-param-outer)
+    (define-key map (kbd "s") #'evil-ts-obj-statement-outer)
     map))
 
 
@@ -439,17 +439,17 @@ which see; it can also be a predicate."
 
 (evil-define-key '(visual operator) evil-ts-obj-mode-map
   "i" evil-ts-obj-inner-text-objects-map
-  "a" evil-ts-obj-around-text-objects-map)
+  "a" evil-ts-obj-outer-text-objects-map)
 
 (evil-define-key 'normal evil-ts-obj-mode-map
-  (kbd "M-a") #'evil-ts-obj-begin-of-thing-dwim
-  (kbd "M-e") #'evil-ts-obj-end-of-thing-dwim
-  (kbd "M-n") #'evil-ts-obj-next-dwim-thing-sibling
-  (kbd "C-M-n") #'evil-ts-obj-next-current-thing-sibling
-  (kbd "M-p") #'evil-ts-obj-prev-dwim-thing-sibling
-  (kbd "C-M-p") #'evil-ts-obj-prev-current-thing-sibling
-  (kbd "M-f") #'evil-ts-obj-next-dwim-thing
-  (kbd "M-b") #'evil-ts-obj-prev-dwim-thing
+  (kbd "M-a") #'evil-ts-obj-begin-of-thing
+  (kbd "M-e") #'evil-ts-obj-end-of-thing
+  (kbd "M-n") #'evil-ts-obj-next-sibling-thing
+  (kbd "C-M-n") #'evil-ts-obj-same-next-sibling-thing
+  (kbd "M-p") #'evil-ts-obj-prev-sibling-thing
+  (kbd "C-M-p") #'evil-ts-obj-same-prev-sibling-thing
+  (kbd "M-f") #'evil-ts-obj-next-thing
+  (kbd "M-b") #'evil-ts-obj-prev-thing
   "za" #'evil-ts-obj-avy-jump)
 
 

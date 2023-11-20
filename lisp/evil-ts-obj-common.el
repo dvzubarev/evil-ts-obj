@@ -18,7 +18,7 @@
 
 (require 'evil-ts-obj-conf)
 
-(defun evil-ts-obj-common-param-around-mod (node)
+(defun evil-ts-obj-common-param-outer-mod (node)
   (let ((start-pos (treesit-node-start node))
         (end-pos (treesit-node-end node))
         (next-sibling (treesit-node-next-sibling node t))

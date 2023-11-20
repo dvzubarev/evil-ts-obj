@@ -3,7 +3,7 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-begin-of-thing-dwim))
+    (evil-ts-obj-begin-of-thing))
 
 Name: to beginning t1
 
@@ -70,7 +70,7 @@ Name: to beginning t5
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-end-of-thing-dwim))
+    (evil-ts-obj-end-of-thing))
 
 Name: to end t1
 
@@ -89,9 +89,9 @@ Name: to end t1
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-prev-dwim-thing-sibling))
+    (evil-ts-obj-prev-sibling-thing))
 
-Name: to prev dwim t1
+Name: to prev t1
 
 =-=
 - aa
@@ -103,7 +103,7 @@ Name: to prev dwim t1
     - temp2
 =-=-=
 
-Name: to prev dwim t2
+Name: to prev t2
 
 =-=
 - aa
@@ -115,7 +115,7 @@ Name: to prev dwim t2
     - temp2
 =-=-=
 
-Name: to prev dwim t3
+Name: to prev t3
 
 =-=
 - k1: 1
@@ -127,7 +127,7 @@ Name: to prev dwim t3
   k3: 4
 =-=-=
 
-Name: to prev dwim t4
+Name: to prev t4
 
 =-=
 - k1: 1
@@ -139,7 +139,7 @@ Name: to prev dwim t4
   k3: 4
 =-=-=
 
-Name: to prev dwim t5
+Name: to prev t5
 
 Point is on the list, so thing is inferred to be compound.
 So jump to its parent mapping thats starts with key 'a'
@@ -158,7 +158,7 @@ So jump to its parent mapping thats starts with key 'a'
     - temp1
 =-=-=
 
-Name: to prev dwim t6
+Name: to prev t6
 
 Point is on the list item, so thing is inferred to be param.
 So jump to the parent mapping item with key 'bb'
@@ -176,7 +176,7 @@ aa: t
 =-=-=
 
 
-Name: to prev dwim t8
+Name: to prev t8
 
 Point is on a key value pair, so thing is inferred to be param.
 thats no previous sibling for 'a' key
@@ -199,7 +199,7 @@ So jump to its parent - list param, that starts on the same position as 'a' key
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-prev-current-thing-sibling))
+    (evil-ts-obj-same-prev-sibling-thing))
 
 Name: prev sibling of current thing t1
 
@@ -229,9 +229,9 @@ jump to the previous sibling compound
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-next-dwim-thing-sibling))
+    (evil-ts-obj-next-sibling-thing))
 
-Name: to next dwim t1
+Name: to next t1
 
 =-=
 |- aa
@@ -243,7 +243,7 @@ Name: to next dwim t1
 - ac
 =-=-=
 
-Name: to next dwim t2
+Name: to next t2
 
 =-=
 - aa
@@ -257,7 +257,7 @@ Name: to next dwim t2
 - |ac
 =-=-=
 
-Name: to next dwim t3
+Name: to next t3
 
 =-=
 - k1:| >
@@ -273,7 +273,7 @@ Name: to next dwim t3
   k3: 4
 =-=-=
 
-Name: to next dwim t4
+Name: to next t4
 
 =-=
 - k1: 1
@@ -285,7 +285,7 @@ Name: to next dwim t4
   |k3: 4
 =-=-=
 
-Name: to next dwim t5
+Name: to next t5
 
 Point is inside map's key value pair, so thing is inferred to be param.
 jump to the next sibling param
@@ -306,7 +306,7 @@ jump to the next sibling param
 - b: t
 =-=-=
 
-Name: to next dwim t8
+Name: to next t8
 
 Point is inside of a map, so thing is inferred to be compound.
 jump to next sibling compound
@@ -330,7 +330,7 @@ jump to next sibling compound
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-next-current-thing-sibling))
+    (evil-ts-obj-same-next-sibling-thing))
 
 Name: next sibling of current thing t1
 

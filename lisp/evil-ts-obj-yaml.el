@@ -62,13 +62,13 @@
               '(yaml
                 (param ((:scope (inner nav)
                          :func evil-ts-obj-yaml-param-mod)
-                        (:scope around
-                         :func evil-ts-obj-common-param-around-mod)))))
+                        (:scope outer
+                         :func evil-ts-obj-common-param-outer-mod)))))
 
   (setq-local evil-ts-obj-conf-avy-jump-query evil-ts-obj-yaml-avy-jump-query)
 
 
-  (setq-local evil-ts-obj-conf-nav-dwim-thing
+  (setq-local evil-ts-obj-conf-nav-thing
               '(or param compound)))
 
 

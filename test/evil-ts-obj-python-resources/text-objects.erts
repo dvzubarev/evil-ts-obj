@@ -77,9 +77,9 @@ else:
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (apply #'evil-delete (evil-ts-obj-compound-around)))
+    (apply #'evil-delete (evil-ts-obj-compound-outer)))
 
-Name: Delete function around t1
+Name: Delete function outer t1
 
 =-=
 def main():
@@ -89,7 +89,7 @@ def main():
 |
 =-=-=
 
-Name: Delete function with decorator around t2
+Name: Delete function with decorator outer t2
 
 =-=
 @decorator(arg1=1,
@@ -100,7 +100,7 @@ def main():
 |
 =-=-=
 
-Name: Delete loop around t1
+Name: Delete loop outer t1
 
 =-=
 def main():
@@ -111,7 +111,7 @@ def main():
     |
 =-=-=
 
-Name: Delete elif around t1
+Name: Delete elif outer t1
 
 =-=
     if True:
@@ -131,9 +131,9 @@ Name: Delete elif around t1
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (apply #'evil-delete (evil-ts-obj-param-around)))
+    (apply #'evil-delete (evil-ts-obj-param-outer)))
 
-Name: Delete param around t1
+Name: Delete param outer t1
 
 =-=
 def func(a, temp:d|ict[int, int], temp1:TempC=TempC(a=1, c=8), set:str='s, tr', e):
@@ -143,7 +143,7 @@ def func(a, |temp1:TempC=TempC(a=1, c=8), set:str='s, tr', e):
     pass
 =-=-=
 
-Name: Delete param around t2
+Name: Delete param outer t2
 
 =-=
 def func(a, temp1:TempC=TempC|(a=1, c=8), set:str='s, tr', e):
@@ -153,7 +153,7 @@ def func(a, |set:str='s, tr', e):
     pass
 =-=-=
 
-Name: Delete param around t3
+Name: Delete param outer t3
 
 =-=
 def func(a, |set:str='s, tr', e):
@@ -163,7 +163,7 @@ def func(a, |e):
     pass
 =-=-=
 
-Name: Delete param around t4
+Name: Delete param outer t4
 
 =-=
 def func(a, ab='83|, 8',):
@@ -173,7 +173,7 @@ def func(a, |):
     pass
 =-=-=
 
-Name: Delete param around t5
+Name: Delete param outer t5
 
 =-=
 def func(a, ab='83|, 8'  ):
@@ -183,7 +183,7 @@ def func(a|):
     pass
 =-=-=
 
-Name: Delete param around t6
+Name: Delete param outer t6
 
 =-=
 def func(|a,):
@@ -193,7 +193,7 @@ def func(|):
     pass
 =-=-=
 
-Name: Delete param around t7
+Name: Delete param outer t7
 
 Comma is not part of a thing
 It is imposible for now to make it work
@@ -212,9 +212,9 @@ def func(|):
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (apply #'evil-delete (evil-ts-obj-statement-around)))
+    (apply #'evil-delete (evil-ts-obj-statement-outer)))
 
-Name: Delete statement around t1
+Name: Delete statement outer t1
 
 =-=
 def func(a, e):

@@ -23,7 +23,7 @@
 (defvar-local evil-ts-obj-conf-thing-modifiers nil)
 
 
-(defvar-local evil-ts-obj-conf-nav-dwim-thing 'compound-around)
+(defvar-local evil-ts-obj-conf-nav-thing 'compound-outer)
 
 (defvar-local evil-ts-obj-conf-avy-jump-query nil)
 

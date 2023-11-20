@@ -80,7 +80,7 @@ See `treesit-thing-settings' for more information.")
                   (treesit-node-type parent))))
 
 
-(defun evil-ts-obj-python-compound-around-ext (node)
+(defun evil-ts-obj-python-compound-outer-ext (node)
   (when-let* ((is-func (equal (treesit-node-type node) "function_definition"))
               (parent (treesit-node-parent node))
               (is-decorator (equal (treesit-node-type parent) "decorated_definition")))
@@ -106,16 +106,16 @@ See `treesit-thing-settings' for more information.")
   (setq-local evil-ts-obj-conf-thing-modifiers
               '(python
                 (
-                 compound ((:scope around
-                            :func evil-ts-obj-python-compound-around-ext)
+                 compound ((:scope outer
+                            :func evil-ts-obj-python-compound-outer-ext)
                            (:scope inner
                             :func evil-ts-obj-python-extract-compound-inner))
-                 param ((:scope around
-                         :func evil-ts-obj-common-param-around-mod)))))
+                 param ((:scope outer
+                         :func evil-ts-obj-common-param-outer-mod)))))
 
   (setq-local evil-ts-obj-conf-avy-jump-query evil-ts-obj-python-avy-jump-query)
 
-  (setq-local evil-ts-obj-conf-nav-dwim-thing
+  (setq-local evil-ts-obj-conf-nav-thing
               '(or param statement compound)))
 
 

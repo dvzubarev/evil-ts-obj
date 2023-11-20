@@ -106,12 +106,12 @@ See `treesit-thing-settings' for more information.")
                 (
                  compound ((:scope inner
                             :func evil-ts-obj-bash-extract-compound-inner))
-                 statement ((:scope around
+                 statement ((:scope outer
                              :func evil-ts-obj-bash-statement-ext))
-                 param ((:scope around
-                         :func evil-ts-obj-common-param-around-mod)))))
+                 param ((:scope outer
+                         :func evil-ts-obj-common-param-outer-mod)))))
 
-  (setq-local evil-ts-obj-conf-nav-dwim-thing
+  (setq-local evil-ts-obj-conf-nav-thing
               '(or param statement compound)))
 
 

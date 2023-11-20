@@ -3,9 +3,9 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (apply #'evil-delete (evil-ts-obj-compound-around)))
+    (apply #'evil-delete (evil-ts-obj-compound-outer)))
 
-Name: Delete list  around t1
+Name: Delete list  outer t1
 
 =-=
 ---
@@ -55,9 +55,9 @@ Name: Delete list item inner t2
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (apply #'evil-delete (evil-ts-obj-param-around)))
+    (apply #'evil-delete (evil-ts-obj-param-outer)))
 
-Name: Delete list item around t2
+Name: Delete list item outer t2
 
 =-=
 ---
@@ -70,7 +70,7 @@ Name: Delete list item around t2
     |- temp2
 =-=-=
 
-Name: Delete list item around t3
+Name: Delete list item outer t3
 
 =-=
 ---
