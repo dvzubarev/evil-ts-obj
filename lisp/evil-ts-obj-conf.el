@@ -27,6 +27,8 @@
 
 (defvar-local evil-ts-obj-conf-avy-jump-query nil)
 
+(defvar-local evil-ts-obj-conf-param-sep ",")
+
 (defun evil-ts-obj-conf--make-nodes-regex (nodes)
   (format "^%s$" (regexp-opt nodes)))
 

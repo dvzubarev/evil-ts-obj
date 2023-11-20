@@ -70,6 +70,19 @@ Name: Delete list item around t2
     |- temp2
 =-=-=
 
+Name: Delete list item around t3
+
+=-=
+---
+- a:
+    - temp1
+    - te|mp2
+=-=
+---
+- a:
+    - temp1|
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)

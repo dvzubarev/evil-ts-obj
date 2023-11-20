@@ -173,6 +173,42 @@ def func(a, |):
     pass
 =-=-=
 
+Name: Delete param around t5
+
+=-=
+def func(a, ab='83|, 8'  ):
+    pass
+=-=
+def func(a|):
+    pass
+=-=-=
+
+Name: Delete param around t6
+
+=-=
+def func(|a,):
+    pass
+=-=
+def func(|):
+    pass
+=-=-=
+
+Name: Delete param around t7
+
+Comma is not part of a thing
+It is imposible for now to make it work
+
+Skip: t
+=-=
+def func(a|,):
+    pass
+=-=
+def func(|):
+    pass
+=-=-=
+
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
