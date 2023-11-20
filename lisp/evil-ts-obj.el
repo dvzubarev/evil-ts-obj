@@ -150,16 +150,11 @@ which see; it can also be a predicate."
         (when (treesit-node-match-p node thing t)
           (throw 'break node))))))
 
-(defun evil-ts-obj--next-sibling (thing)
-
-  (let* ((init-pos (point))
-         (init-enclosing-node (treesit--thing-at init-pos thing))
-         (next (evil-ts-obj--find-matching-sibling thing init-enclosing-node))
-         (parent init-enclosing-node)
-         (pos init-pos))
-
-    (if (and (null next)
-             (null init-enclosing-node))
+(defun evil-ts-obj--next-thing (thing init-enclosing-node init-pos)
+  (let ((parent init-enclosing-node)
+        (pos (treesit-node-end init-enclosing-node))
+        next)
+    (if (null init-enclosing-node)
         ;; it seems we are outside of any thing at the top level
         ;; just try to move forward
         (setq next (treesit--thing-next init-pos thing))
@@ -167,10 +162,22 @@ which see; it can also be a predicate."
       ;; go to parent and try to move to next sibling from there
       (while (and (or (null next)
                       (= init-pos (treesit-node-start next)))
-                  (setq parent (treesit-node-parent parent))
+                  parent
                   (< pos (point-max)))
-        (setq pos (treesit-node-end parent)
-              next (treesit--thing-next pos thing))))
+        (setq next (treesit--thing-next pos thing)
+              parent (treesit-node-parent parent)
+              pos (treesit-node-end parent))))
+    next))
+
+(defun evil-ts-obj--next-sibling (thing)
+  (let* ((init-pos (point))
+         (init-enclosing-node (treesit--thing-at init-pos thing))
+         next)
+
+    ;; simple case: next sibling exists
+    (setq next (evil-ts-obj--find-matching-sibling thing init-enclosing-node))
+    (unless next
+      (setq next (evil-ts-obj--next-thing thing init-enclosing-node init-pos)))
 
     (when-let ((node next)
                (range (evil-ts-obj--apply-modifiers
@@ -178,16 +185,12 @@ which see; it can also be a predicate."
       (evil-ts-obj--maybe-set-jump init-enclosing-node node init-pos)
       (goto-char (car range)))))
 
-(defun evil-ts-obj--prev-sibling (thing)
-  (let* ((init-pos (point))
-         (init-enclosing-node (treesit--thing-at init-pos thing))
-         (pos (treesit-node-start init-enclosing-node))
-         (prev (evil-ts-obj--find-matching-sibling thing init-enclosing-node t))
-         (range (evil-ts-obj--apply-modifiers prev pos thing 'nav)))
-    (if (and (null prev)
-             (null init-enclosing-node))
+(defun evil-ts-obj--prev-thing (thing init-enclosing-node init-pos)
+  (let ((pos (treesit-node-start init-enclosing-node))
+        prev range)
+    (if (null init-enclosing-node)
         ;; it seems we are outside of any thing at the top level
-        ;; just try to move bacward
+        ;; just try to move backward
         (setq prev (treesit--thing-prev init-pos thing)
               range (evil-ts-obj--apply-modifiers prev pos thing 'nav))
 
@@ -207,14 +210,33 @@ which see; it can also be a predicate."
           (setq prev (treesit--thing-at pos thing t)
                 pos (or (treesit-node-start prev) 0)))
         (setq range (evil-ts-obj--apply-modifiers prev pos thing 'nav))))
+    (cons prev range)))
+
+(defun evil-ts-obj--prev-sibling (thing)
+  (let* ((init-pos (point))
+         (init-enclosing-node (treesit--thing-at init-pos thing))
+         prev range)
+
+    ;; simple case: prev sibling exists
+    (setq prev (evil-ts-obj--find-matching-sibling thing init-enclosing-node t)
+          range (evil-ts-obj--apply-modifiers prev (treesit-node-start prev) thing 'nav))
+    (unless prev
+      (pcase-let ((`(,p . ,r) (evil-ts-obj--prev-thing thing init-enclosing-node init-pos)))
+        (setq prev p
+              range r)))
 
     (when range
       (evil-ts-obj--maybe-set-jump init-enclosing-node prev init-pos)
       (goto-char (car range)))))
 
+(defun evil-ts-obj--dwim-thing-sibling (dir)
+  (let ((thing (or evil-ts-obj-conf-nav-dwim-thing
+                   'compound)))
+    (if (> dir 0)
+        (evil-ts-obj--next-sibling thing)
+      (evil-ts-obj--prev-sibling thing))))
 
-
-(defun evil-ts-obj--sibling-dwim (dir)
+(defun evil-ts-obj--current-thing-sibling (dir)
   (let ((thing (or evil-ts-obj-conf-nav-dwim-thing
                    'compound)))
 
@@ -229,58 +251,86 @@ which see; it can also be a predicate."
         (evil-ts-obj--next-sibling thing)
       (evil-ts-obj--prev-sibling thing))))
 
-(defun evil-ts-obj--search-subtree (node thing &optional backward)
+(defun evil-ts-obj--search-subtree (node thing &optional backward child-filter)
   ;; cant use treesit-search-subtree since it includes root node to the search
-  (let ((children (treesit-node-children node t))
-        result)
+  (let* ((all-children (treesit-node-children node t))
+         (children (if child-filter
+                       (funcall child-filter all-children)
+                     all-children))
+         result)
     (cl-loop for child in (if backward
                               (nreverse children)
                             children)
-             do  (setq result (treesit-search-subtree
-                               child
-                               (lambda (n) (treesit-node-match-p n thing t))
-                               backward))
+             do (setq result (treesit-search-subtree
+                              child
+                              (lambda (n) (treesit-node-match-p n thing t))
+                              backward))
              when result
              return result)))
 
+(defun evil-ts-obj--search-subtree-backward (start-node thing init-pos)
+  ;; have to find the deepest node for that subtree
+  (let ((filter (apply-partially #'seq-filter
+                                 (lambda (c) (< (treesit-node-end c) init-pos))))
+        (node start-node)
+        child)
+    (while (setq node (evil-ts-obj--search-subtree node thing t filter))
+      (setq child node))
+    child))
 
 
-(defun evil-ts-obj--forward (thing)
-  (when-let ((enclosing-node (treesit-node-at (point))))
-    (if-let ((child-node (evil-ts-obj--search-subtree enclosing-node thing)))
-        ;; found node in the subtree
-        (goto-char (treesit-node-start child-node))
-      (evil-ts-obj--move-to-sibling (treesit-node-end enclosing-node) 1 thing))))
+(defun evil-ts-obj--goto-next-thing (thing)
 
-(defun evil-ts-obj--backward (thing)
-  (evil-ts-obj--move-to-sibling (point) -1 thing)
-  (message "prev node %s" (evil-ts-obj--thing-around (point) thing))
-  (when-let* ((prev-node (evil-ts-obj--thing-around (point) thing))
-              (child-node (evil-ts-obj--search-subtree prev-node thing t)))
-    ;; found node in the subtree
-    (goto-char (treesit-node-start child-node)))
-  ;; (when-let ((enclosing-node (treesit-node-at (point))))
-  ;;   (if-let ((child-node (evil-ts-obj--search-subtree enclosing-node thing t)))
-  ;;       ;; found node in the subtree
-  ;;       (progn
-  ;;         (message "found child %s" child-node)
-  ;;         (goto-char (treesit-node-end child-node)))
-  ;;     (evil-ts-obj--move-to-sibling (treesit-node-start enclosing-node) -1 thing)))
-  )
+  (when-let* ((init-pos (point))
+              (enclosing-node (treesit-node-at init-pos)))
+    (let (next)
+      (unless (setq next (evil-ts-obj--search-subtree enclosing-node thing))
+        (setq next (evil-ts-obj--next-thing thing enclosing-node init-pos)))
+
+
+      (when-let* ((node next)
+                  (range (evil-ts-obj--apply-modifiers
+                          node (treesit-node-start node) thing 'nav)))
+        (goto-char (car range))))))
+
+(defun evil-ts-obj--goto-prev-thing (thing)
+  (pcase-let* ((init-pos (point))
+              (enclosing-node (treesit-node-at init-pos))
+              (`(,prev . ,range) (evil-ts-obj--prev-thing thing enclosing-node init-pos)))
+
+
+    (when-let ((node prev)
+               (child (evil-ts-obj--search-subtree-backward node thing init-pos)))
+      (setq prev child
+            range (evil-ts-obj--apply-modifiers
+                   prev (treesit-node-start prev) thing 'nav)))
+
+    (when range
+      (goto-char (car range)))))
 
 
 
 ;; * dwim functions
 
 ;;;###autoload
-(defun evil-ts-obj-next-sibling-dwim ()
+(defun evil-ts-obj-next-dwim-thing-sibling ()
   (interactive)
-  (evil-ts-obj--sibling-dwim 1))
+  (evil-ts-obj--dwim-thing-sibling 1))
 
 ;;;###autoload
-(defun evil-ts-obj-prev-sibling-dwim ()
+(defun evil-ts-obj-next-current-thing-sibling ()
   (interactive)
-  (evil-ts-obj--sibling-dwim -1))
+  (evil-ts-obj--current-thing-sibling 1))
+
+;;;###autoload
+(defun evil-ts-obj-prev-dwim-thing-sibling ()
+  (interactive)
+  (evil-ts-obj--dwim-thing-sibling -1))
+
+;;;###autoload
+(defun evil-ts-obj-prev-current-thing-sibling ()
+  (interactive)
+  (evil-ts-obj--current-thing-sibling -1))
 
 
 ;;;###autoload
@@ -289,8 +339,6 @@ which see; it can also be a predicate."
   (if current-prefix-arg
       (evil-ts-obj-begin-of-thing 'compound)
     (evil-ts-obj-begin-of-thing evil-ts-obj-conf-nav-dwim-thing)))
-
-
 
 ;;;###autoload
 (defun evil-ts-obj-end-of-thing-dwim ()
@@ -302,16 +350,18 @@ which see; it can also be a predicate."
 
 
 ;;;###autoload
-(defun evil-ts-obj-forward-dwim ()
+(defun evil-ts-obj-next-dwim-thing ()
   (interactive)
-  (if-let* ((dwim-thing evil-ts-obj-conf-nav-dwim-thing))
-      (evil-ts-obj--forward dwim-thing)))
+  (let ((thing (or evil-ts-obj-conf-nav-dwim-thing
+                   'compound)))
+    (evil-ts-obj--goto-next-thing thing)))
 
 ;;;###autoload
-(defun evil-ts-obj-backward-dwim ()
+(defun evil-ts-obj-prev-dwim-thing ()
   (interactive)
-  (if-let* ((dwim-thing evil-ts-obj-conf-nav-dwim-thing))
-      (evil-ts-obj--backward dwim-thing)))
+  (let ((thing (or evil-ts-obj-conf-nav-dwim-thing
+                   'compound)))
+    (evil-ts-obj--goto-prev-thing thing)))
 
 
 (evil-define-text-object evil-ts-obj-param-around (count &optional _beg _end _type)
@@ -394,10 +444,12 @@ which see; it can also be a predicate."
 (evil-define-key 'normal evil-ts-obj-mode-map
   (kbd "M-a") #'evil-ts-obj-begin-of-thing-dwim
   (kbd "M-e") #'evil-ts-obj-end-of-thing-dwim
-  (kbd "M-n") #'evil-ts-obj-next-sibling-dwim
-  (kbd "M-p") #'evil-ts-obj-prev-sibling-dwim
-  (kbd "M-f") #'evil-ts-obj-forward-dwim
-  (kbd "M-b") #'evil-ts-obj-backward-dwim
+  (kbd "M-n") #'evil-ts-obj-next-dwim-thing-sibling
+  (kbd "C-M-n") #'evil-ts-obj-next-current-thing-sibling
+  (kbd "M-p") #'evil-ts-obj-prev-dwim-thing-sibling
+  (kbd "C-M-p") #'evil-ts-obj-prev-current-thing-sibling
+  (kbd "M-f") #'evil-ts-obj-next-dwim-thing
+  (kbd "M-b") #'evil-ts-obj-prev-dwim-thing
   "za" #'evil-ts-obj-avy-jump)
 
 

@@ -3,7 +3,44 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-next-sibling-dwim))
+    (evil-ts-obj-next-current-thing-sibling))
+
+Name: next sibling of current thing t1
+
+=-=
+def temp(t, **kwargs):
+    t = |3
+
+def func(*args):
+    a = 3
+=-=
+def temp(t, **kwargs):
+    t = 3
+
+def func(*args):
+    |a = 3
+=-=-=
+
+Name: next sibling of current thing t2
+
+=-=
+def temp(t, **kwa|rgs):
+    t = 3
+
+def func(*args):
+    a = 3
+=-=
+def temp(t, **kwargs):
+    t = 3
+
+def func(|*args):
+    a = 3
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-next-dwim-thing-sibling))
 
 Name: next sibling dwim t1
 
@@ -21,37 +58,6 @@ def temp(t, **kwargs):
     a = 3
 =-=-=
 
-Name: next sibling dwim t2
-
-=-=
-def temp(t, **kwargs):
-    t = |3
-
-def func(*args):
-    a = 3
-=-=
-def temp(t, **kwargs):
-    t = 3
-
-def func(*args):
-    |a = 3
-=-=-=
-
-Name: next sibling dwim t3
-
-=-=
-def temp(t, **kwa|rgs):
-    t = 3
-
-def func(*args):
-    a = 3
-=-=
-def temp(t, **kwargs):
-    t = 3
-
-def func(|*args):
-    a = 3
-=-=-=
 
 Name: next sibling dwim t4
 
@@ -146,8 +152,8 @@ Name: next sibling dwim t9
 
 =-=
 def func1():
-    |aa *= 8
-    if i % 2 == 0:
+    aa *= 8
+    |if i % 2 == 0:
         aa *= 3
     print(here)
 =-=
@@ -191,7 +197,7 @@ def func1():
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-prev-sibling-dwim))
+    (evil-ts-obj-prev-dwim-thing-sibling))
 
 Name: prev sibling dwim t1
 
@@ -292,8 +298,8 @@ def func1():
     |print(here)
 =-=
 def func1():
-    |aa *= 8
-    if i % 2 == 0:
+    aa *= 8
+    |if i % 2 == 0:
         aa *= 3
     print(here)
 =-=-=
@@ -322,11 +328,155 @@ def func1():
     print(here)
 =-=
 def func1():
-    |aa *= 8
-    if i % 2 == 0:
+    aa *= 8
+    |if i % 2 == 0:
         aa *= 3
     print(here)
 =-=-=
+
+Name: prev sibling dwim t9
+
+Skip: t
+
+=-=
+def func1():
+    pass
+
+@dec
+def func2():
+    pass
+
+def |func3():
+    pass
+=-=
+def func1():
+    pass
+
+@dec
+|def func2():
+    pass
+
+def func3():
+    pass
+=-=-=
+
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-next-dwim-thing))
+
+Name: next dwim thing t1
+
+=-=
+this|_is = func(1, temp1=TempC([1], [3]), ab='83, 8',)
+=-=
+this_is = func(|1, temp1=TempC([1], [3]), ab='83, 8',)
+=-=-=
+
+Name: next dwim thing t2
+
+=-=
+this_is = func(|1, temp1=TempC([1], [3]), ab='83, 8',)
+=-=
+this_is = func(1, |temp1=TempC([1], [3]), ab='83, 8',)
+=-=-=
+
+Name: next dwim thing t3
+
+=-=
+this_is = func(1, |temp1=TempC([1], [3]), ab='83, 8',)
+=-=
+this_is = func(1, temp1=TempC(|[1], [3]), ab='83, 8',)
+=-=-=
+
+Name: next dwim thing t4
+
+=-=
+this_is = func(1, temp1=TempC(|[1], [3]), ab='83, 8',)
+=-=
+this_is = func(1, temp1=TempC([|1], [3]), ab='83, 8',)
+=-=-=
+
+Name: next dwim thing t5
+
+=-=
+this_is = func(1, temp1=TempC([|1], [3]), ab='83, 8',)
+=-=
+this_is = func(1, temp1=TempC([1], |[3]), ab='83, 8',)
+=-=-=
+
+Name: next dwim thing t6
+
+=-=
+this_is = func(1, temp1=TempC([1], [|3]), ab='83, 8',)
+=-=
+this_is = func(1, temp1=TempC([1], [3]), |ab='83, 8',)
+=-=-=
+
+Name: next dwim thing t7
+
+=-=
+this_is = func(1, temp1=TempC([1], [3]), |ab='83, 8',)
+=-=
+this_is = func(1, temp1=TempC([1], [3]), |ab='83, 8',)
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-prev-dwim-thing))
+
+Name: previous dwim thing t1
+
+=-=
+this_is = func(1, temp1=TempC([1], [3]), |ab='83, 8',)
+=-=
+this_is = func(1, temp1=TempC([1], [|3]), ab='83, 8',)
+=-=-=
+
+Name: previous dwim thing t2
+
+=-=
+this_is = func(1, temp1=TempC([1], [|3]), ab='83, 8',)
+=-=
+this_is = func(1, temp1=TempC([1], |[3]), ab='83, 8',)
+=-=-=
+
+Name: previous dwim thing t3
+
+=-=
+this_is = func(1, temp1=TempC([1], [|3]), ab='83, 8',)
+=-=
+this_is = func(1, temp1=TempC([1], |[3]), ab='83, 8',)
+=-=-=
+
+Name: previous dwim thing t4
+
+=-=
+this_is = func(1, temp1=TempC(|[1], [3]), ab='83, 8',)
+=-=
+this_is = func(1, |temp1=TempC([1], [3]), ab='83, 8',)
+=-=-=
+
+Name: previous dwim thing t5
+
+=-=
+this_is = func(|1, temp1=TempC([1], [3]), ab='83, 8',)
+=-=
+|this_is = func(1, temp1=TempC([1], [3]), ab='83, 8',)
+=-=-=
+
+Name: previous dwim thing t6
+
+=-=
+|this_is = func(1, temp1=TempC([1], [3]), ab='83, 8',)
+=-=
+|this_is = func(1, temp1=TempC([1], [3]), ab='83, 8',)
+=-=-=
+
 
 Code:
   (lambda ()

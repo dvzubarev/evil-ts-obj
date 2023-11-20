@@ -89,7 +89,7 @@ Name: to end t1
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-prev-sibling-dwim))
+    (evil-ts-obj-prev-dwim-thing-sibling))
 
 Name: to prev dwim t1
 
@@ -196,7 +196,12 @@ So jump to its parent - list param, that starts on the same position as 'a' key
     - temp1
 =-=-=
 
-Name: to prev dwim t9
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (evil-ts-obj-prev-current-thing-sibling))
+
+Name: prev sibling of current thing t1
 
 Point is on a list, so thing is inferred to be compound.
 jump to the previous sibling compound
@@ -224,7 +229,7 @@ jump to the previous sibling compound
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-next-sibling-dwim))
+    (evil-ts-obj-next-dwim-thing-sibling))
 
 Name: to next dwim t1
 
@@ -301,7 +306,33 @@ jump to the next sibling param
 - b: t
 =-=-=
 
-Name: to next dwim t6
+Name: to next dwim t8
+
+Point is inside of a map, so thing is inferred to be compound.
+jump to next sibling compound
+
+=-=
+- a: t
+|
+  bb:
+    - temp2
+    - temp1
+- map: t
+=-=
+- a: t
+
+  bb:
+    - temp2
+    - temp1
+- |map: t
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (evil-ts-obj-next-current-thing-sibling))
+
+Name: next sibling of current thing t1
 
 Point is on a list, so thing is inferred to be compound.
 jump to the next compound
@@ -324,7 +355,7 @@ jump to the next compound
 - |b: t
 =-=-=
 
-Name: to next dwim t7
+Name: next sibling of current thing t2
 
 Point is inside of a map, so thing is inferred to be compound.
 No sibling compound for next jump
@@ -343,25 +374,4 @@ No sibling compound for next jump
     - temp2
     - temp1
 - aa
-=-=-=
-
-Name: to next dwim t8
-
-Point is inside of a map, so thing is inferred to be compound.
-jump to next sibling compound
-
-=-=
-- a: t
-|
-  bb:
-    - temp2
-    - temp1
-- map: t
-=-=
-- a: t
-
-  bb:
-    - temp2
-    - temp1
-- |map: t
 =-=-=
