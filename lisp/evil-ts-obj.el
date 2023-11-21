@@ -25,18 +25,21 @@
 
 (require 'evil-ts-obj-conf)
 
-(defun evil-ts-obj--thing-outer (pos thing)
+(defun evil-ts-obj--thing-around (pos thing)
   "Return the enclosing thing outer POS.
 
 THING should be a thing defined in `treesit-thing-settings',
 which see; it can also be a predicate."
-  (let ((cursor (treesit-node-at pos))
-        (iter-pred (lambda (node)
-                     (and (<= (treesit-node-start node)
-                              pos
-                              (treesit-node-end node))
-                          (treesit-node-match-p node thing t)))))
-    (treesit-parent-until cursor iter-pred t)))
+  (if-let* ((cursor (treesit-node-at pos))
+            (iter-pred (lambda (node)
+                         (and (<= (treesit-node-start node)
+                                  pos
+                                  (treesit-node-end node))
+                              (treesit-node-match-p node thing t))))
+            (enclosing-node (treesit-parent-until cursor iter-pred t)))
+      enclosing-node
+    ;; try to find next node
+    (treesit--thing-next (point) thing)))
 
 (defun evil-ts-obj--current-thing (node nav-thing)
   (pcase nav-thing
@@ -77,7 +80,7 @@ which see; it can also be a predicate."
 
 
 (defun evil-ts-obj--get-thing-range (pos thing scope &optional return-node)
-  (when-let ((node (evil-ts-obj--thing-outer pos thing)))
+  (when-let ((node (evil-ts-obj--thing-around pos thing)))
     (append
      (evil-ts-obj--apply-modifiers node pos thing scope)
      (when return-node (list node)))))
@@ -123,7 +126,7 @@ which see; it can also be a predicate."
 (defun evil-ts-obj--jump-boundaries ()
   (interactive)
   (when-let* ((thing evil-ts-obj-conf-nav-thing)
-              (node (evil-ts-obj--thing-outer (point) thing)))
+              (node (evil-ts-obj--thing-around (point) thing)))
     (cond
      ((= (treesit-node-start node) (point)) (goto-char (1- (treesit-node-end node))))
      ((= (1- (treesit-node-end node)) (point)) (goto-char (treesit-node-start node)))
@@ -242,7 +245,7 @@ which see; it can also be a predicate."
 
     ;; try to guess to what thing to move
     (when-let* ((nav-thing evil-ts-obj-conf-nav-thing)
-                (node (evil-ts-obj--thing-outer (point) nav-thing))
+                (node (evil-ts-obj--thing-around (point) nav-thing))
                 (cur-thing (evil-ts-obj--current-thing node nav-thing)))
       ;; find next sibling of the thing we are currently at
       (setq thing cur-thing))

@@ -209,6 +209,17 @@ def func(|):
 
 =-=-=
 
+Name: Delete param outer t8
+
+=-=
+def |func(a, b):
+    pass
+=-=
+def func(|b):
+    pass
+=-=-=
+
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
