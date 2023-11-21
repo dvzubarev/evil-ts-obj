@@ -196,7 +196,7 @@ def func(|):
 Name: Delete param outer t7
 
 Comma is not part of a thing
-It is imposible for now to make it work
+It is impossible for now to make it work
 
 Skip: t
 =-=
@@ -223,4 +223,56 @@ def func(a, e):
 =-=
 def func(a, e):
     |
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-statement-upper)))
+
+Name: Delete statement upper t1
+
+=-=
+def func(a, e):
+    a = 0
+    e = 0
+    this_is = func(1,|
+                   ab='83, 8',)
+    return e
+=-=
+def func(a, e):
+    |
+    return e
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-upper)))
+
+Name: Delete param upper t1
+
+=-=
+def func(a, e):
+    this_is = func(1, temp={'1':1, '2':2},
+                   te|mp1=TempC([1], [3]), ab='83, 8',)
+=-=
+def func(a, e):
+    this_is = func(|ab='83, 8',)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-lower)))
+
+Name: Delete param lower t1
+
+=-=
+def func(a, e):
+    this_is = func(1, |temp={'1':1, '2':2},
+                   ab='83, 8')
+=-=
+def func(a, e):
+    this_is = func(1, |)
 =-=-=

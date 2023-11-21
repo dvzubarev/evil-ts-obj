@@ -107,3 +107,44 @@ Skip: t
 =-=-=
 
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-lower)))
+
+Name: Delete list item lower t1
+
+=-=
+---
+- a:
+    - 111
+    - 22|2
+    - 333
+    - 444
+=-=
+---
+- a:
+    - 111
+    |
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-upper)))
+
+Name: Delete list item upper t1
+
+=-=
+---
+- a:
+    - 111
+    - 222
+    - |333
+    - 444
+=-=
+---
+- a:
+    |- 444
+=-=-=
