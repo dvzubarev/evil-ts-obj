@@ -1,0 +1,62 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (with-simulated-input "a"
+      (evil-ts-obj-avy-compound-outer-text-obj)))
+
+Name: compound nav t1
+
+=-=
+
+def main():
+    |return 3
+=-=
+
+|def main():
+    return 3
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (with-simulated-input "a"
+      (evil-ts-obj-avy-param-inner-text-obj)))
+
+Name: nav t1
+
+=-=
+|
+main([1])
+=-=
+
+main([|1])
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (with-simulated-input "e"
+      (apply #'evil-delete (evil-ts-obj-avy-compound-inner-text-obj)))
+    (delete-trailing-whitespace))
+
+Name: delete avy compound inner text object t1
+
+=-=
+
+def temp():
+    while True:
+        i = 3
+        i *= 3
+
+def main():
+    |pass
+=-=
+
+def temp():
+
+
+def main():
+    pass
+=-=-=

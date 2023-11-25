@@ -1,0 +1,214 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (with-simulated-input "ea"
+      (evil-ts-obj-avy-compound-outer-paste-after)))
+
+Name: the same indentation level t1
+
+=-=
+def tempf():
+    i = 3
+    while True:
+        if i > 3:
+            break
+    i = 0
+def main():
+    |
+=-=
+def tempf():
+    i = 3
+    while True:
+        if i > 3:
+            break
+    i = 0
+def main():
+    |while True:
+        if i > 3:
+            break
+=-=-=
+
+Name: the same indentation level t2
+
+Paste on empty line
+
+=-=
+def tempf():
+    i = 3
+    while True:
+        if i > 3:
+            break
+    i = 0
+def main():
+|
+=-=
+def tempf():
+    i = 3
+    while True:
+        if i > 3:
+            break
+    i = 0
+def main():
+    |while True:
+        if i > 3:
+            break
+=-=-=
+
+Name: the same indentation level t3
+
+=-=
+
+def temp():
+    pass
+
+def tempf():
+    i = 3
+    while True:
+        if i > 3:
+            break
+G=0
+|
+=-=
+
+def temp():
+    pass
+
+def tempf():
+    i = 3
+    while True:
+        if i > 3:
+            break
+G=0
+|def tempf():
+    i = 3
+    while True:
+        if i > 3:
+            break
+=-=-=
+
+Name: different indentation level t1
+
+=-=
+def tempf():
+    i = 3
+    while True:
+        if i > 3:
+            break
+        if True:
+           pass
+    i = 0
+def main():
+|
+=-=
+def tempf():
+    i = 3
+    while True:
+        if i > 3:
+            break
+        if True:
+           pass
+    i = 0
+def main():
+    |if i > 3:
+        break
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (with-simulated-input "ee"
+      (evil-ts-obj-avy-compound-outer-paste-after)))
+
+Name: different indentation level t2
+
+=-=
+
+if True:
+    pass
+    while False:
+        pass
+
+def tempf():
+    while True:
+        if i > 3:
+            |
+=-=
+
+if True:
+    pass
+    while False:
+        pass
+
+def tempf():
+    while True:
+        if i > 3:
+            |if True:
+                pass
+                while False:
+                    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (with-simulated-input "a"
+      (evil-ts-obj-avy-statement-outer-paste-after)))
+
+Name: paste expression t1
+
+=-=
+
+if (val := d.get(kw1=3,
+                 kw2=8932,
+                 's')) is not None:
+    pass
+
+def main():
+	while |():
+        pass
+=-=
+
+if (val := d.get(kw1=3,
+                 kw2=8932,
+                 's')) is not None:
+    pass
+
+def main():
+	while |(val := d.get(kw1=3,
+                        kw2=8932,
+                        's')):
+        pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (with-simulated-input "eb"
+      (evil-ts-obj-avy-param-inner-paste-after)))
+
+Name: paste param t1
+
+=-=
+
+def temp():
+    func(1,
+	     temp1=TempC([1],
+                     [3]),
+         ab='83, 8')
+
+G=0
+|
+=-=
+
+def temp():
+    func(1,
+	     temp1=TempC([1],
+                     [3]),
+         ab='83, 8')
+
+G=0
+|temp1=TempC([1],
+            [3])
+=-=-=
