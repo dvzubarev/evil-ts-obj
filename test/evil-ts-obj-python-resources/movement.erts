@@ -435,6 +435,18 @@ def main():
     return 3
 =-=-=
 
+Name: next thing t9
+
+=-=
+
+def temp(var, temp=(1,2),| ):
+    i = 3
+=-=
+
+def temp(var, temp=(1,2), ):
+    |i = 3
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
@@ -488,6 +500,29 @@ Name: previous thing t6
 |this_is = func(1, temp1=TempC([1], [3]), ab='83, 8',)
 =-=-=
 
+Name: previous thing t7
+
+=-=
+
+def temp(var, temp=(1,2),| ):
+    i = 3
+=-=
+
+def temp(var, temp=(1,|2), ):
+    i = 3
+=-=-=
+
+Name: previous thing t8
+
+=-=
+
+def temp(var, temp=(1,2)|, ):
+    i = 3
+=-=
+
+def temp(var, temp=(1,|2), ):
+    i = 3
+=-=-=
 
 Code:
   (lambda ()
