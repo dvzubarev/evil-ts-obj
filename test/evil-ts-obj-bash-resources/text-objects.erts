@@ -286,3 +286,17 @@ buffer=$(cat |/dev/stdin ; echo .)
 =-=
 buffer=$(| ; echo .)
 =-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-upper)))
+
+Name: Delete param upper t1
+
+=-=
+buffer=$(read -x -ra| files)
+=-=
+buffer=$(read |files)
+=-=-=

@@ -23,6 +23,7 @@
 (require 'evil)
 
 (require 'evil-ts-obj-conf)
+(require 'evil-ts-obj-common)
 
 (defun evil-ts-obj--root-at (pos)
   (or (when-let ((parser
@@ -63,43 +64,57 @@ which see; it can also be a predicate."
                (cdr nav-thing) nil))
     (_ (error "Unsupported thing %s" nav-thing))))
 
-(defun evil-ts-obj--check-modifier-scope (modifier-plist scope)
-  (when-let ((scopes (plist-get modifier-plist :scope)))
-    (pcase scopes
-      ((pred symbolp)
-       (eq scope scopes))
-      ((pred listp)
-       (memq scope scopes))
-      (_ nil))))
+(defun evil-ts-obj--make-spec (op-kind &optional thing text-obj command)
+  `(:thing ,thing
+    :text-obj ,text-obj
+    :op-kind ,op-kind
+    :command ,(or command
+                  evil-this-operator
+                  (and (bound-and-true-p avy-action)
+                       (not (eq avy-action #'identity))
+                       avy-action)
+                  this-command)))
 
-(defun evil-ts-obj--find-mod-func (modifiers-list scope)
-  (when-let ((mod-plist (seq-find (lambda (mod-plist)
-                                    (evil-ts-obj--check-modifier-scope mod-plist scope))
-                                  modifiers-list)))
-    (plist-get mod-plist :func)))
+(defun evil-ts-obj--default-range (node spec)
 
-(defun evil-ts-obj--apply-modifiers (node pos thing scope)
+  (let ((start (treesit-node-start node))
+        (end (treesit-node-end node)))
+    (pcase spec
+      ((pmap (:text-obj 'upper))
+       (let ((final-sibling node))
+         (while (setq node (treesit-node-prev-sibling node t))
+           (setq final-sibling node))
+         (setq start (treesit-node-start final-sibling))))
+      ((pmap (:text-obj 'lower))
+       (let ((final-sibling node))
+         (while (setq node (treesit-node-next-sibling node t))
+           (setq final-sibling node))
+         (setq end (treesit-node-end final-sibling)))))
+    (list start end)))
+
+(defun evil-ts-obj--apply-modifiers (node pos thing spec)
   (when node
-    (if-let* ((modifiers-plist (plist-get evil-ts-obj-conf-thing-modifiers
-                                          (treesit-language-at pos)))
+    (if-let* ((modifier (plist-get evil-ts-obj-conf-thing-modifiers
+                                   (treesit-language-at pos)))
               (current-thing (evil-ts-obj--current-thing node thing))
-              (thing-modifiers (plist-get modifiers-plist current-thing))
-              (mod-func (evil-ts-obj--find-mod-func thing-modifiers scope))
-              (range (funcall mod-func node)))
+              (spec (plist-put spec :thing current-thing))
+              (range (funcall modifier spec node)))
         range
-      (list (treesit-node-start node)
-            (treesit-node-end node)))))
+      (evil-ts-obj--default-range node spec))))
 
 
-(defun evil-ts-obj--get-thing-range (pos thing scope &optional return-node)
+(defun evil-ts-obj--get-thing-range (pos thing spec &optional return-node)
   (when-let ((node (evil-ts-obj--thing-around pos thing)))
     (append
-     (evil-ts-obj--apply-modifiers node pos thing scope)
+     (evil-ts-obj--apply-modifiers node pos thing spec)
      (when return-node (list node)))))
 
 
+;; * Movement
+
 (defun evil-ts-obj--begin-of-thing (thing)
-  (when-let* ((range (evil-ts-obj--get-thing-range (point) thing 'nav t))
+  (when-let* ((spec (evil-ts-obj--make-spec 'nav))
+              (range (evil-ts-obj--get-thing-range (point) thing spec t))
               (node (car (last range))))
     (while (and range
                 (<= (point) (car range)))
@@ -110,14 +125,15 @@ which see; it can also be a predicate."
           (progn
             (setq node parent-node
                   range (evil-ts-obj--apply-modifiers
-                         parent-node (treesit-node-start parent-node) thing 'nav))
+                         parent-node (treesit-node-start parent-node) thing spec))
             (evil-set-jump))
         (setq range nil)))
     (when range
       (goto-char (car range)))))
 
 (defun evil-ts-obj--end-of-thing (thing)
-  (when-let ((range (evil-ts-obj--get-thing-range (point) thing 'nav t))
+  (when-let ((spec (evil-ts-obj--make-spec 'nav))
+             (range (evil-ts-obj--get-thing-range (point) thing spec t))
              (node (car (last range))))
     (while (and range
                 (<= (1- (cadr range)) (point)))
@@ -126,7 +142,7 @@ which see; it can also be a predicate."
           (progn
             (setq node parent-node
                   range (evil-ts-obj--apply-modifiers
-                         parent-node (treesit-node-end parent-node) thing 'nav))
+                         parent-node (treesit-node-end parent-node) thing spec))
             (evil-set-jump))
         (setq range nil)))
 
@@ -185,7 +201,8 @@ which see; it can also be a predicate."
     next))
 
 (defun evil-ts-obj--next-sibling (thing)
-  (let* ((init-pos (point))
+  (let* ((spec (evil-ts-obj--make-spec 'nav))
+         (init-pos (point))
          (init-enclosing-node (treesit--thing-at init-pos thing))
          next)
 
@@ -196,18 +213,18 @@ which see; it can also be a predicate."
 
     (when-let ((node next)
                (range (evil-ts-obj--apply-modifiers
-                       node (treesit-node-start node) thing 'nav)))
+                       node (treesit-node-start node) thing spec)))
       (evil-ts-obj--maybe-set-jump init-enclosing-node node init-pos)
       (goto-char (car range)))))
 
-(defun evil-ts-obj--prev-thing (thing init-enclosing-node init-pos)
+(defun evil-ts-obj--prev-thing (thing spec init-enclosing-node init-pos)
   (let ((pos (treesit-node-start init-enclosing-node))
         prev range)
     (if (null init-enclosing-node)
         ;; it seems we are outside of any thing at the top level
         ;; just try to move backward
         (setq prev (treesit--thing-prev init-pos thing)
-              range (evil-ts-obj--apply-modifiers prev pos thing 'nav))
+              range (evil-ts-obj--apply-modifiers prev pos thing spec))
 
       (while (and (or (null range)
                       (and init-enclosing-node
@@ -224,19 +241,20 @@ which see; it can also be a predicate."
           ;; make one step per iteration
           (setq prev (treesit--thing-at pos thing t)
                 pos (or (treesit-node-start prev) 0)))
-        (setq range (evil-ts-obj--apply-modifiers prev pos thing 'nav))))
+        (setq range (evil-ts-obj--apply-modifiers prev pos thing spec))))
     (cons prev range)))
 
 (defun evil-ts-obj--prev-sibling (thing)
-  (let* ((init-pos (point))
+  (let* ((spec (evil-ts-obj--make-spec 'nav))
+         (init-pos (point))
          (init-enclosing-node (treesit--thing-at init-pos thing))
          prev range)
 
     ;; simple case: prev sibling exists
     (setq prev (evil-ts-obj--find-matching-sibling thing init-enclosing-node t)
-          range (evil-ts-obj--apply-modifiers prev (treesit-node-start prev) thing 'nav))
+          range (evil-ts-obj--apply-modifiers prev (treesit-node-start prev) thing spec))
     (unless prev
-      (pcase-let ((`(,p . ,r) (evil-ts-obj--prev-thing thing init-enclosing-node init-pos)))
+      (pcase-let ((`(,p . ,r) (evil-ts-obj--prev-thing thing spec init-enclosing-node init-pos)))
         (setq prev p
               range r)))
 
@@ -301,23 +319,25 @@ which see; it can also be a predicate."
       (evil-ts-obj--next-thing thing enclosing-node pos))))
 
 (defun evil-ts-obj--goto-next-thing (thing)
-  (when-let* ((init-pos (point))
+  (when-let* ((spec (evil-ts-obj--make-spec 'nav))
+              (init-pos (point))
               (next (evil-ts-obj--find-next-thing thing init-pos))
               (range (evil-ts-obj--apply-modifiers
-                      next (treesit-node-start next) thing 'nav)))
+                      next (treesit-node-start next) thing spec)))
     (goto-char (car range))))
 
 (defun evil-ts-obj--goto-prev-thing (thing)
-  (pcase-let* ((init-pos (point))
+  (pcase-let* ((spec (evil-ts-obj--make-spec 'nav))
+               (init-pos (point))
                (enclosing-node (evil-ts-obj--smallest-node-at init-pos))
-               (`(,prev . ,range) (evil-ts-obj--prev-thing thing enclosing-node init-pos)))
+               (`(,prev . ,range) (evil-ts-obj--prev-thing thing spec enclosing-node init-pos)))
 
 
     (when-let ((node prev)
                (child (evil-ts-obj--search-subtree-backward node thing init-pos)))
       (setq prev child
             range (evil-ts-obj--apply-modifiers
-                   prev (treesit-node-start prev) thing 'nav)))
+                   prev (treesit-node-start prev) thing spec)))
 
     (when range
       (goto-char (car range)))))
@@ -378,13 +398,13 @@ which see; it can also be a predicate."
     (evil-ts-obj--goto-prev-thing thing)))
 
 
-(evil-define-text-object evil-ts-obj-param-outer (count &optional _beg _end _type)
-  "Select a param object."
-  (evil-ts-obj--get-thing-range (point) 'param 'outer))
-
-(evil-define-text-object evil-ts-obj-param-inner (count &optional _beg _end _type)
-  "Select a param object."
-  (evil-ts-obj--get-thing-range (point) 'param 'inner))
+(defmacro evil-ts-obj-define-text-obj (thing text-obj)
+  (declare (indent defun))
+  (let ((name (intern (format "evil-ts-obj-%s-%s" thing text-obj))))
+    `(evil-define-text-object ,name (count &optional _beg _end _type)
+       ,(format "Select a %s %s object." thing text-obj)
+       (evil-ts-obj--get-thing-range (point) ',thing
+                                     (evil-ts-obj--make-spec 'mod ',thing ',text-obj)))))
 
 (defun evil-ts-obj--finalize-compound (range)
   (pcase-let ((`(,first-pos ,last-pos) range))
@@ -395,62 +415,25 @@ which see; it can also be a predicate."
 (evil-define-text-object evil-ts-obj-compound-outer (count &optional _beg _end _type)
   "Select a compound object."
   (evil-ts-obj--finalize-compound
-   (evil-ts-obj--get-thing-range (point) 'compound 'outer)))
+   (evil-ts-obj--get-thing-range (point) 'compound
+                                 (evil-ts-obj--make-spec 'mod 'compound 'outer))))
+
+(evil-ts-obj-define-text-obj compound inner)
+(evil-ts-obj-define-text-obj compound upper)
+(evil-ts-obj-define-text-obj compound lower)
 
 
-(evil-define-text-object evil-ts-obj-compound-inner (count &optional _beg _end _type)
-  "Select a compound inner object."
-  (evil-ts-obj--get-thing-range (point) 'compound 'inner))
+(evil-ts-obj-define-text-obj statement outer)
+(evil-ts-obj-define-text-obj statement inner)
+(evil-ts-obj-define-text-obj statement upper)
+(evil-ts-obj-define-text-obj statement lower)
 
-(evil-define-text-object evil-ts-obj-statement-outer (count &optional _beg _end _type)
-  "Select a compound object."
-  (evil-ts-obj--get-thing-range (point) 'statement 'outer))
 
-(evil-define-text-object evil-ts-obj-statement-inner (count &optional _beg _end _type)
-  "Select a compound object."
-  (evil-ts-obj--get-thing-range (point) 'statement 'inner))
+(evil-ts-obj-define-text-obj param outer)
+(evil-ts-obj-define-text-obj param inner)
+(evil-ts-obj-define-text-obj param upper)
+(evil-ts-obj-define-text-obj param lower)
 
-(defun evil-ts-obj--get-thing-upper-range (pos thing scope)
-
-  (pcase-let* ((`(,start ,end ,node) (evil-ts-obj--get-thing-range pos thing scope t))
-               (final-sibling node))
-    (while (setq node (treesit-node-prev-sibling node t))
-      (setq final-sibling node))
-    (setq start (treesit-node-start final-sibling))
-    (list start end)))
-
-(evil-define-text-object evil-ts-obj-compound-upper (count &optional _beg _end _type)
-  "Select a compound thing and its previos siblings."
-  (evil-ts-obj--get-thing-upper-range (point) 'compound 'outer))
-
-(evil-define-text-object evil-ts-obj-statement-upper (count &optional _beg _end _type)
-  "Select a statement thing and its previos siblings."
-  (evil-ts-obj--get-thing-upper-range (point) 'statement 'outer))
-
-(evil-define-text-object evil-ts-obj-param-upper (count &optional _beg _end _type)
-  "Select a param thing and its previos siblings."
-  (evil-ts-obj--get-thing-upper-range (point) 'param 'outer))
-
-(defun evil-ts-obj--get-thing-lower-range (pos thing scope)
-
-  (pcase-let* ((`(,start ,end ,node) (evil-ts-obj--get-thing-range pos thing scope t))
-               (final-sibling node))
-    (while (setq node (treesit-node-next-sibling node t))
-      (setq final-sibling node))
-    (setq end (treesit-node-end final-sibling))
-    (list start end)))
-
-(evil-define-text-object evil-ts-obj-compound-lower (count &optional _beg _end _type)
-  "Select a compound thing and its next siblings."
-  (evil-ts-obj--get-thing-lower-range (point) 'compound 'outer))
-
-(evil-define-text-object evil-ts-obj-statement-lower (count &optional _beg _end _type)
-  "Select a statement thing and its previos siblings."
-  (evil-ts-obj--get-thing-lower-range (point) 'statement 'outer))
-
-(evil-define-text-object evil-ts-obj-param-lower (count &optional _beg _end _type)
-  "Select a param thing and its previos siblings."
-  (evil-ts-obj--get-thing-lower-range (point) 'param 'outer))
 
 
 ;;* default keybindings and minor mode

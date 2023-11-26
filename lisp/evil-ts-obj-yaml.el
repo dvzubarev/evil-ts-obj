@@ -36,12 +36,6 @@
   (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-yaml-param-nodes))
 
 
-(defvar evil-ts-obj-yaml-avy-jump-query
-  (treesit-query-compile
-   'yaml
-   (format "[%s]" (concat
-                   (mapconcat (lambda (n) (format "(%s) @c " n))
-                              evil-ts-obj-yaml-compound-nodes)))))
 
 (defun evil-ts-obj-yaml-param-mod (node)
   (when-let* ((is-list (equal (treesit-node-type node) "block_sequence_item"))
@@ -51,6 +45,17 @@
     (list (treesit-node-start child)
           (treesit-node-end child))))
 
+(defun evil-ts-obj-yaml-ext-func (spec node)
+  "Main extention function for yaml."
+
+  (pcase spec
+    ((pmap (:thing 'param) (:text-obj 'inner))
+     (evil-ts-obj-yaml-param-mod node))
+    ((pmap (:thing 'param) (:op-kind 'nav))
+     (evil-ts-obj-yaml-param-mod node))
+    ((pmap (:thing 'param) (:text-obj 'outer))
+     (evil-ts-obj-common-param-outer-mod node))))
+
 ;;;###autoload
 (defun evil-ts-obj-yaml-setup-things ()
   (setq-local treesit-thing-settings
@@ -59,13 +64,8 @@
                  (param ,evil-ts-obj-yaml-param-regex))))
 
   (setq-local evil-ts-obj-conf-thing-modifiers
-              '(yaml
-                (param ((:scope (inner nav)
-                         :func evil-ts-obj-yaml-param-mod)
-                        (:scope outer
-                         :func evil-ts-obj-common-param-outer-mod)))))
+              '(yaml evil-ts-obj-yaml-ext-func))
 
-  (setq-local evil-ts-obj-conf-avy-jump-query evil-ts-obj-yaml-avy-jump-query)
 
 
   (setq-local evil-ts-obj-conf-nav-thing

@@ -146,5 +146,6 @@ Name: Delete list item upper t1
 =-=
 ---
 - a:
-    |- 444
+    |
+    - 444
 =-=-=

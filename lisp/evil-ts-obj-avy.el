@@ -46,32 +46,22 @@ evil operator.")
 (defvar evil-ts-obj-avy--activate-motion-range-advice nil)
 
 
-(defun evil-ts-obj-avy--get-range (pos)
-  (let* ((func #'evil-ts-obj--get-thing-range)
-        (thing evil-ts-obj-avy--current-thing)
-        (text-obj evil-ts-obj-avy--current-text-obj)
-        (scope text-obj)
-        ;; (scope evil-ts-obj-avy--current-scope)
-        )
-
-    (cond
-     ((eq text-obj 'upper)
-      (setq func #'evil-ts-obj--get-thing-upper-range
-            scope 'outer))
-     ((eq evil-ts-obj-avy--current-text-obj 'lower)
-      (setq func #'evil-ts-obj--get-thing-lower-range
-            scope 'outer)))
-
-    (funcall func pos thing scope)))
+(defun evil-ts-obj-avy--get-range (pos op-kind)
+  (let* ((thing evil-ts-obj-avy--current-thing)
+         (text-obj evil-ts-obj-avy--current-text-obj)
+         (spec (evil-ts-obj--make-spec op-kind thing text-obj)))
+    (evil-ts-obj--get-thing-range pos thing spec)))
 
 (defun evil-ts-obj-avy-action-goto (pt)
-  (when-let ((range (evil-ts-obj-avy--get-range pt)))
+  (when-let ((range (evil-ts-obj-avy--get-range
+                     pt
+                     (if evil-this-operator 'mod 'nav))))
     (setq evil-ts-obj-avy--current-range range)
     (goto-char (car range)))
   t)
 
 (defun evil-ts-obj-avy-action-delete-thing (pt)
-  (when-let ((range (evil-ts-obj-avy--get-range pt)))
+  (when-let ((range (evil-ts-obj-avy--get-range pt 'mod)))
     (delete-region (car range) (cadr range)))
   (select-window
    (cdr
@@ -79,7 +69,7 @@ evil operator.")
   t)
 
 (defun evil-ts-obj-avy-action-yank-thing (pt)
-  (when-let ((range (evil-ts-obj-avy--get-range pt)))
+  (when-let ((range (evil-ts-obj-avy--get-range pt 'mod)))
     (copy-region-as-kill (car range) (cadr range)))
   (select-window
    (cdr
@@ -89,7 +79,7 @@ evil operator.")
 
 
 (defun evil-ts-obj-avy--action-paste (pt &optional after delete-region)
-  (when-let ((range (evil-ts-obj-avy--get-range pt))
+  (when-let ((range (evil-ts-obj-avy--get-range pt 'mod))
              (start (car range))
              (end (cadr range)))
 

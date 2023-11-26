@@ -22,9 +22,9 @@ Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
     (with-simulated-input "a"
-      (evil-ts-obj-avy-param-inner-text-obj)))
+      (evil-ts-obj-avy-param-outer-text-obj)))
 
-Name: nav t1
+Name: nav parameters t1
 
 =-=
 |
@@ -32,6 +32,20 @@ main([1])
 =-=
 
 main([|1])
+=-=-=
+
+Name: nav parameters t2
+
+=-=
+
+def temp(var,
+         temp):
+   |pass
+=-=
+
+def temp(var,
+         |temp):
+   pass
 =-=-=
 
 Code:
@@ -58,5 +72,24 @@ def temp():
 
 
 def main():
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (with-simulated-input "ea"
+      (setq-local evil-this-operator t)
+      (apply #'evil-delete (evil-ts-obj-avy-param-outer-text-obj))))
+
+Name: delete avy param outer text object t1
+
+=-=
+
+def temp(var, temp=(1,2)):
+    |pass
+=-=
+
+def temp(var|):
     pass
 =-=-=

@@ -19,11 +19,11 @@
 (require 'evil-ts-obj-conf)
 
 ;; * modifiers
-(defun evil-ts-obj-common-param-outer-mod (node)
-  (let ((start-pos (treesit-node-start node))
-        (end-pos (treesit-node-end node))
-        (next-sibling (treesit-node-next-sibling node t))
+
+(defun evil-ts-obj-common--find-next-sep-and-sibling (node)
+  (let ((next-sibling (treesit-node-next-sibling node t))
         (next-sibling-or-sep (treesit-node-next-sibling node))
+        (end-pos (treesit-node-end node))
         sep-found)
 
     (if next-sibling
@@ -37,15 +37,50 @@
           ;; maybe a closing bracket
           (setq end-pos (treesit-node-start next-sibling-or-sep)))))
 
+
+    (list end-pos next-sibling (when sep-found next-sibling-or-sep))))
+
+
+(defun evil-ts-obj-common-param-outer-mod (node)
+  (pcase-let* ((start-pos (treesit-node-start node))
+               (`(,end-pos ,next-sibling ,next-sep)
+                (evil-ts-obj-common--find-next-sep-and-sibling node)))
+
     (unless next-sibling
       ;; this is the last parameter
       ;; can we include previous separator?
-      (when-let (((not sep-found))
+      (when-let (((null next-sep))
                  (prev-sibling (treesit-node-prev-sibling node t)))
 
         ;; there was not trailing separator,
         ;; so we can assume that the previous one should be included
         (setq start-pos (treesit-node-end prev-sibling))))
+    (list start-pos end-pos)))
+
+(defun evil-ts-obj-common-param-upper-mod (node)
+  (pcase-let* ((start-pos (treesit-node-start node))
+               (`(,end-pos ,_ ,_)
+                (evil-ts-obj-common--find-next-sep-and-sibling node)))
+    (let ((final-sibling node))
+      (while (setq node (treesit-node-prev-sibling node t))
+        (setq final-sibling node))
+      (setq start-pos (treesit-node-start final-sibling)))
+    (list start-pos end-pos)))
+
+(defun evil-ts-obj-common-param-lower-mod (node)
+  (let ((start-pos (treesit-node-start node))
+        end-pos)
+    (when-let ((prev-sibling (treesit-node-prev-sibling node t)))
+      (setq start-pos (treesit-node-end prev-sibling)))
+
+    (let ((final-sibling node))
+      (while (setq node (treesit-node-next-sibling node t))
+        (setq final-sibling node))
+      ;; check trailing sep
+      (when-let* ((trailing-sep (treesit-node-next-sibling final-sibling))
+                  ((equal (treesit-node-type trailing-sep) evil-ts-obj-conf-param-sep)))
+        (setq final-sibling trailing-sep))
+      (setq end-pos (treesit-node-end final-sibling)))
     (list start-pos end-pos)))
 
 ;; * paste utils
@@ -118,6 +153,20 @@ span multiple lines."
       (+ (current-indentation)
          (- beg (progn (back-to-indentation) (point)))))))
 
+;; * Misc utils
+
+;; inspired by the code from map.el
+(defmacro evil-ts-obj-common--pcase-plist-get (key map)
+  "A macro to make MAP the last argument to `map-elt'."
+  `(plist-get ,map ,key))
+
+(pcase-defmacro pmap (&rest args)
+  "Liki a map pattern, but only for plists."
+  `(and (pred plistp)
+        ,@(mapcar
+           (lambda (elt)
+             `(app (evil-ts-obj-common--pcase-plist-get ,(car elt)) ,(cadr elt)))
+           args)))
 
 (provide 'evil-ts-obj-common)
 ;;; evil-ts-obj-common.el ends here

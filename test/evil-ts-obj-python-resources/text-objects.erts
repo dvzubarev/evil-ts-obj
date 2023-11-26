@@ -281,9 +281,19 @@ Name: Delete param lower t1
 
 =-=
 def func(a, e):
-    this_is = func(1, |temp={'1':1, '2':2},
-                   ab='83, 8')
+    this_is = func(1 , |temp={'1':1, '2':2},
+                   ab='83, 8',)
 =-=
 def func(a, e):
-    this_is = func(1, |)
+    this_is = func(1|)
+=-=-=
+
+Name: Delete param lower t2
+
+=-=
+def func(a, e):
+    this_is = func(te|mp={'1':1, '2':2})
+=-=
+def func(a, e):
+    this_is = func(|)
 =-=-=

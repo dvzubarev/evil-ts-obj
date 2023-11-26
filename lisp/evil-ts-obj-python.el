@@ -62,15 +62,6 @@ See `treesit-thing-settings' for more information.")
   (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-param-parent-nodes))
 
 
-(defvar evil-ts-obj-python-avy-jump-query
-  (treesit-query-compile
-   'python
-   (format "[%s]" (concat
-                   (mapconcat (lambda (n) (format "(%s) @c " n))
-                              evil-ts-obj-python-compound-nodes)
-                   (mapconcat (lambda (n) (format "(%s (_) @p) " n))
-                              evil-ts-obj-python-param-parent-nodes)))))
-
 
 
 (defun evil-ts-obj-python-param-pred (node)
@@ -95,6 +86,22 @@ See `treesit-thing-settings' for more information.")
     (list (treesit-node-start block-node)
           (treesit-node-end block-node))))
 
+
+
+(defun evil-ts-obj-python-ext-func (spec node)
+  "Main extention function for python."
+  (pcase spec
+    ((pmap (:thing 'compound) (:text-obj 'outer))
+     (evil-ts-obj-python-compound-outer-ext node))
+    ((pmap (:thing 'compound) (:text-obj 'inner))
+     (evil-ts-obj-python-extract-compound-inner node))
+    ((pmap (:thing 'param) (:text-obj 'outer) (:op-kind 'mod))
+     (evil-ts-obj-common-param-outer-mod node))
+    ((pmap (:thing 'param) (:text-obj 'upper))
+     (evil-ts-obj-common-param-upper-mod node))
+    ((pmap (:thing 'param) (:text-obj 'lower))
+     (evil-ts-obj-common-param-lower-mod node))))
+
 ;;;###autoload
 (defun evil-ts-obj-python-setup-things ()
   (setq-local treesit-thing-settings
@@ -104,16 +111,8 @@ See `treesit-thing-settings' for more information.")
                  (param evil-ts-obj-python-param-pred))))
 
   (setq-local evil-ts-obj-conf-thing-modifiers
-              '(python
-                (
-                 compound ((:scope outer
-                            :func evil-ts-obj-python-compound-outer-ext)
-                           (:scope inner
-                            :func evil-ts-obj-python-extract-compound-inner))
-                 param ((:scope outer
-                         :func evil-ts-obj-common-param-outer-mod)))))
+              '(python evil-ts-obj-python-ext-func))
 
-  (setq-local evil-ts-obj-conf-avy-jump-query evil-ts-obj-python-avy-jump-query)
 
   (setq-local evil-ts-obj-conf-nav-thing
               '(or param statement compound)))

@@ -44,12 +44,6 @@ See `treesit-thing-settings' for more information.")
 
 
 
-(defvar evil-ts-obj-bash-avy-jump-query
-  (treesit-query-compile
-   'bash
-   (format "[%s]" (concat
-                   (mapconcat (lambda (n) (format "(%s) @c " n))
-                              evil-ts-obj-bash-compound-nodes)))))
 
 
 (defun evil-ts-obj-bash-param-pred (node)
@@ -92,9 +86,35 @@ See `treesit-thing-settings' for more information.")
     (list (treesit-node-start node)
           (treesit-node-end next-sibl))))
 
+(defun evil-ts-obj-bash-param-upper (node)
+  (let ((start-pos (treesit-node-start node))
+               (end-pos (treesit-node-end node)))
+    (when-let (next-sibling (treesit-node-next-sibling node t))
+      (setq end-pos (treesit-node-start next-sibling)))
+
+    (let ((final-sibling node))
+      (while (and (setq node (treesit-node-prev-sibling node t))
+                  (not (equal (treesit-node-type node) "command_name")))
+        (setq final-sibling node))
+      (setq start-pos (treesit-node-start final-sibling)))
+    (list start-pos end-pos)))
+
+(defun evil-ts-obj-bash-ext-func (spec node)
+  "Main extention function for bash."
+
+  (pcase spec
+    ((pmap (:thing 'compound) (:text-obj 'inner))
+     (evil-ts-obj-bash-extract-compound-inner node))
+    ((pmap (:thing 'statement) (:text-obj 'outer))
+     (evil-ts-obj-bash-statement-ext node))
+    ((pmap (:thing 'param) (:text-obj 'outer))
+     (evil-ts-obj-common-param-outer-mod node))
+    ((pmap (:thing 'param) (:text-obj 'upper))
+     (evil-ts-obj-bash-param-upper node))))
+
+
 ;;;###autoload
 (defun evil-ts-obj-bash-setup-things ()
-  (setq-local evil-ts-obj-conf-avy-jump-query evil-ts-obj-bash-avy-jump-query)
 
   (setq-local treesit-thing-settings
               `((bash
@@ -102,14 +122,7 @@ See `treesit-thing-settings' for more information.")
                  (statement ,evil-ts-obj-bash-statement-regex)
                  (param evil-ts-obj-bash-param-pred))))
   (setq-local evil-ts-obj-conf-thing-modifiers
-              '(bash
-                (
-                 compound ((:scope inner
-                            :func evil-ts-obj-bash-extract-compound-inner))
-                 statement ((:scope outer
-                             :func evil-ts-obj-bash-statement-ext))
-                 param ((:scope outer
-                         :func evil-ts-obj-common-param-outer-mod)))))
+              '(bash evil-ts-obj-bash-ext-func))
 
   (setq-local evil-ts-obj-conf-nav-thing
               '(or param statement compound)))

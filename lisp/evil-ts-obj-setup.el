@@ -27,6 +27,8 @@
 
 (require 'evil-ts-obj-yaml)
 
+(require 'evil-ts-obj-avy)
+
 ;;;###autoload
 (defun evil-ts-obj-setup ()
 
