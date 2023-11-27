@@ -302,7 +302,7 @@ which see; it can also be a predicate."
 
 (defun evil-ts-obj--find-next-thing (thing pos)
   (let ((enclosing-node (evil-ts-obj--smallest-node-at pos))
-        (init-pos (point)))
+        (init-pos pos))
     (if-let ((node enclosing-node)
              (next (evil-ts-obj--search-subtree-forward node thing init-pos)))
         next
