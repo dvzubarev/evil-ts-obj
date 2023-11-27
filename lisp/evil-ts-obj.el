@@ -122,11 +122,9 @@ which see; it can also be a predicate."
       ;; Take into consideration that parent may start on the same position as the child.
       (if-let ((parent-node (treesit-parent-until
                              node (lambda (n) (treesit-node-match-p n thing t)))))
-          (progn
-            (setq node parent-node
-                  range (evil-ts-obj--apply-modifiers
-                         parent-node (treesit-node-start parent-node) thing spec))
-            (evil-set-jump))
+          (setq node parent-node
+                range (evil-ts-obj--apply-modifiers
+                       parent-node (treesit-node-start parent-node) thing spec))
         (setq range nil)))
     (when range
       (goto-char (car range)))))
@@ -139,11 +137,9 @@ which see; it can also be a predicate."
                 (<= (1- (cadr range)) (point)))
       (if-let (parent-node (treesit-parent-until
                             node (lambda (n) (treesit-node-match-p n thing t))))
-          (progn
-            (setq node parent-node
-                  range (evil-ts-obj--apply-modifiers
-                         parent-node (treesit-node-end parent-node) thing spec))
-            (evil-set-jump))
+          (setq node parent-node
+                range (evil-ts-obj--apply-modifiers
+                       parent-node (treesit-node-end parent-node) thing spec))
         (setq range nil)))
 
     (when range
@@ -200,7 +196,7 @@ which see; it can also be a predicate."
               pos (treesit-node-end parent))))
     next))
 
-(defun evil-ts-obj--next-sibling (thing)
+(defun evil-ts-obj--goto-next-sibling (thing)
   (let* ((spec (evil-ts-obj--make-spec 'nav))
          (init-pos (point))
          (init-enclosing-node (treesit--thing-at init-pos thing))
@@ -244,7 +240,7 @@ which see; it can also be a predicate."
         (setq range (evil-ts-obj--apply-modifiers prev pos thing spec))))
     (cons prev range)))
 
-(defun evil-ts-obj--prev-sibling (thing)
+(defun evil-ts-obj--goto-prev-sibling (thing)
   (let* ((spec (evil-ts-obj--make-spec 'nav))
          (init-pos (point))
          (init-enclosing-node (treesit--thing-at init-pos thing))
@@ -261,27 +257,19 @@ which see; it can also be a predicate."
       (evil-ts-obj--maybe-set-jump init-enclosing-node prev init-pos)
       (goto-char (car range)))))
 
-(defun evil-ts-obj--thing-sibling (dir)
+(defun evil-ts-obj--get-nav-thing (&optional current)
   (let ((thing (or evil-ts-obj-conf-nav-thing
                    'compound)))
-    (if (> dir 0)
-        (evil-ts-obj--next-sibling thing)
-      (evil-ts-obj--prev-sibling thing))))
-
-(defun evil-ts-obj--current-thing-sibling (dir)
-  (let ((thing (or evil-ts-obj-conf-nav-thing
-                   'compound)))
-
     ;; try to guess to what thing to move
-    (when-let* ((nav-thing evil-ts-obj-conf-nav-thing)
+    (when-let* (current
+                (nav-thing evil-ts-obj-conf-nav-thing)
                 (node (evil-ts-obj--thing-around (point) nav-thing))
                 (cur-thing (evil-ts-obj--current-thing node nav-thing)))
       ;; find next sibling of the thing we are currently at
       (setq thing cur-thing))
+    thing))
 
-    (if (> dir 0)
-        (evil-ts-obj--next-sibling thing)
-      (evil-ts-obj--prev-sibling thing))))
+
 
 (defun evil-ts-obj--search-subtree (node thing child-filter &optional backward)
   (let* ((filtered-children (seq-filter child-filter (treesit-node-children node t)))
@@ -361,56 +349,101 @@ which see; it can also be a predicate."
 
 ;; * interactive functions
 
-;;;###autoload
-(defun evil-ts-obj-next-sibling-thing ()
-  (interactive)
-  (evil-ts-obj--thing-sibling 1))
+(evil-define-motion evil-ts-obj-next-sibling-thing (count)
+  "Jump to the next sibling thing."
+  :type inclusive
+  :jump nil
+  (evil-without-repeat
+    (evil-without-repeat
+      (let ((thing (evil-ts-obj--get-nav-thing)))
+        (dotimes (_ (or count 1))
+          (evil-ts-obj--goto-next-sibling thing))))))
 
-;;;###autoload
-(defun evil-ts-obj-same-next-sibling-thing ()
-  (interactive)
-  (evil-ts-obj--current-thing-sibling 1))
+(evil-define-motion evil-ts-obj-same-next-sibling-thing (count)
+  "Jump to the same next sibling thing."
+  :type inclusive
+  :jump nil
+  (evil-without-repeat
+    (evil-without-repeat
+      (let ((thing (evil-ts-obj--get-nav-thing t)))
+        (dotimes (_ (or count 1))
+          (evil-ts-obj--goto-next-sibling thing))))))
 
-;;;###autoload
-(defun evil-ts-obj-prev-sibling-thing ()
-  (interactive)
-  (evil-ts-obj--thing-sibling -1))
+(evil-define-motion evil-ts-obj-previous-sibling-thing (count)
+  "Jump to the previous sibling thing."
+  :type inclusive
+  :jump nil
+  (evil-without-repeat
+    (let ((thing (evil-ts-obj--get-nav-thing)))
+      (dotimes (_ (or count 1))
+        (evil-ts-obj--goto-prev-sibling thing)))))
 
-;;;###autoload
-(defun evil-ts-obj-same-prev-sibling-thing ()
-  (interactive)
-  (evil-ts-obj--current-thing-sibling -1))
-
-
-;;;###autoload
-(defun evil-ts-obj-begin-of-thing ()
-  (interactive)
-  (if current-prefix-arg
-      (evil-ts-obj--begin-of-thing 'compound)
-    (evil-ts-obj--begin-of-thing evil-ts-obj-conf-nav-thing)))
-
-;;;###autoload
-(defun evil-ts-obj-end-of-thing ()
-  (interactive)
-  (if current-prefix-arg
-      (evil-ts-obj--end-of-thing 'compound)
-    (evil-ts-obj--end-of-thing evil-ts-obj-conf-nav-thing)))
+(evil-define-motion evil-ts-obj-same-previous-sibling-thing (count)
+  "Jump to the same previous sibling thing."
+  :type inclusive
+  :jump nil
+  (evil-without-repeat
+    (let ((thing (evil-ts-obj--get-nav-thing t)))
+      (dotimes (_ (or count 1))
+        (evil-ts-obj--goto-prev-sibling thing)))))
 
 
+(evil-define-motion evil-ts-obj-beginning-of-thing (count)
+  "Jump to the beginning of the current thing."
+  :type inclusive
+  :jump t
+  (evil-without-repeat
+    (let ((thing (evil-ts-obj--get-nav-thing)))
+      (dotimes (_ (or count 1))
+        (evil-ts-obj--begin-of-thing thing)))))
 
-;;;###autoload
-(defun evil-ts-obj-next-thing ()
-  (interactive)
-  (let ((thing (or evil-ts-obj-conf-nav-thing
-                   'compound)))
-    (evil-ts-obj--goto-next-thing thing)))
+(evil-define-motion evil-ts-obj-end-of-thing (count)
+  "Jump to the end of the current thing."
+  :type inclusive
+  :jump t
+  (evil-without-repeat
+    (let ((thing (evil-ts-obj--get-nav-thing)))
+      (dotimes (_ (or count 1))
+        (evil-ts-obj--end-of-thing thing)))))
 
-;;;###autoload
-(defun evil-ts-obj-prev-thing ()
-  (interactive)
-  (let ((thing (or evil-ts-obj-conf-nav-thing
-                   'compound)))
-    (evil-ts-obj--goto-prev-thing thing)))
+(evil-define-motion evil-ts-obj-next-thing (count)
+  "Jump to the next thing."
+  :type inclusive
+  :jump nil
+  (evil-without-repeat
+    (let ((thing (evil-ts-obj--get-nav-thing)))
+      (dotimes (_ (or count 1))
+        (evil-ts-obj--goto-next-thing thing)))))
+
+(evil-define-motion evil-ts-obj-same-next-thing (count)
+  "Jump to the same next thing."
+  :type inclusive
+  :jump nil
+  (evil-without-repeat
+    (let ((thing (evil-ts-obj--get-nav-thing t)))
+      (dotimes (_ (or count 1))
+        (evil-ts-obj--goto-next-thing thing)))))
+
+(evil-define-motion evil-ts-obj-previous-thing (count)
+  "Jump to the previous thing."
+  :type inclusive
+  :jump nil
+  (evil-without-repeat
+    (let ((thing (evil-ts-obj--get-nav-thing)))
+      (dotimes (_ (or count 1))
+        (evil-ts-obj--goto-prev-thing thing)))))
+
+(evil-define-motion evil-ts-obj-same-previous-thing (count)
+  "Jump to the same previous thing."
+  :type inclusive
+  :jump nil
+  (evil-without-repeat
+    (let ((thing (evil-ts-obj--get-nav-thing t)))
+      (dotimes (_ (or count 1))
+        (evil-ts-obj--goto-prev-thing thing)))))
+
+
+
 
 
 (defmacro evil-ts-obj-define-text-obj (thing text-obj)
@@ -493,14 +526,16 @@ which see; it can also be a predicate."
   "o" evil-ts-obj-lower-text-objects-map)
 
 (evil-define-key 'normal evil-ts-obj-mode-map
-  (kbd "M-a") #'evil-ts-obj-begin-of-thing
+  (kbd "M-a") #'evil-ts-obj-beginning-of-thing
   (kbd "M-e") #'evil-ts-obj-end-of-thing
   (kbd "M-n") #'evil-ts-obj-next-sibling-thing
   (kbd "C-M-n") #'evil-ts-obj-same-next-sibling-thing
-  (kbd "M-p") #'evil-ts-obj-prev-sibling-thing
-  (kbd "C-M-p") #'evil-ts-obj-same-prev-sibling-thing
+  (kbd "M-p") #'evil-ts-obj-previous-sibling-thing
+  (kbd "C-M-p") #'evil-ts-obj-same-previous-sibling-thing
   (kbd "M-f") #'evil-ts-obj-next-thing
-  (kbd "M-b") #'evil-ts-obj-prev-thing)
+  (kbd "C-M-f") #'evil-ts-obj-same-next-thing
+  (kbd "M-b") #'evil-ts-obj-previous-thing
+  (kbd "C-M-b") #'evil-ts-obj-same-previous-thing)
 
 
 

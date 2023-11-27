@@ -197,7 +197,7 @@ def func1():
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-prev-sibling-thing))
+    (evil-ts-obj-previous-sibling-thing))
 
 Name: prev sibling t1
 
@@ -450,7 +450,7 @@ def temp(var, temp=(1,2), ):
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-prev-thing))
+    (evil-ts-obj-previous-thing))
 
 Name: previous thing t1
 
@@ -527,7 +527,7 @@ def temp(var, temp=(1,|2), ):
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-begin-of-thing))
+    (evil-ts-obj-beginning-of-thing))
 
 Name: begin of thing t1
 
@@ -555,7 +555,7 @@ Name: begin of thing else/if clause t1
 if True:
     pass
 else:
-    p|ass
+    |pass
 =-=
 if True:
     pass

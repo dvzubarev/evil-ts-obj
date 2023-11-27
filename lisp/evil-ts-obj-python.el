@@ -44,7 +44,7 @@ See `treesit-thing-settings' for more information.")
 
 
 (defvar evil-ts-obj-python-statement-nodes
-  '("return_statement" "expression_statement" "named_expression"))
+  '("return_statement" "pass_statement" "expression_statement" "named_expression"))
 
 (defvar evil-ts-obj-python-statement-regex
   (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-statement-nodes))

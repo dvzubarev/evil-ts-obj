@@ -37,7 +37,14 @@ See `treesit-thing-settings' for more information.")
 
 
 (defvar evil-ts-obj-bash-statement-nodes
-  '("command" "declaration_command" "variable_assignment" "list"))
+  '("command"
+    "unset_command"
+    "test_command"
+    "declaration_command"
+    "variable_assignment"
+    "redirected_statement"
+    "pipeline"
+    "list"))
 
 (defvar evil-ts-obj-bash-statement-regex
   (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-nodes))

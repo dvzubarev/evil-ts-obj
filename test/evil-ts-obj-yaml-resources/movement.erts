@@ -3,7 +3,7 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-begin-of-thing))
+    (evil-ts-obj-beginning-of-thing))
 
 Name: to beginning t1
 
@@ -89,7 +89,7 @@ Name: to end t1
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-prev-sibling-thing))
+    (evil-ts-obj-previous-sibling-thing))
 
 Name: to prev t1
 
@@ -199,7 +199,7 @@ So jump to its parent - list param, that starts on the same position as 'a' key
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-same-prev-sibling-thing))
+    (evil-ts-obj-same-previous-sibling-thing))
 
 Name: prev sibling of current thing t1
 
