@@ -274,6 +274,14 @@ buffer=$(cat /dev/stdin ; echo . |)
 |
 =-=-=
 
+Name: Delete statement outer t5
+
+=-=
+buffer=$(cat /dev/stdin ; echo .| )
+=-=
+buffer=$(cat /dev/stdin ; | )
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
@@ -296,7 +304,7 @@ Code:
 Name: Delete param upper t1
 
 =-=
-buffer=$(read -x -ra| files)
+buffer=$(read -x -r|a files)
 =-=
 buffer=$(read |files)
 =-=-=

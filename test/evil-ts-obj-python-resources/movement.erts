@@ -81,8 +81,8 @@ def temp(temp1:TempC=TempC(a=1, c=8), |s:str='s, tr'):
 
 Name: next sibling t6
 
-Enclosing thing is func1.
-So jump to its next sibling func2.
+tempf() is considered to be the closest thing to the point
+So jump to its next sibling for loop.
 
 =-=
 def func1():
@@ -96,11 +96,11 @@ def func2():
 =-=
 def func1():
     tempf()
-    for stream_key, records in resp:
+    |for stream_key, records in resp:
         pass
     return 2
 
-|def func2():
+def func2():
     pass
 =-=-=
 
@@ -142,9 +142,9 @@ def func1():
         a = 3
         if i % 2 == 0:
             pass
-        if False:
+        |if False:
             pass
-    |if True:
+    if True:
         pass
 =-=-=
 
@@ -221,8 +221,8 @@ def temp(|temp1:TempC=TempC(a=1, c=8), s:str='s, tr'):
 
 Name: prev sibling t3
 
-Enclosing thing is func1.
-So jump to its prev sibling func2.
+return statement is considered closest thing to the point
+So jump to its prev sibling for statement
 
 =-=
 def func2():
@@ -234,12 +234,12 @@ def func1():
         pass
 |    return 2
 =-=
-|def func2():
+def func2():
     pass
 
 def func1():
     tempf()
-    for stream_key, records in resp:
+    |for stream_key, records in resp:
         pass
     return 2
 =-=-=
@@ -278,11 +278,11 @@ def func1():
             pass
 =-=
 def func1():
-    |for i in range(3, 10):
+    for i in range(3, 10):
         pass
     if True:
         a = 3
-        if i % 2 == 0:
+        |if i % 2 == 0:
             pass
         if False:
             pass
@@ -447,6 +447,18 @@ def temp(var, temp=(1,2), ):
     |i = 3
 =-=-=
 
+Name: next thing t10
+
+=-=
+
+def temp(var):
+ |   i = 3
+=-=
+
+def temp(var):
+    |i = 3
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
@@ -522,6 +534,19 @@ def temp(var, temp=(1,2)|, ):
 
 def temp(var, temp=(1,|2), ):
     i = 3
+=-=-=
+
+Name: previous thing t9
+Jump to the previous thing not to the beginning of the current thing
+
+=-=
+def temp(var):
+    i = 3
+    i +=| 3
+=-=
+def temp(var):
+    |i = 3
+    i += 3
 =-=-=
 
 Code:

@@ -26,10 +26,52 @@
 (require 'evil-ts-obj-common)
 
 (defun evil-ts-obj--root-at (pos)
+  "Return root node at the given `POS'."
   (or (when-let ((parser
                   (car (treesit-local-parsers-at pos))))
         (treesit-parser-root-node parser))
       (treesit-buffer-root-node (treesit-language-at pos))))
+
+(defun evil-ts-obj--node-at-or-around (pos)
+  "Return leaf node, which is at or near `POS'.
+If `POS' is inside some leaf node (node-start <= pos < node-end),
+then return this node. If `POS' is on a whitespace, examine
+previous and next nodes that are on the same line. Prefer named
+nodes over anonymous ones. If both nodes are named select the
+next one. If both nodes are anonymous prefer node, which text is
+equal to `evil-ts-obj-conf-param-sep' or the next one. Return nil
+if no node can be found."
+  (if (not (memq (char-after pos) '(32 9 10 nil)))
+      (treesit-node-at pos)
+    (let* ((prev-pos (save-excursion
+                       (skip-chars-backward " \t")
+                       (and (not (bolp)) (1- (point)))))
+
+           (next-pos (save-excursion
+                       (skip-chars-forward " \t")
+                       (and (not (eolp)) (point))))
+           node
+           next-node
+           prev-node)
+
+      (when next-pos
+        (setq next-node (treesit-node-at next-pos))
+        (when (treesit-node-check next-node 'named)
+          (setq node next-node)))
+
+      (when (and prev-pos
+                 (null node))
+        (setq prev-node (treesit-node-at prev-pos))
+        (when (treesit-node-check prev-node 'named)
+          (setq node prev-node)))
+
+      (when (null node)
+        ;; no named nodes on both sides
+        (if (or (null next-node)
+                (equal evil-ts-obj-conf-param-sep (treesit-node-type prev-node)))
+            (setq node prev-node)
+          (setq node next-node)))
+      node)))
 
 (defun evil-ts-obj--smallest-node-at (pos &optional named)
   (let* ((root (evil-ts-obj--root-at pos))
@@ -38,21 +80,48 @@
       node)))
 
 (defun evil-ts-obj--thing-around (pos thing &optional dont-step-forward)
-  "Return the enclosing thing outer POS.
+  "Return the node that represents thing, which encloses `POS' or is near it.
+`THING' should be a thing defined in `treesit-thing-settings'. If
+there is no enclosing thing, jump to the next one unless
+`DONT-STEP-FORWARD'. This function also handles the case when
+multiple things start at the same position. e.g. in yaml - item1
+Hyphen symbol is the beginning of the list and a list item. When
+there are multiple overlapping things, the result depends on
+`POS'. If `POS' is inside of any thing, then the smallest
+enclosing thing is returned. If the `POS' is before any thing (on
+the same line), function returns the largest node that starts
+after `POS'. If the `POS' is after any thing, function returns
+the largest node that ends before `POS'. It returns nil if no
+thing can be found (e.g. empty line)."
 
-THING should be a thing defined in `treesit-thing-settings',
-which see; it can also be a predicate."
-  (if-let* ((cursor (treesit-node-at pos))
-            (iter-pred (lambda (node)
-                         (and (<= (treesit-node-start node)
-                                  pos
-                                  (treesit-node-end node))
-                              (treesit-node-match-p node thing t))))
-            (enclosing-node (treesit-parent-until cursor iter-pred t)))
-      enclosing-node
-    ;; try to find next node
-    (unless dont-step-forward
-      (treesit--thing-next (point) thing))))
+  (let* ((cursor (evil-ts-obj--node-at-or-around pos))
+         (iter-pred (lambda (node)
+                      (treesit-node-match-p node thing t)))
+         (enclosing-node (treesit-parent-until cursor iter-pred t))
+         (before-cursor (and enclosing-node
+                             (< pos (treesit-node-start enclosing-node))))
+         (after-cursor (and enclosing-node
+                            (<= (treesit-node-end cursor) pos))))
+
+    (cond
+     (before-cursor
+      (while (and
+              (setq cursor (treesit-parent-until enclosing-node iter-pred))
+              (when (= (treesit-node-start enclosing-node)
+                       (treesit-node-start cursor))
+                (setq enclosing-node cursor)))))
+     (after-cursor
+      (while (and
+              (setq cursor (treesit-parent-until cursor iter-pred))
+              (when (= (treesit-node-end enclosing-node)
+                       (treesit-node-end cursor))
+                (setq enclosing-node cursor))))))
+
+    (if enclosing-node
+        enclosing-node
+      ;; try to find next node
+      (unless dont-step-forward
+        (treesit--thing-next (point) thing)))))
 
 (defun evil-ts-obj--current-thing (node nav-thing)
   (pcase nav-thing
@@ -199,7 +268,7 @@ which see; it can also be a predicate."
 (defun evil-ts-obj--goto-next-sibling (thing)
   (let* ((spec (evil-ts-obj--make-spec 'nav))
          (init-pos (point))
-         (init-enclosing-node (treesit--thing-at init-pos thing))
+         (init-enclosing-node (evil-ts-obj--thing-around init-pos thing t))
          next)
 
     ;; simple case: next sibling exists
@@ -213,9 +282,19 @@ which see; it can also be a predicate."
       (evil-ts-obj--maybe-set-jump init-enclosing-node node init-pos)
       (goto-char (car range)))))
 
+
 (defun evil-ts-obj--prev-thing (thing spec init-enclosing-node init-pos)
+  "Return node and range that represents the previous `THING'.
+When `INIT-ENCLOSING-NODE' is not nil, it is considered to be
+node that represents current thing. Previous thing should be
+associated with the node that is not equal to
+`INIT-ENCLOSING-NODE' and that starts before `INIT-POS'. Start
+position of a node is calculated based on `SPEC', so all user
+modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
   (let ((pos (treesit-node-start init-enclosing-node))
-        prev range)
+        (cursor init-enclosing-node)
+        prev
+        range)
     (if (null init-enclosing-node)
         ;; it seems we are outside of any thing at the top level
         ;; just try to move backward
@@ -223,32 +302,35 @@ which see; it can also be a predicate."
               range (evil-ts-obj--apply-modifiers prev pos thing spec))
 
       (while (and (or (null range)
-                      (and init-enclosing-node
-                           (equal init-enclosing-node prev))
-                      ;; have to range that will move (<-) us from the current point
+                      (equal init-enclosing-node prev)
+                      ;; have to find a range that will move (<-) us from the
+                      ;; current position
                       (<= init-pos (car range)))
                   (< (point-min) pos))
-        ;; trying to get prev
+        ;; trying to get previous thing
         (setq prev (treesit--thing-prev pos thing))
 
         (when (null prev)
-          ;; if no previous sibling
           ;; try to step up till we move from the start position of current enclosing node
           ;; make one step per iteration
-          (setq prev (treesit--thing-at pos thing t)
+          (setq cursor (treesit-parent-until
+                        cursor (lambda (n) (treesit-node-match-p n thing t)))
+                prev cursor
                 pos (or (treesit-node-start prev) 0)))
+
         (setq range (evil-ts-obj--apply-modifiers prev pos thing spec))))
     (cons prev range)))
 
 (defun evil-ts-obj--goto-prev-sibling (thing)
   (let* ((spec (evil-ts-obj--make-spec 'nav))
          (init-pos (point))
-         (init-enclosing-node (treesit--thing-at init-pos thing))
+         (init-enclosing-node (evil-ts-obj--thing-around init-pos thing))
          prev range)
 
     ;; simple case: prev sibling exists
     (setq prev (evil-ts-obj--find-matching-sibling thing init-enclosing-node t)
           range (evil-ts-obj--apply-modifiers prev (treesit-node-start prev) thing spec))
+
     (unless prev
       (pcase-setq `(,prev . ,range)
                   (evil-ts-obj--prev-thing thing spec init-enclosing-node init-pos)))
@@ -265,38 +347,38 @@ which see; it can also be a predicate."
                 (nav-thing evil-ts-obj-conf-nav-thing)
                 (node (evil-ts-obj--thing-around (point) nav-thing))
                 (cur-thing (evil-ts-obj--current-thing node nav-thing)))
-      ;; find next sibling of the thing we are currently at
       (setq thing cur-thing))
     thing))
 
 
 
-(defun evil-ts-obj--search-subtree (node thing child-filter &optional backward)
+(defun evil-ts-obj--search-subtree (node thing child-filter &optional backward match-fn)
   (let* ((filtered-children (seq-filter child-filter (treesit-node-children node t)))
          (children (if backward (nreverse filtered-children) filtered-children))
+         (match-pred (or match-fn
+                         (lambda (n) (and (funcall child-filter n)
+                                          (treesit-node-match-p n thing t)))))
          result)
 
     (cl-loop for child in children
-             do (setq result (treesit-search-subtree
-                              child
-                              (lambda (n) (treesit-node-match-p n thing t))
-                              backward))
+             do (setq result (treesit-search-subtree child match-pred backward))
              when result
-             return result)
-    (when (and result
-               (funcall child-filter result))
-      result)))
+             return result)))
 
 (defun evil-ts-obj--search-subtree-forward (start-node thing init-pos)
   (let ((filter (lambda (c) (< init-pos (treesit-node-end c)))))
     (evil-ts-obj--search-subtree start-node thing filter)))
 
-(defun evil-ts-obj--search-subtree-backward (start-node thing init-pos)
+(defun evil-ts-obj--search-subtree-backward (start-node thing spec init-pos)
   (let ((filter (lambda (c) (< (treesit-node-start c) init-pos)))
+        (match-pred (lambda (n) (and (treesit-node-match-p n thing t)
+                                     (let ((range (evil-ts-obj--apply-modifiers
+                                                   n (treesit-node-start n) thing spec) ))
+                                       (< (car range) init-pos)))))
         (node start-node)
         child)
     ;; have to find the deepest node for that subtree
-    (while (setq node (evil-ts-obj--search-subtree node thing filter t))
+    (while (setq node (evil-ts-obj--search-subtree node thing filter t match-pred))
       (setq child node))
     child))
 
@@ -322,10 +404,9 @@ which see; it can also be a predicate."
          (enclosing-node (evil-ts-obj--thing-around init-pos thing t))
          range)
 
-
     ;; search backwardly inside current thing
     (if-let ((node enclosing-node)
-             (prev (evil-ts-obj--search-subtree-backward node thing init-pos)))
+             (prev (evil-ts-obj--search-subtree-backward node thing spec init-pos)))
         (setq range (evil-ts-obj--apply-modifiers
                      prev (treesit-node-start prev) thing spec))
 
@@ -333,10 +414,10 @@ which see; it can also be a predicate."
       ;; step on the previous thing
       (pcase-setq `(,enclosing-node . ,range)
                   (evil-ts-obj--prev-thing thing spec enclosing-node init-pos))
-
       ;; search bacwardly on the previous thing
       (when-let ((node enclosing-node)
-                 (child (evil-ts-obj--search-subtree-backward node thing init-pos)))
+                 (child (evil-ts-obj--search-subtree-backward node thing spec init-pos)))
+
         (setq prev child
               range (evil-ts-obj--apply-modifiers
                      prev (treesit-node-start prev) thing spec))))

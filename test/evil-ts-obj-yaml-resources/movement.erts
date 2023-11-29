@@ -91,7 +91,7 @@ Code:
     (evil-ts-obj-yaml-tests-setup)
     (evil-ts-obj-previous-sibling-thing))
 
-Name: to prev t1
+Name: to prev sibling t1
 
 =-=
 - aa
@@ -99,11 +99,23 @@ Name: to prev t1
     - tem|p2
 =-=
 - aa
+- ab:
+    |- temp2
+=-=-=
+
+Name: to prev sibling t1-2
+
+=-=
+- aa
+- ab:
+    |- temp2
+=-=
+- aa
 - |ab:
     - temp2
 =-=-=
 
-Name: to prev t2
+Name: to prev sibling t2
 
 =-=
 - aa
@@ -115,7 +127,7 @@ Name: to prev t2
     - temp2
 =-=-=
 
-Name: to prev t3
+Name: to prev silbing t3
 
 =-=
 - k1: 1
@@ -127,7 +139,7 @@ Name: to prev t3
   k3: 4
 =-=-=
 
-Name: to prev t4
+Name: to prev sibling t4
 
 =-=
 - k1: 1
@@ -139,10 +151,10 @@ Name: to prev t4
   k3: 4
 =-=-=
 
-Name: to prev t5
+Name: to prev sibling t5
 
-Point is on the list, so thing is inferred to be compound.
-So jump to its parent mapping thats starts with key 'a'
+temp1 is considered to be the closest thing to point.
+So thing is inferred to be param.
 
 =-=
 - >
@@ -153,12 +165,12 @@ So jump to its parent mapping thats starts with key 'a'
 =-=
 - >
     str
-- |a:
-    - temp2
+- a:
+    - |temp2
     - temp1
 =-=-=
 
-Name: to prev t6
+Name: to prev sibling t6
 
 Point is on the list item, so thing is inferred to be param.
 So jump to the parent mapping item with key 'bb'
@@ -176,7 +188,7 @@ aa: t
 =-=-=
 
 
-Name: to prev t8
+Name: to prev sibling t8
 
 Point is on a key value pair, so thing is inferred to be param.
 thats no previous sibling for 'a' key
@@ -203,8 +215,9 @@ Code:
 
 Name: prev sibling of current thing t1
 
-Point is on a list, so thing is inferred to be compound.
-jump to the previous sibling compound
+We consider temp1 as closest thing to a point,
+so thing is infered to be param.
+jump to the previous sibling
 
 =-=
 - a:
@@ -215,6 +228,32 @@ jump to the previous sibling compound
     - - 1
       - 2
 |    - temp1
+=-=
+- a:
+    - temp2
+    - temp1
+  aa: temp
+  bb:
+    - |- 1
+      - 2
+    - temp1
+=-=-=
+
+Name: prev sibling of current thing t2
+
+We consider list (1 2, temp1) as closest thing to a point,
+so thing is infered to be compound.
+jump to the previous sibling
+
+=-=
+- a:
+    - temp2
+    - temp1
+  aa: temp
+  bb:
+|    - - 1
+      - 2
+    - temp1
 =-=
 - a:
     |- temp2
@@ -229,9 +268,28 @@ jump to the previous sibling compound
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
+    (evil-ts-obj-previous-thing))
+
+Name: prev thing t1
+
+=-=
+- a: t
+  bb:
+    - |temp2
+    - temp1
+=-=
+- a: t
+  bb:
+    |- temp2
+    - temp1
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
     (evil-ts-obj-next-sibling-thing))
 
-Name: to next t1
+Name: to next sibling t1
 
 =-=
 |- aa
@@ -243,7 +301,7 @@ Name: to next t1
 - ac
 =-=-=
 
-Name: to next t2
+Name: to next sibling t2
 
 =-=
 - aa
@@ -257,7 +315,7 @@ Name: to next t2
 - |ac
 =-=-=
 
-Name: to next t3
+Name: to next sibling t3
 
 =-=
 - k1:| >
@@ -273,7 +331,7 @@ Name: to next t3
   k3: 4
 =-=-=
 
-Name: to next t4
+Name: to next sibling t4
 
 =-=
 - k1: 1
@@ -285,10 +343,10 @@ Name: to next t4
   |k3: 4
 =-=-=
 
-Name: to next t5
+Name: to next sibling t5
 
-Point is inside map's key value pair, so thing is inferred to be param.
-jump to the next sibling param
+closest thing to the point is inferred to be a list (temp2, temp1).
+There is no sibling for a list, so jump to sibling of a parent.
 
 =-=
 - a:
@@ -306,26 +364,37 @@ jump to the next sibling param
 - b: t
 =-=-=
 
-Name: to next t8
+Name: next sibling  t6
 
-Point is inside of a map, so thing is inferred to be compound.
-jump to next sibling compound
+jump from empty line
 
 =-=
 - a: t
 |
-  bb:
-    - temp2
+  bb: e
+- aa
+=-=
+- a: t
+
+  |bb: e
+- aa
+=-=-=
+
+Name: to next sibling t8
+
+
+=-=
+- a: t
+|  bb:
     - temp1
 - map: t
 =-=
 - a: t
-
   bb:
-    - temp2
     - temp1
 - |map: t
 =-=-=
+
 
 Code:
   (lambda ()
@@ -339,8 +408,8 @@ jump to the next compound
 
 =-=
 - a:
-    - temp2
-|    - - 1
+|    - temp2
+    - - 1
       - 2
   aa: >
     temp
@@ -357,21 +426,24 @@ jump to the next compound
 
 Name: next sibling of current thing t2
 
-Point is inside of a map, so thing is inferred to be compound.
-No sibling compound for next jump
+Point is on list item, so thing is inferred to be param.
+jump to the param of parent sibling
 
 =-=
-- a: t
-|
-  bb:
+- a:
     - temp2
-    - temp1
-- aa
+|    - - 1
+      - 2
+  aa: >
+    temp
+- b: t
 =-=
-- a: t
-|
-  bb:
+- a:
     - temp2
-    - temp1
-- aa
+    - - 1
+      - 2
+  |aa: >
+    temp
+- b: t
 =-=-=
+
