@@ -44,7 +44,11 @@ See `treesit-thing-settings' for more information.")
 
 
 (defvar evil-ts-obj-python-statement-nodes
-  '("return_statement" "pass_statement" "expression_statement" "named_expression"))
+  '("return_statement"
+    "pass_statement"
+    "expression_statement"
+    "named_expression"
+    "assert_statement"))
 
 (defvar evil-ts-obj-python-statement-regex
   (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-statement-nodes))
@@ -54,6 +58,8 @@ See `treesit-thing-settings' for more information.")
   '("parameters"
     "lambda_parameters"
     "argument_list"
+    "expression_list"
+    "pattern_list"
     "dictionary"
     "list"
     "tuple"))
@@ -65,10 +71,10 @@ See `treesit-thing-settings' for more information.")
 
 
 (defun evil-ts-obj-python-param-pred (node)
-  (when-let* ((named (treesit-node-check node 'named))
+  (when-let* (((treesit-node-check node 'named))
               (parent (treesit-node-parent node)))
-    (string-match evil-ts-obj-python-param-parent-regex
-                  (treesit-node-type parent))))
+    (string-match-p evil-ts-obj-python-param-parent-regex
+                    (treesit-node-type parent))))
 
 
 (defun evil-ts-obj-python-compound-outer-ext (node)

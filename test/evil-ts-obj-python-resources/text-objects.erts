@@ -131,7 +131,8 @@ Name: Delete elif outer t1
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (apply #'evil-delete (evil-ts-obj-param-outer)))
+    (apply #'evil-delete (evil-ts-obj-param-outer))
+    (delete-trailing-whitespace))
 
 Name: Delete param outer t1
 
@@ -195,18 +196,12 @@ def func(|):
 
 Name: Delete param outer t7
 
-Comma is not part of a thing
-It is impossible for now to make it work
-
-Skip: t
 =-=
 def func(a|,):
     pass
 =-=
 def func(|):
     pass
-=-=-=
-
 =-=-=
 
 Name: Delete param outer t8
@@ -217,6 +212,136 @@ def |func(a, b):
 =-=
 def func(|b):
     pass
+=-=-=
+
+Name: Delete param outer t9
+
+=-=
+list(range(1, len(result)-1, 3  | ) )
+=-=
+list(range(1, len(result)-1|) )
+=-=-=
+
+Name: Delete param outer t10
+
+Keep trailing comma
+Maybe delete space before point?
+=-=
+list(range(1, len(result)-1, 3|,  ) )
+=-=
+list(range(1, len(result)-1, |  ) )
+=-=-=
+
+Name: Delete param outer t11
+
+=-=
+list(range(1, len(result)-1|, 3) )
+=-=
+list(range(1, |3) )
+=-=-=
+
+Name: Delete param outer t12
+
+=-=
+list(range(1,| len(result)-1, 3) )
+=-=
+list(range(1, |3) )
+=-=-=
+
+Name: Delete param outer t13
+
+=-=
+list(range(1, len(result)-1, 3|) )
+=-=
+list(|)
+=-=-=
+
+Name: Delete param outer t14
+
+=-=
+def func():
+    yield |var1, i, var+1
+=-=
+def func():
+    yield |i, var+1
+=-=-=
+
+Name: Delete param outer t15
+
+=-=
+def func():
+    yield var1, i,| var+1
+=-=
+def func():
+    yield var1, i|
+=-=-=
+
+Name: Delete param outer t16
+
+=-=
+def func():
+    yield var1, i, var+1  |
+=-=
+def func():
+    yield var1, i|
+=-=-=
+
+
+Name: Delete param outer t17
+
+=-=
+ |   var,i = funcs()
+=-=
+    |i = funcs()
+=-=-=
+
+Name: Delete param outer t18
+
+=-=
+for var,| i in funcs():
+    pass
+=-=
+for var| in funcs():
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-inner)))
+
+Name: Delete param inner t1
+
+=-=
+list(range(1, len(result)-1, 3  | ) )
+=-=
+list(range(1, len(result)-1, |   ) )
+=-=-=
+
+Name: Delete param inner t2
+
+Keep trailing comma
+Maybe delete space before point?
+=-=
+list(range(1, len(result)-1, 3|,  ) )
+=-=
+list(range(1, len(result)-1, |,  ) )
+=-=-=
+
+Name: Delete param inner t3
+
+=-=
+list(range(1, len(result)-1|, 3) )
+=-=
+list(range(1, |, 3) )
+=-=-=
+
+Name: Delete param inner t4
+
+=-=
+list(range(1,| len(result)-1, 3) )
+=-=
+list(range(1, |, 3) )
 =-=-=
 
 
