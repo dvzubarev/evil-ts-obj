@@ -239,6 +239,14 @@ list(range(1, len(result)-1, 3  | ) )
 list(range(1, len(result)-1|) )
 =-=-=
 
+Name: Delete param outer t9-1
+
+=-=
+list(range(1, len(result)-1, 3,  | ) )
+=-=
+list(range(1, len(result)-1, |   ) )
+=-=-=
+
 Name: Delete param outer t10
 
 Keep trailing comma

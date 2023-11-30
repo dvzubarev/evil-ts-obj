@@ -37,31 +37,37 @@
 If `POS' is inside some leaf node (node-start <= pos < node-end),
 then return this node. If `POS' is on a whitespace, examine
 previous and next nodes that are on the same line. Prefer named
-nodes over anonymous ones. If both nodes are the same kind (named
-or anonymous) select the next one. If the pos is on
-`evil-ts-obj-conf-param-sep' select the previous named node, if
-it exists. Return nil if no node can be found."
+nodes over anonymous ones. If both nodes are named select the
+next one. If both nodes are anonymous prefer node, which text is
+equal to `evil-ts-obj-conf-param-sep' otherwise the next one. If
+the pos is on `evil-ts-obj-conf-param-sep' select the previous
+named node, if it exists. Return nil if no node can be found."
 
   (let (prefer-previous)
     (if (or (memq (char-after pos) '(32 9 10 nil))
             (and (= (char-after pos) (string-to-char evil-ts-obj-conf-param-sep))
                  (setq prefer-previous t)))
 
+        ;; special case:
+        ;; point is either on space or on a separator
         (let* ((prev-pos (save-excursion
+                           (goto-char pos)
                            (skip-chars-backward " \t")
                            (and (not (bolp)) (1- (point)))))
 
                (next-pos (save-excursion
+                           (goto-char pos)
                            (skip-chars-forward " \t")
                            (and (not (eolp)) (point))))
                node
                next-node
+               next-named
                prev-node)
 
           (when next-pos
             (setq next-node (treesit-node-at next-pos))
             (when (and (not prefer-previous)
-                       (treesit-node-check next-node 'named))
+                       (setq next-named (treesit-node-check next-node 'named)))
               (setq node next-node)))
 
           (when (and prev-pos
@@ -71,10 +77,17 @@ it exists. Return nil if no node can be found."
               (setq node prev-node)))
 
           (when (null node)
-            ;; no named nodes on both sides
-            (if (null next-node)
-                (setq node prev-node)
-              (setq node next-node)))
+            (cond (next-named
+                   ;; prefer-previous was t, but previous one was anonymous
+                   (setq node next-node))
+
+                  ;; no named nodes on both sides
+                  ((equal (treesit-node-type prev-node) evil-ts-obj-conf-param-sep)
+                   (setq node (evil-ts-obj--node-at-or-around (treesit-node-start prev-node))))
+                  ((null next-node)
+                   (setq node prev-node))
+                  (t
+                   (setq node next-node))))
           node)
       (treesit-node-at pos))))
 
