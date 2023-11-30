@@ -72,6 +72,23 @@ else:
     pass
 =-=-=
 
+Name: Delete try inner t1
+
+=-=
+def f():
+    try:
+        |pass
+        pass
+    except:
+        pass
+=-=
+def f():
+    try:
+        |
+    except:
+        pass
+=-=-=
+
 
 
 Code:

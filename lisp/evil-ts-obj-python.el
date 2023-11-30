@@ -85,9 +85,14 @@ See `treesit-thing-settings' for more information.")
           (treesit-node-end parent))))
 
 (defun evil-ts-obj-python-extract-compound-inner (node)
-  (when-let* ((block-node (if (equal (treesit-node-type node) "if_statement")
-                              (treesit-node-child-by-field-name node "consequence")
-                            (treesit-node-child node -1)))
+  (when-let* ((block-node
+               (cond
+                ((equal (treesit-node-type node) "if_statement")
+                 (treesit-node-child-by-field-name node "consequence"))
+                ((equal (treesit-node-type node) "try_statement")
+                 (treesit-node-child-by-field-name node "body"))
+                (t
+                 (treesit-node-child node -1))))
               ((equal (treesit-node-type block-node) "block")))
     (list (treesit-node-start block-node)
           (treesit-node-end block-node))))
