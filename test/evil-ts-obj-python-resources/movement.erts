@@ -3,7 +3,7 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-same-next-sibling-thing))
+    (evil-ts-obj-same-next-largest-thing))
 
 Name: next sibling of current thing t1
 
@@ -40,7 +40,7 @@ def func(|*args):
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-next-sibling-thing))
+    (evil-ts-obj-next-largest-thing))
 
 Name: next sibling t1
 
@@ -197,7 +197,7 @@ def func1():
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-previous-sibling-thing))
+    (evil-ts-obj-previous-largest-thing))
 
 Name: prev sibling t1
 
@@ -335,8 +335,6 @@ def func1():
 =-=-=
 
 Name: prev sibling t9
-
-Skip: t
 
 =-=
 def func1():
@@ -547,6 +545,20 @@ def temp(var):
 def temp(var):
     |i = 3
     i += 3
+=-=-=
+
+Name: previous thing t10
+
+=-=
+if True:
+    pass
+elif not b:
+    b| = 38
+=-=
+if True:
+    pass
+|elif not b:
+    b = 38
 =-=-=
 
 Code:

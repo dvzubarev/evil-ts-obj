@@ -50,7 +50,7 @@ evil operator.")
   (let* ((thing evil-ts-obj-avy--current-thing)
          (text-obj evil-ts-obj-avy--current-text-obj)
          (spec (evil-ts-obj--make-spec op-kind thing text-obj)))
-    (evil-ts-obj--get-thing-range pos thing spec)))
+    (evil-ts-obj--get-text-obj-range pos thing spec)))
 
 (defun evil-ts-obj-avy-action-goto (pt)
   (when-let ((range (evil-ts-obj-avy--get-range

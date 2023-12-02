@@ -119,8 +119,10 @@ thing can be found (e.g. empty line)."
          (before-cursor (and enclosing-node
                              (< pos (treesit-node-start enclosing-node))))
          (after-cursor (and enclosing-node
-                            (<= (treesit-node-end cursor) pos))))
+                            (<= (treesit-node-end enclosing-node) pos))))
 
+    (message "cursor %s enclosing %s" cursor enclosing-node)
+    (message "before %s after %s" before-cursor after-cursor)
     (cond
      (before-cursor
       (while (and
@@ -142,6 +144,10 @@ thing can be found (e.g. empty line)."
         (treesit--thing-next (point) thing)))))
 
 (defun evil-ts-obj--current-thing (node nav-thing)
+  "If `NAV-THING' is symbol or string it is returned as is.
+If it is list, it is considered to be in the form (or <thing1>
+<thing2> &rest). In this case, all things are tried sequentially
+and the first that matches against `NODE' is returned."
   (pcase nav-thing
     ((or (pred symbolp)
          (pred stringp))
@@ -163,7 +169,7 @@ thing can be found (e.g. empty line)."
                   this-command)))
 
 (defun evil-ts-obj--default-range (node spec)
-
+  "Return default text object range for a `NODE' based on `SPEC'."
   (let ((start (treesit-node-start node))
         (end (treesit-node-end node)))
     (pcase spec
@@ -180,6 +186,12 @@ thing can be found (e.g. empty line)."
     (list start end)))
 
 (defun evil-ts-obj--apply-modifiers (node pos thing spec)
+  "Apply modifiers for creating a text object from the `THING'.
+`THING' that is represented by `NODE' is transformed to range
+via transformation function from
+`evil-ts-obj-conf-thing-modifiers'. `POS' is used to determine
+current language. Modifier is chosen based on `SPEC'. If no
+modifier is found use `evil-ts-obj--default-range'."
   (when node
     (if-let* ((modifier (plist-get evil-ts-obj-conf-thing-modifiers
                                    (treesit-language-at pos)))
@@ -190,7 +202,11 @@ thing can be found (e.g. empty line)."
       (evil-ts-obj--default-range node spec))))
 
 
-(defun evil-ts-obj--get-thing-range (pos thing spec &optional return-node)
+(defun evil-ts-obj--get-text-obj-range (pos thing spec &optional return-node)
+  "Return a range for text object described via `SPEC'.
+Create text object using `THING' on position `POS'. If
+`RETURN-NODE' is t return treesit node as a last item of the
+list."
   (when-let ((node (evil-ts-obj--thing-around pos thing)))
     (append
      (evil-ts-obj--apply-modifiers node pos thing spec)
@@ -200,8 +216,13 @@ thing can be found (e.g. empty line)."
 ;; * Movement
 
 (defun evil-ts-obj--begin-of-thing (thing)
+  "Determine `THING' at point and move point to the beginning of it.
+Beginning position is calculated based on spec with op-kind set
+to nav, so all nav modifiers affect it (see
+`evil-ts-obj-conf-thing-modifiers'). If point is already at the
+beginning, move to the beginning of the parent thing."
   (when-let* ((spec (evil-ts-obj--make-spec 'nav))
-              (range (evil-ts-obj--get-thing-range (point) thing spec t))
+              (range (evil-ts-obj--get-text-obj-range (point) thing spec t))
               (node (car (last range))))
     (while (and range
                 (<= (point) (car range)))
@@ -217,8 +238,13 @@ thing can be found (e.g. empty line)."
       (goto-char (car range)))))
 
 (defun evil-ts-obj--end-of-thing (thing)
+  "Determine `THING' at point and move point to the end of it.
+End position is calculated based on spec with op-kind set to
+nav, so all nav modifiers affect it (see
+`evil-ts-obj-conf-thing-modifiers'). If point is already at the
+end, move to the end of the parent thing."
   (when-let ((spec (evil-ts-obj--make-spec 'nav))
-             (range (evil-ts-obj--get-thing-range (point) thing spec t))
+             (range (evil-ts-obj--get-text-obj-range (point) thing spec t))
              (node (car (last range))))
     (while (and range
                 (<= (1- (cadr range)) (point)))
@@ -265,6 +291,12 @@ thing can be found (e.g. empty line)."
           (throw 'break node))))))
 
 (defun evil-ts-obj--next-thing (thing init-enclosing-node init-pos)
+  "Return node that represents the next `THING'.
+When `INIT-ENCLOSING-NODE' is not nil, it is considered to be
+a node that represents current thing. Next thing should be
+associated with the node that is not equal to
+`INIT-ENCLOSING-NODE' and that starts after `INIT-POS'."
+
   (let ((parent init-enclosing-node)
         (pos (treesit-node-end init-enclosing-node))
         next)
@@ -283,16 +315,17 @@ thing can be found (e.g. empty line)."
               pos (treesit-node-end parent))))
     next))
 
-(defun evil-ts-obj--goto-next-sibling (thing)
+(defun evil-ts-obj--goto-next-largest-thing (thing)
+  "Go to the next `THING'.
+At first, determine current THING at point. After that move to
+the next largest `THING' that starts after the current thing
+ends."
   (let* ((spec (evil-ts-obj--make-spec 'nav))
          (init-pos (point))
          (init-enclosing-node (evil-ts-obj--thing-around init-pos thing t))
          next)
 
-    ;; simple case: next sibling exists
-    (setq next (evil-ts-obj--find-matching-sibling thing init-enclosing-node))
-    (unless next
-      (setq next (evil-ts-obj--next-thing thing init-enclosing-node init-pos)))
+    (setq next (evil-ts-obj--next-thing thing init-enclosing-node init-pos))
 
     (when-let ((node next)
                (range (evil-ts-obj--apply-modifiers
@@ -301,23 +334,24 @@ thing can be found (e.g. empty line)."
       (goto-char (car range)))))
 
 
-(defun evil-ts-obj--prev-thing (thing spec init-enclosing-node init-pos)
-  "Return node and range that represents the previous `THING'.
-When `INIT-ENCLOSING-NODE' is not nil, it is considered to be
-node that represents current thing. Previous thing should be
-associated with the node that is not equal to
-`INIT-ENCLOSING-NODE' and that starts before `INIT-POS'. Start
-position of a node is calculated based on `SPEC', so all user
-modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
-  (let ((pos (treesit-node-start init-enclosing-node))
-        (cursor init-enclosing-node)
-        prev
-        range)
+
+(defun evil-ts-obj--goto-prev-largest-thing (thing)
+  "Go to the previous `THING'.
+At first, determine current THING at point. After that move to
+the `THING' that ends before the current thing starts. If no such
+a THING exists jump to a parent THING."
+  (let* ((spec (evil-ts-obj--make-spec 'nav))
+         (init-pos (point))
+         (init-enclosing-node (evil-ts-obj--thing-around init-pos thing))
+         (parent init-enclosing-node)
+         (pos (treesit-node-start init-enclosing-node))
+         prev range)
+
     (if (null init-enclosing-node)
         ;; it seems we are outside of any thing at the top level
         ;; just try to move backward
         (setq prev (treesit--thing-prev init-pos thing)
-              range (evil-ts-obj--apply-modifiers prev pos thing spec))
+              range (evil-ts-obj--apply-modifiers prev (treesit-node-start prev) thing spec))
 
       (while (and (or (null range)
                       (equal init-enclosing-node prev)
@@ -331,27 +365,14 @@ modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
         (when (null prev)
           ;; try to step up till we move from the start position of current enclosing node
           ;; make one step per iteration
-          (setq cursor (treesit-parent-until
-                        cursor (lambda (n) (treesit-node-match-p n thing t)))
-                prev cursor
+          (setq parent (treesit-parent-until
+                        parent (lambda (n) (treesit-node-match-p n thing t)))
+                prev parent
                 pos (or (treesit-node-start prev) 0)))
 
+
         (setq range (evil-ts-obj--apply-modifiers prev pos thing spec))))
-    (cons prev range)))
 
-(defun evil-ts-obj--goto-prev-sibling (thing)
-  (let* ((spec (evil-ts-obj--make-spec 'nav))
-         (init-pos (point))
-         (init-enclosing-node (evil-ts-obj--thing-around init-pos thing))
-         prev range)
-
-    ;; simple case: prev sibling exists
-    (setq prev (evil-ts-obj--find-matching-sibling thing init-enclosing-node t)
-          range (evil-ts-obj--apply-modifiers prev (treesit-node-start prev) thing spec))
-
-    (unless prev
-      (pcase-setq `(,prev . ,range)
-                  (evil-ts-obj--prev-thing thing spec init-enclosing-node init-pos)))
 
     (when range
       (evil-ts-obj--maybe-set-jump init-enclosing-node prev init-pos)
@@ -391,7 +412,7 @@ modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
   (let ((filter (lambda (c) (< (treesit-node-start c) init-pos)))
         (match-pred (lambda (n) (and (treesit-node-match-p n thing t)
                                      (let ((range (evil-ts-obj--apply-modifiers
-                                                   n (treesit-node-start n) thing spec) ))
+                                                   n (treesit-node-start n) thing spec)))
                                        (< (car range) init-pos)))))
         (node start-node)
         child)
@@ -420,7 +441,8 @@ modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
   (let* ((spec (evil-ts-obj--make-spec 'nav))
          (init-pos (point))
          (enclosing-node (evil-ts-obj--thing-around init-pos thing t))
-         range)
+         (cursor enclosing-node)
+         range )
 
     ;; search backwardly inside current thing
     (if-let ((node enclosing-node)
@@ -429,14 +451,18 @@ modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
                      prev (treesit-node-start prev) thing spec))
 
       ;; no matching things inside the current thing
-      ;; step on the previous thing
-      (pcase-setq `(,enclosing-node . ,range)
-                  (evil-ts-obj--prev-thing thing spec enclosing-node init-pos))
-      ;; search bacwardly on the previous thing
-      (when-let ((node enclosing-node)
-                 (child (evil-ts-obj--search-subtree-backward node thing spec init-pos)))
+      ;; search backwardly starting from  enclosing node
+      (while (and cursor
+                  (or (null range)
+                      ;; have to find a range that will move (<-) us from the
+                      ;; current position
+                      (<= init-pos (car range))))
 
-        (setq prev child
+        (setq prev (treesit-search-forward
+                    cursor
+                    (lambda (n) (treesit-node-match-p n thing t))
+                    t)
+              cursor prev
               range (evil-ts-obj--apply-modifiers
                      prev (treesit-node-start prev) thing spec))))
 
@@ -448,7 +474,7 @@ modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
 
 ;; * interactive functions
 
-(evil-define-motion evil-ts-obj-next-sibling-thing (count)
+(evil-define-motion evil-ts-obj-next-largest-thing (count)
   "Jump to the next sibling thing."
   :type inclusive
   :jump nil
@@ -456,9 +482,9 @@ modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
     (evil-without-repeat
       (let ((thing (evil-ts-obj--get-nav-thing)))
         (dotimes (_ (or count 1))
-          (evil-ts-obj--goto-next-sibling thing))))))
+          (evil-ts-obj--goto-next-largest-thing thing))))))
 
-(evil-define-motion evil-ts-obj-same-next-sibling-thing (count)
+(evil-define-motion evil-ts-obj-same-next-largest-thing (count)
   "Jump to the same next sibling thing."
   :type inclusive
   :jump nil
@@ -466,25 +492,25 @@ modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
     (evil-without-repeat
       (let ((thing (evil-ts-obj--get-nav-thing t)))
         (dotimes (_ (or count 1))
-          (evil-ts-obj--goto-next-sibling thing))))))
+          (evil-ts-obj--goto-next-largest-thing thing))))))
 
-(evil-define-motion evil-ts-obj-previous-sibling-thing (count)
+(evil-define-motion evil-ts-obj-previous-largest-thing (count)
   "Jump to the previous sibling thing."
   :type inclusive
   :jump nil
   (evil-without-repeat
     (let ((thing (evil-ts-obj--get-nav-thing)))
       (dotimes (_ (or count 1))
-        (evil-ts-obj--goto-prev-sibling thing)))))
+        (evil-ts-obj--goto-prev-largest-thing thing)))))
 
-(evil-define-motion evil-ts-obj-same-previous-sibling-thing (count)
+(evil-define-motion evil-ts-obj-same-previous-largest-thing (count)
   "Jump to the same previous sibling thing."
   :type inclusive
   :jump nil
   (evil-without-repeat
     (let ((thing (evil-ts-obj--get-nav-thing t)))
       (dotimes (_ (or count 1))
-        (evil-ts-obj--goto-prev-sibling thing)))))
+        (evil-ts-obj--goto-prev-largest-thing thing)))))
 
 
 (evil-define-motion evil-ts-obj-beginning-of-thing (count)
@@ -550,7 +576,7 @@ modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
   (let ((name (intern (format "evil-ts-obj-%s-%s" thing text-obj))))
     `(evil-define-text-object ,name (count &optional _beg _end _type)
        ,(format "Select a %s %s object." thing text-obj)
-       (evil-ts-obj--get-thing-range (point) ',thing
+       (evil-ts-obj--get-text-obj-range (point) ',thing
                                      (evil-ts-obj--make-spec 'mod ',thing ',text-obj)))))
 
 (defun evil-ts-obj--finalize-compound (range)
@@ -562,7 +588,7 @@ modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
 (evil-define-text-object evil-ts-obj-compound-outer (count &optional _beg _end _type)
   "Select a compound object."
   (evil-ts-obj--finalize-compound
-   (evil-ts-obj--get-thing-range (point) 'compound
+   (evil-ts-obj--get-text-obj-range (point) 'compound
                                  (evil-ts-obj--make-spec 'mod 'compound 'outer))))
 
 (evil-ts-obj-define-text-obj compound inner)
@@ -627,10 +653,10 @@ modifications affect it (made via `evil-ts-obj-conf-thing-modifiers')."
 (evil-define-key 'normal evil-ts-obj-mode-map
   (kbd "M-a") #'evil-ts-obj-beginning-of-thing
   (kbd "M-e") #'evil-ts-obj-end-of-thing
-  (kbd "M-n") #'evil-ts-obj-next-sibling-thing
-  (kbd "C-M-n") #'evil-ts-obj-same-next-sibling-thing
-  (kbd "M-p") #'evil-ts-obj-previous-sibling-thing
-  (kbd "C-M-p") #'evil-ts-obj-same-previous-sibling-thing
+  (kbd "M-n") #'evil-ts-obj-next-largest-thing
+  (kbd "C-M-n") #'evil-ts-obj-same-next-largest-thing
+  (kbd "M-p") #'evil-ts-obj-previous-largest-thing
+  (kbd "C-M-p") #'evil-ts-obj-same-previous-largest-thing
   (kbd "M-f") #'evil-ts-obj-next-thing
   (kbd "C-M-f") #'evil-ts-obj-same-next-thing
   (kbd "M-b") #'evil-ts-obj-previous-thing
