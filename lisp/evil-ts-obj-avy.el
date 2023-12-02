@@ -18,7 +18,8 @@
 ;;; Code:
 
 (require 'avy)
-(require 'evil-ts-obj)
+
+(require 'evil-ts-obj-core)
 (require 'evil-ts-obj-common)
 
 
