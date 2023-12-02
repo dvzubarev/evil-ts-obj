@@ -23,7 +23,7 @@
 (require 'evil)
 
 (require 'evil-ts-obj-conf)
-(require 'evil-ts-obj-common)
+(require 'evil-ts-obj-util)
 
 (defun evil-ts-obj--root-at (pos)
   "Return root node at the given `POS'."
@@ -121,8 +121,6 @@ thing can be found (e.g. empty line)."
          (after-cursor (and enclosing-node
                             (<= (treesit-node-end enclosing-node) pos))))
 
-    (message "cursor %s enclosing %s" cursor enclosing-node)
-    (message "before %s after %s" before-cursor after-cursor)
     (cond
      (before-cursor
       (while (and
@@ -498,7 +496,7 @@ a THING exists jump to a parent THING."
 (defun evil-ts-obj-param-outer-mod (node)
   (pcase-let* ((start-pos (treesit-node-start node))
                (`(,end-pos ,next-sibling ,next-sep)
-                (evil-ts-obj-common--find-next-sep-and-sibling node)))
+                (evil-ts-obj--find-next-sep-and-sibling node)))
 
     (unless next-sibling
       ;; this is the last parameter
@@ -514,7 +512,7 @@ a THING exists jump to a parent THING."
 (defun evil-ts-obj-param-upper-mod (node)
   (pcase-let* ((start-pos (treesit-node-start node))
                (`(,end-pos ,_ ,_)
-                (evil-ts-obj-common--find-next-sep-and-sibling node)))
+                (evil-ts-obj--find-next-sep-and-sibling node)))
     (let ((final-sibling node))
       (while (setq node (treesit-node-prev-sibling node t))
         (setq final-sibling node))
@@ -539,5 +537,5 @@ a THING exists jump to a parent THING."
 
 
 
-(provide 'evil-ts-obj)
+(provide 'evil-ts-obj-core)
 ;;; evil-ts-obj-core.el ends here

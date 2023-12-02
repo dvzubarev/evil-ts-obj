@@ -20,6 +20,13 @@
 ;;; Code:
 
 (require 'evil-ts-obj-core)
+(require 'evil-ts-obj-avy)
+
+(require 'evil-ts-obj-python)
+(require 'evil-ts-obj-bash)
+
+(require 'evil-ts-obj-yaml)
+
 
 ;; * interactive functions
 
@@ -210,6 +217,21 @@
   (kbd "C-M-f") #'evil-ts-obj-same-next-thing
   (kbd "M-b") #'evil-ts-obj-previous-thing
   (kbd "C-M-b") #'evil-ts-obj-same-previous-thing)
+
+
+;;;###autoload
+(defun evil-ts-obj-setup ()
+
+  (cond
+   ((treesit-parser-list nil 'python)
+    (evil-ts-obj-python-setup-things))
+   ((treesit-parser-list nil 'bash)
+    (evil-ts-obj-bash-setup-things))
+
+   ((treesit-parser-list nil 'yaml)
+    (evil-ts-obj-yaml-setup-things)))
+
+  (evil-ts-obj-mode 1))
 
 
 (provide 'evil-ts-obj)

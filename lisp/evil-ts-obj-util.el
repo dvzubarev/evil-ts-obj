@@ -1,4 +1,4 @@
-;;; evil-ts-obj-common.el --- Description -*- lexical-binding: t; -*-
+;;; evil-ts-obj-util.el --- Description -*- lexical-binding: t; -*-
 ;;
 ;; Copyright (C) 2023 Denis Zubarev
 ;;
@@ -16,12 +16,10 @@
 ;;
 ;;; Code:
 
-(require 'evil-ts-obj-conf)
-
 
 ;; * paste utils
 
-(defun evil-ts-obj-common--indent-text-according-to-point-pos (text)
+(defun evil-ts-obj-util--indent-text-according-to-point-pos (text)
   "Indent `TEXT' for later inserting to the buffer.
 The functions should be called with the destination buffer as the
 current buffer, and with point at the place where the string is
@@ -39,10 +37,10 @@ to be inserted."
         (setq cur-indent (current-indentation)
               del-leading-spaces-for-first-line nil)
         (delete-region (pos-bol) (pos-eol))))
-    (evil-ts-obj-common--pad-text cur-indent text del-leading-spaces-for-first-line)))
+    (evil-ts-obj-util--pad-text cur-indent text del-leading-spaces-for-first-line)))
 
 ;; based on https://emacs.stackexchange.com/a/34981
-(defun evil-ts-obj-common--pad-text (pad text &optional del-leading-spaces-for-first-line)
+(defun evil-ts-obj-util--pad-text (pad text &optional del-leading-spaces-for-first-line)
   "Return string, un-indented by the length of its minimum indent.
 
 If numeric prefix argument PAD is supplied, indent the resulting
@@ -79,7 +77,7 @@ text by that amount."
           (delete-region (point-min) (point)))
         (buffer-substring-no-properties (point-min) (point-max))))))
 
-(defun evil-ts-obj-common--calc-first-line-indent (beg end)
+(defun evil-ts-obj-util--calc-first-line-indent (beg end)
   "Return number of chars before the first line when `BEG' `END'
 span multiple lines."
   (save-excursion
@@ -92,7 +90,7 @@ span multiple lines."
 ;; * Misc utils
 
 ;; inspired by the code from map.el
-(defmacro evil-ts-obj-common--pcase-plist-get (key map)
+(defmacro evil-ts-obj-util--pcase-plist-get (key map)
   "A macro to make MAP the last argument to `map-elt'."
   `(plist-get ,map ,key))
 
@@ -101,8 +99,8 @@ span multiple lines."
   `(and (pred plistp)
         ,@(mapcar
            (lambda (elt)
-             `(app (evil-ts-obj-common--pcase-plist-get ,(car elt)) ,(cadr elt)))
+             `(app (evil-ts-obj-util--pcase-plist-get ,(car elt)) ,(cadr elt)))
            args)))
 
-(provide 'evil-ts-obj-common)
-;;; evil-ts-obj-common.el ends here
+(provide 'evil-ts-obj-util)
+;;; evil-ts-obj-util.el ends here

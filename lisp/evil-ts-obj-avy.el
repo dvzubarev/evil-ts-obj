@@ -20,7 +20,7 @@
 (require 'avy)
 
 (require 'evil-ts-obj-core)
-(require 'evil-ts-obj-common)
+(require 'evil-ts-obj-util)
 
 
 (defcustom evil-ts-obj-avy-dispatch-alist
@@ -85,7 +85,7 @@ evil operator.")
              (end (cadr range)))
 
     (let* ((text (buffer-substring-no-properties start end))
-           (first-line-indent (evil-ts-obj-common--calc-first-line-indent start end))
+           (first-line-indent (evil-ts-obj-util--calc-first-line-indent start end))
            (prepared-text text))
       (when first-line-indent
         (setq prepared-text (concat (make-string first-line-indent 32) text)))
@@ -101,7 +101,7 @@ evil operator.")
         (when (and after
                    (not (eolp)))
           (forward-char))
-        (insert (evil-ts-obj-common--indent-text-according-to-point-pos prepared-text)))
+        (insert (evil-ts-obj-util--indent-text-according-to-point-pos prepared-text)))
       (skip-chars-forward " \t")))
   t)
 

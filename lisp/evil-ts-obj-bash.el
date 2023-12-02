@@ -18,7 +18,7 @@
 
 (require 'treesit)
 (require 'evil-ts-obj-conf)
-(require 'evil-ts-obj-common)
+(require 'evil-ts-obj-core)
 
 (defvar evil-ts-obj-bash-compound-nodes
   '("function_definition"
@@ -115,7 +115,7 @@ See `treesit-thing-settings' for more information.")
     ((pmap (:thing 'statement) (:text-obj 'outer))
      (evil-ts-obj-bash-statement-ext node))
     ((pmap (:thing 'param) (:text-obj 'outer))
-     (evil-ts-obj-common-param-outer-mod node))
+     (evil-ts-obj-param-outer-mod node))
     ((pmap (:thing 'param) (:text-obj 'upper))
      (evil-ts-obj-bash-param-upper node))))
 

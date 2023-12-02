@@ -21,7 +21,7 @@
 
 (require 'treesit)
 (require 'evil-ts-obj-conf)
-(require 'evil-ts-obj-common)
+(require 'evil-ts-obj-core)
 
 (defvar evil-ts-obj-python-compound-nodes
   '("class_definition"
@@ -107,11 +107,11 @@ See `treesit-thing-settings' for more information.")
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-python-extract-compound-inner node))
     ((pmap (:thing 'param) (:text-obj 'outer) (:op-kind 'mod))
-     (evil-ts-obj-common-param-outer-mod node))
+     (evil-ts-obj-param-outer-mod node))
     ((pmap (:thing 'param) (:text-obj 'upper))
-     (evil-ts-obj-common-param-upper-mod node))
+     (evil-ts-obj-param-upper-mod node))
     ((pmap (:thing 'param) (:text-obj 'lower))
-     (evil-ts-obj-common-param-lower-mod node))))
+     (evil-ts-obj-param-lower-mod node))))
 
 ;;;###autoload
 (defun evil-ts-obj-python-setup-things ()

@@ -16,7 +16,7 @@
 
 (require 'treesit)
 (require 'evil-ts-obj-conf)
-(require 'evil-ts-obj-common)
+(require 'evil-ts-obj-core)
 
 (defvar evil-ts-obj-yaml-compound-nodes
   '("document"
@@ -54,7 +54,7 @@
     ((pmap (:thing 'param) (:op-kind 'nav))
      (evil-ts-obj-yaml-param-mod node))
     ((pmap (:thing 'param) (:text-obj 'outer))
-     (evil-ts-obj-common-param-outer-mod node))))
+     (evil-ts-obj-param-outer-mod node))))
 
 ;;;###autoload
 (defun evil-ts-obj-yaml-setup-things ()
