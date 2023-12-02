@@ -34,94 +34,82 @@
   "Jump to the next sibling thing."
   :type inclusive
   :jump nil
-  (evil-without-repeat
-    (evil-without-repeat
-      (let ((thing (evil-ts-obj--get-nav-thing)))
-        (dotimes (_ (or count 1))
-          (evil-ts-obj--goto-next-largest-thing thing))))))
+  (let ((thing (evil-ts-obj--get-nav-thing)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-next-largest-thing thing))))
 
 (evil-define-motion evil-ts-obj-same-next-largest-thing (count)
   "Jump to the same next sibling thing."
   :type inclusive
   :jump nil
-  (evil-without-repeat
-    (evil-without-repeat
-      (let ((thing (evil-ts-obj--get-nav-thing t)))
-        (dotimes (_ (or count 1))
-          (evil-ts-obj--goto-next-largest-thing thing))))))
+  (let ((thing (evil-ts-obj--get-nav-thing t)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-next-largest-thing thing))))
 
 (evil-define-motion evil-ts-obj-previous-largest-thing (count)
   "Jump to the previous sibling thing."
   :type inclusive
   :jump nil
-  (evil-without-repeat
-    (let ((thing (evil-ts-obj--get-nav-thing)))
-      (dotimes (_ (or count 1))
-        (evil-ts-obj--goto-prev-largest-thing thing)))))
+  (let ((thing (evil-ts-obj--get-nav-thing)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-prev-largest-thing thing))))
 
 (evil-define-motion evil-ts-obj-same-previous-largest-thing (count)
   "Jump to the same previous sibling thing."
   :type inclusive
   :jump nil
-  (evil-without-repeat
-    (let ((thing (evil-ts-obj--get-nav-thing t)))
-      (dotimes (_ (or count 1))
-        (evil-ts-obj--goto-prev-largest-thing thing)))))
+  (let ((thing (evil-ts-obj--get-nav-thing t)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-prev-largest-thing thing))))
 
 
 (evil-define-motion evil-ts-obj-beginning-of-thing (count)
   "Jump to the beginning of the current thing."
   :type inclusive
   :jump t
-  (evil-without-repeat
-    (let ((thing (evil-ts-obj--get-nav-thing)))
-      (dotimes (_ (or count 1))
-        (evil-ts-obj--begin-of-thing thing)))))
+  (let ((thing (evil-ts-obj--get-nav-thing)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--begin-of-thing thing))))
 
 (evil-define-motion evil-ts-obj-end-of-thing (count)
   "Jump to the end of the current thing."
   :type inclusive
   :jump t
-  (evil-without-repeat
-    (let ((thing (evil-ts-obj--get-nav-thing)))
-      (dotimes (_ (or count 1))
-        (evil-ts-obj--end-of-thing thing)))))
+  (let ((thing (evil-ts-obj--get-nav-thing)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--end-of-thing thing))))
 
 (evil-define-motion evil-ts-obj-next-thing (count)
   "Jump to the next thing."
   :type inclusive
   :jump nil
-  (evil-without-repeat
-    (let ((thing (evil-ts-obj--get-nav-thing)))
-      (dotimes (_ (or count 1))
-        (evil-ts-obj--goto-next-thing thing)))))
+  (let ((thing (evil-ts-obj--get-nav-thing)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-next-thing thing))))
 
 (evil-define-motion evil-ts-obj-same-next-thing (count)
   "Jump to the same next thing."
   :type inclusive
   :jump nil
-  (evil-without-repeat
-    (let ((thing (evil-ts-obj--get-nav-thing t)))
-      (dotimes (_ (or count 1))
-        (evil-ts-obj--goto-next-thing thing)))))
+  (let ((thing (evil-ts-obj--get-nav-thing t)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-next-thing thing))))
 
 (evil-define-motion evil-ts-obj-previous-thing (count)
   "Jump to the previous thing."
   :type inclusive
   :jump nil
-  (evil-without-repeat
-    (let ((thing (evil-ts-obj--get-nav-thing)))
-      (dotimes (_ (or count 1))
-        (evil-ts-obj--goto-prev-thing thing)))))
+  (let ((thing (evil-ts-obj--get-nav-thing)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-prev-thing thing))))
 
 (evil-define-motion evil-ts-obj-same-previous-thing (count)
   "Jump to the same previous thing."
   :type inclusive
   :jump nil
-  (evil-without-repeat
-    (let ((thing (evil-ts-obj--get-nav-thing t)))
-      (dotimes (_ (or count 1))
-        (evil-ts-obj--goto-prev-thing thing)))))
+  (let ((thing (evil-ts-obj--get-nav-thing t)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-prev-thing thing))))
 
 
 
