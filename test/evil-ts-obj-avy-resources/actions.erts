@@ -3,8 +3,8 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (with-simulated-input "ea"
-      (evil-ts-obj-avy-compound-outer-paste-after)))
+    (evil-ts-obj-avy-tests-with-avy-input "ea"
+        (evil-ts-obj-avy-compound-outer-paste-after)))
 
 Name: the same indentation level t1
 
@@ -118,7 +118,7 @@ def main():
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (with-simulated-input "ee"
+    (evil-ts-obj-avy-tests-with-avy-input "ee"
       (evil-ts-obj-avy-compound-outer-paste-after)))
 
 Name: different indentation level t2
@@ -153,7 +153,7 @@ def tempf():
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (with-simulated-input "e"
+    (evil-ts-obj-avy-tests-with-avy-input "e"
       (evil-ts-obj-avy-statement-outer-paste-after)))
 
 Name: paste expression t1
@@ -185,7 +185,7 @@ def main():
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (with-simulated-input "eb"
+    (evil-ts-obj-avy-tests-with-avy-input "eb"
       (evil-ts-obj-avy-param-inner-paste-after)))
 
 Name: paste param t1

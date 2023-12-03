@@ -29,7 +29,8 @@
 (defun evil-ts-obj-bash-tests-setup ()
   (evil-mode)
   (evil-normal-state)
-  (bash-ts-mode)
+  (let ((inhibit-message t))
+    (bash-ts-mode))
   (evil-ts-obj-bash-setup-things))
 
 (ert-deftest evil-ts-obj-bash-text-objects-test ()

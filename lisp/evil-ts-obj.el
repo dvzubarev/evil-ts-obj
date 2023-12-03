@@ -9,7 +9,7 @@
 ;; Version: 0.0.1
 ;; Keywords: tools convenience
 ;; Homepage: https://github.com/dvzubarev/evil-treesit-objects
-;; Package-Requires: ((emacs "30.0.50"))
+;; Package-Requires: ((emacs "30.0.50") (evil "0") (avy "0"))
 ;;
 ;; This file is not part of GNU Emacs.
 ;;

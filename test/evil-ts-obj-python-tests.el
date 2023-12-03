@@ -30,7 +30,8 @@
 (defun evil-ts-obj-python-tests-setup ()
   (evil-mode)
   (evil-normal-state)
-  (python-ts-mode)
+  (let ((inhibit-message t))
+    (python-ts-mode))
   (evil-ts-obj-python-setup-things))
 
 (ert-deftest evil-ts-obj-python-text-objects-test ()
@@ -51,6 +52,7 @@ always located at the beginning of buffer."
      (require 'python)
      (let ((python-indent-guess-indent-offset nil))
        (python-ts-mode)
+       (evil-ts-obj-python-setup-things)
        (insert ,contents)
        (goto-char (point-min))
        ,@body)))

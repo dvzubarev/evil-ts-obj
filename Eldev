@@ -1,0 +1,12 @@
+; -*- mode: emacs-lisp; lexical-binding: t -*-
+
+;; Autodetermined by `eldev init'.
+
+
+(setf eldev-project-source-dirs "lisp")
+
+(eldev-use-package-archive 'melpa-unstable)
+
+(eldev-add-extra-dependencies 'test 'with-simulated-input)
+
+(eldev-use-plugin 'autoloads)

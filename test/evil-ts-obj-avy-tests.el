@@ -23,10 +23,19 @@
 (require 'evil-ts-obj-python)
 (require 'evil-ts-obj-avy)
 
+(defmacro evil-ts-obj-avy-tests-with-avy-input (input &rest body)
+  `(let ((inhibit-message t))
+    (with-simulated-input ,input
+      ,@body)))
+
+
 (defun evil-ts-obj-avy-tests-setup ()
+
   (evil-mode)
   (evil-normal-state)
-  (python-ts-mode)
+
+  (let ((inhibit-message t))
+    (python-ts-mode))
   (evil-ts-obj-python-setup-things)
 
   (switch-to-buffer (buffer-name))

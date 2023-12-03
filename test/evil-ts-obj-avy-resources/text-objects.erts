@@ -3,7 +3,7 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (with-simulated-input "a"
+    (evil-ts-obj-avy-tests-with-avy-input "a"
       (evil-ts-obj-avy-compound-outer-text-obj)))
 
 Name: compound nav t1
@@ -21,7 +21,7 @@ def main():
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (with-simulated-input "a"
+    (evil-ts-obj-avy-tests-with-avy-input "a"
       (evil-ts-obj-avy-param-outer-text-obj)))
 
 Name: nav parameters t1
@@ -51,7 +51,7 @@ def temp(var,
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (with-simulated-input "e"
+    (evil-ts-obj-avy-tests-with-avy-input "e"
       (apply #'evil-delete (evil-ts-obj-avy-compound-inner-text-obj)))
     (delete-trailing-whitespace))
 
@@ -78,7 +78,7 @@ def main():
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (with-simulated-input "ea"
+    (evil-ts-obj-avy-tests-with-avy-input "ea"
       (setq-local evil-this-operator t)
       (apply #'evil-delete (evil-ts-obj-avy-param-outer-text-obj))))
 
