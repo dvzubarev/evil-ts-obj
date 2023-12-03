@@ -20,7 +20,7 @@
 (require 'evil-ts-obj-conf)
 (require 'evil-ts-obj-core)
 
-(defvar evil-ts-obj-bash-compound-nodes
+(defcustom evil-ts-obj-bash-compound-nodes
   '("function_definition"
     "if_statement"
     "elif_clause"
@@ -29,14 +29,14 @@
     "for_statement"
     "c_style_for_statement"
     "case_statement")
-  "Nodes that designate compound statement in bash.
-See `treesit-thing-settings' for more information.")
-
-(defvar evil-ts-obj-bash-compound-regex
-  (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-compound-nodes))
+  "Nodes that designate compound statement in bash."
+  :type '(repeat string)
+  :group 'evil-ts-obj)
 
 
-(defvar evil-ts-obj-bash-statement-nodes
+
+
+(defcustom evil-ts-obj-bash-statement-nodes
   '("command"
     "unset_command"
     "test_command"
@@ -44,19 +44,36 @@ See `treesit-thing-settings' for more information.")
     "variable_assignment"
     "redirected_statement"
     "pipeline"
-    "list"))
-
-(defvar evil-ts-obj-bash-statement-regex
-  (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-nodes))
-
-
+    "list")
+  "Nodes that designate simple statement in bash."
+  :type '(repeat string)
+  :group 'evil-ts-obj)
 
 
 
 (defun evil-ts-obj-bash-param-pred (node)
+  "Predicate for detecting param thing.
+Return t if `NODE' is a node that represents a parameter."
   (equal (treesit-node-field-name node) "argument"))
 
+(defcustom evil-ts-obj-bash-things
+  `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-compound-nodes))
+     (statement ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-nodes))
+     (param evil-ts-obj-bash-param-pred))
+  "Things for bash."
+  :type 'repeate
+  :group 'evil-ts-obj)
+
+
+(defcustom evil-ts-obj-bash-statement-seps
+  '("|" ";")
+  "Separators for bash statement."
+  :type '(repeat string)
+  :group 'evil-ts-obj)
+
 (defun evil-ts-obj-bash-extract-compound-inner (node)
+  "Return range for a compound inner text object.
+Compound is represented by a `NODE'."
   (let (first-child last-child)
     (pcase (treesit-node-type node)
       ((or "function_definition"
@@ -67,8 +84,8 @@ See `treesit-thing-settings' for more information.")
          (setq first-child (treesit-node-child body-node 0 t)
                last-child (treesit-node-child body-node -1 t))))
       ("if_statement"
-                          ;skip condition node
-       (setq first-child (treesit-node-child node 1 t) )
+                                        ;skip condition node
+       (setq first-child (treesit-node-child node 1 t))
        ;; run till we are not on  elif_clause or else_clause
        (when-let* ((all-children (treesit-node-children node t))
                    (if-children (seq-take-while
@@ -107,7 +124,7 @@ See `treesit-thing-settings' for more information.")
     (list start-pos end-pos)))
 
 (defun evil-ts-obj-bash-ext-func (spec node)
-  "Main extention function for bash."
+  "Main extension function for bash. TODO spec"
 
   (pcase spec
     ((pmap (:thing 'compound) (:text-obj 'inner))
@@ -122,14 +139,16 @@ See `treesit-thing-settings' for more information.")
 
 ;;;###autoload
 (defun evil-ts-obj-bash-setup-things ()
+  "Set all variables needed by evil-ts-obj-core."
+  (cl-callf append (alist-get 'bash treesit-thing-settings)
+    evil-ts-obj-bash-things)
 
-  (setq-local treesit-thing-settings
-              `((bash
-                 (compound ,evil-ts-obj-bash-compound-regex)
-                 (statement ,evil-ts-obj-bash-statement-regex)
-                 (param evil-ts-obj-bash-param-pred))))
   (setq-local evil-ts-obj-conf-thing-modifiers
               '(bash evil-ts-obj-bash-ext-func))
+
+  (setq-local evil-ts-obj-conf-param-sep-regexps
+              `(bash ,(evil-ts-obj-conf--make-nodes-regex
+                       evil-ts-obj-bash-statement-seps)))
 
   (setq-local evil-ts-obj-conf-nav-thing
               '(or param statement compound)))

@@ -18,24 +18,32 @@
 (require 'evil-ts-obj-conf)
 (require 'evil-ts-obj-core)
 
-(defvar evil-ts-obj-yaml-compound-nodes
+(defcustom evil-ts-obj-yaml-compound-nodes
   '("document"
     "block_mapping"
     "block_sequence")
-  "Nodes that designate compound statement in yaml.")
+  "Nodes that designate compound statement in yaml."
+  :type '(repeat string)
+  :group 'evil-ts-obj)
 
-(defvar evil-ts-obj-yaml-compound-regex
-  (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-yaml-compound-nodes))
 
 
-(defvar evil-ts-obj-yaml-param-nodes
+
+(defcustom evil-ts-obj-yaml-param-nodes
   '("block_mapping_pair"
-    "block_sequence_item"))
+    "block_sequence_item")
+  "Nodes that designate parameter in yaml."
+  :type '(repeat string)
+  :group 'evil-ts-obj)
 
-(defvar evil-ts-obj-yaml-param-regex
-  (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-yaml-param-nodes))
 
 
+(defcustom evil-ts-obj-yaml-things
+  `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-yaml-compound-nodes))
+    (param ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-yaml-param-nodes)))
+  "Things for yaml."
+  :type 'repeate
+  :group 'evil-ts-obj)
 
 (defun evil-ts-obj-yaml-param-mod (node)
   (when-let* ((is-list (equal (treesit-node-type node) "block_sequence_item"))
@@ -46,7 +54,7 @@
           (treesit-node-end child))))
 
 (defun evil-ts-obj-yaml-ext-func (spec node)
-  "Main extention function for yaml."
+  "Main extension function for yaml."
 
   (pcase spec
     ((pmap (:thing 'param) (:text-obj 'inner))
@@ -58,14 +66,11 @@
 
 ;;;###autoload
 (defun evil-ts-obj-yaml-setup-things ()
-  (setq-local treesit-thing-settings
-              `((yaml
-                 (compound ,evil-ts-obj-yaml-compound-regex)
-                 (param ,evil-ts-obj-yaml-param-regex))))
+  (cl-callf append (alist-get 'yaml treesit-thing-settings)
+    evil-ts-obj-yaml-things)
 
   (setq-local evil-ts-obj-conf-thing-modifiers
               '(yaml evil-ts-obj-yaml-ext-func))
-
 
 
   (setq-local evil-ts-obj-conf-nav-thing

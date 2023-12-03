@@ -23,7 +23,8 @@
 (require 'evil-ts-obj-conf)
 (require 'evil-ts-obj-core)
 
-(defvar evil-ts-obj-python-compound-nodes
+
+(defcustom evil-ts-obj-python-compound-nodes
   '("class_definition"
     "function_definition"
     "if_statement"
@@ -36,25 +37,26 @@
     "except_clause"
     "match_statement"
     "case_clause")
-  "Nodes that designate compound statement in python.
-See `treesit-thing-settings' for more information.")
-
-(defvar evil-ts-obj-python-compound-regex
-  (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-compound-nodes))
+  "Nodes that designate compound statement in python."
+  :type '(repeat string)
+  :group 'evil-ts-obj)
 
 
-(defvar evil-ts-obj-python-statement-nodes
+
+(defcustom evil-ts-obj-python-statement-nodes
   '("return_statement"
     "pass_statement"
     "expression_statement"
     "named_expression"
-    "assert_statement"))
+    "assert_statement")
+  "Nodes that designate simple statement in python."
+  :type '(repeat string)
+  :group 'evil-ts-obj)
 
-(defvar evil-ts-obj-python-statement-regex
-  (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-statement-nodes))
 
 
-(defvar evil-ts-obj-python-param-parent-nodes
+
+(defcustom evil-ts-obj-python-param-parent-nodes
   '("parameters"
     "lambda_parameters"
     "argument_list"
@@ -62,22 +64,37 @@ See `treesit-thing-settings' for more information.")
     "pattern_list"
     "dictionary"
     "list"
-    "tuple"))
+    "tuple")
+  "Parent nodes for a parameter thing in python."
+  :type '(repeat string)
+  :group 'evil-ts-obj
+  :set #'evil-ts-obj-conf-nodes-setter)
 
-(defvar evil-ts-obj-python-param-parent-regex
-  (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-param-parent-nodes))
-
+(defvar evil-ts-obj-python-param-parent-regex nil
+  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
 
 
 
 (defun evil-ts-obj-python-param-pred (node)
+  "Predicate for detecting param thing.
+Return t if `NODE' is a node that represents a parameter."
   (when-let* (((treesit-node-check node 'named))
               (parent (treesit-node-parent node)))
     (string-match-p evil-ts-obj-python-param-parent-regex
                     (treesit-node-type parent))))
 
+(defcustom evil-ts-obj-python-things
+  `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-compound-nodes))
+    (statement ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-statement-nodes))
+    (param evil-ts-obj-python-param-pred))
+  "Things for python."
+  :type 'repeate
+  :group 'evil-ts-obj)
+
 
 (defun evil-ts-obj-python-compound-outer-ext (node)
+  "Extend a function range to the start of decorator, if it exists.
+Current thing is represented by `NODE'."
   (when-let* ((is-func (equal (treesit-node-type node) "function_definition"))
               (parent (treesit-node-parent node))
               (is-decorator (equal (treesit-node-type parent) "decorated_definition")))
@@ -85,6 +102,8 @@ See `treesit-thing-settings' for more information.")
           (treesit-node-end parent))))
 
 (defun evil-ts-obj-python-extract-compound-inner (node)
+  "Return range for a compound inner text object.
+Compound is represented by a `NODE'."
   (when-let* ((block-node
                (cond
                 ((equal (treesit-node-type node) "if_statement")
@@ -100,7 +119,7 @@ See `treesit-thing-settings' for more information.")
 
 
 (defun evil-ts-obj-python-ext-func (spec node)
-  "Main extention function for python."
+  "Main extension function for python. TODO spec"
   (pcase spec
     ((pmap (:thing 'compound) (:text-obj 'outer))
      (evil-ts-obj-python-compound-outer-ext node))
@@ -115,15 +134,16 @@ See `treesit-thing-settings' for more information.")
 
 ;;;###autoload
 (defun evil-ts-obj-python-setup-things ()
-  (setq-local treesit-thing-settings
-              `((python
-                 (compound ,evil-ts-obj-python-compound-regex)
-                 (statement ,evil-ts-obj-python-statement-regex)
-                 (param evil-ts-obj-python-param-pred))))
+  "Set all variables needed by evil-ts-obj-core."
+
+  (cl-callf append (alist-get 'python treesit-thing-settings)
+    evil-ts-obj-python-things)
 
   (setq-local evil-ts-obj-conf-thing-modifiers
               '(python evil-ts-obj-python-ext-func))
 
+  (setq-local evil-ts-obj-conf-param-sep-regexps
+              '(python ","))
 
   (setq-local evil-ts-obj-conf-nav-thing
               '(or param statement compound)))

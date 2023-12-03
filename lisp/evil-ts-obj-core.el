@@ -38,14 +38,19 @@ If `POS' is inside some leaf node (node-start <= pos < node-end),
 then return this node. If `POS' is on a whitespace, examine
 previous and next nodes that are on the same line. Prefer named
 nodes over anonymous ones. If both nodes are named select the
-next one. If both nodes are anonymous prefer node, which text is
-equal to `evil-ts-obj-conf-param-sep' otherwise the next one. If
-the pos is on `evil-ts-obj-conf-param-sep' select the previous
-named node, if it exists. Return nil if no node can be found."
+next one. If both nodes are anonymous prefer node, which text
+matches against `evil-ts-obj-conf-param-sep-regexps' otherwise the
+next one. If the pos is on a node that matches against
+`evil-ts-obj-conf-param-sep-regexps' select the previous named
+node, if it exists. Return nil if no node can be found."
 
-  (let (prefer-previous)
+  (let ((sep-regex (plist-get evil-ts-obj-conf-param-sep-regexps
+                              (treesit-language-at pos)))
+        prefer-previous)
     (if (or (memq (char-after pos) '(32 9 10 nil))
-            (and (= (char-after pos) (string-to-char evil-ts-obj-conf-param-sep))
+            (and sep-regex
+                 (string-match-p sep-regex
+                                 (char-to-string (char-after pos)))
                  (setq prefer-previous t)))
 
         ;; special case:
@@ -58,7 +63,7 @@ named node, if it exists. Return nil if no node can be found."
                (next-pos (save-excursion
                            (goto-char pos)
                            (skip-chars-forward " \t")
-                           (and (not (eolp)) (point))))
+                           (and (not (eolp)) (/= (point) pos) (point))))
                node
                next-node
                next-named
@@ -82,7 +87,10 @@ named node, if it exists. Return nil if no node can be found."
                    (setq node next-node))
 
                   ;; no named nodes on both sides
-                  ((equal (treesit-node-type prev-node) evil-ts-obj-conf-param-sep)
+                  ((and
+                    prev-node
+                    sep-regex
+                    (string-match-p sep-regex (treesit-node-type prev-node)))
                    (setq node (evil-ts-obj--node-at-or-around (treesit-node-start prev-node))))
                   ((null next-node)
                    (setq node prev-node))
@@ -476,13 +484,17 @@ a THING exists jump to a parent THING."
   (let ((next-sibling (treesit-node-next-sibling node t))
         (next-sibling-or-sep (treesit-node-next-sibling node))
         (end-pos (treesit-node-end node))
+        (sep-regex (plist-get evil-ts-obj-conf-param-sep-regexps
+                              (treesit-language-at (treesit-node-start node))))
         sep-found)
 
     (if next-sibling
         ;; end before next sibling parameter
         (setq end-pos (treesit-node-start next-sibling))
       (when next-sibling-or-sep
-        (if (equal (treesit-node-type next-sibling-or-sep) evil-ts-obj-conf-param-sep)
+        (if (and sep-regex
+                 (string-match-p sep-regex
+                                 (treesit-node-type next-sibling-or-sep)))
             ;; a separator found
             (setq sep-found t
                   end-pos (treesit-node-end next-sibling-or-sep))
@@ -520,8 +532,10 @@ a THING exists jump to a parent THING."
     (list start-pos end-pos)))
 
 (defun evil-ts-obj-param-lower-mod (node)
-  (let ((start-pos (treesit-node-start node))
-        end-pos)
+  (let* ((start-pos (treesit-node-start node))
+         (sep-regex (plist-get evil-ts-obj-conf-param-sep-regexps
+                               (treesit-language-at start-pos)))
+         end-pos)
     (when-let ((prev-sibling (treesit-node-prev-sibling node t)))
       (setq start-pos (treesit-node-end prev-sibling)))
 
@@ -530,7 +544,9 @@ a THING exists jump to a parent THING."
         (setq final-sibling node))
       ;; check trailing sep
       (when-let* ((trailing-sep (treesit-node-next-sibling final-sibling))
-                  ((equal (treesit-node-type trailing-sep) evil-ts-obj-conf-param-sep)))
+                  ((and
+                    sep-regex
+                    (string-match-p sep-regex (treesit-node-type trailing-sep)))))
         (setq final-sibling trailing-sep))
       (setq end-pos (treesit-node-end final-sibling)))
     (list start-pos end-pos)))

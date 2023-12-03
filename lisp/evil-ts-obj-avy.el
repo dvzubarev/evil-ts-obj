@@ -22,6 +22,10 @@
 (require 'evil-ts-obj-core)
 (require 'evil-ts-obj-util)
 
+(defcustom evil-ts-obj-avy-key-prefix "z"
+  "Default key binding for avy text objects."
+  :type 'string
+  :group 'evil-ts-obj)
 
 (defcustom evil-ts-obj-avy-dispatch-alist
   '((?x . evil-ts-obj-avy-action-delete-thing)
@@ -33,6 +37,7 @@
   "Default actions for treesit objects."
   :type 'alist
   :group 'evil-ts-obj)
+
 
 (defvar evil-ts-obj-avy--current-thing nil)
 (defvar evil-ts-obj-avy--current-text-obj nil)
@@ -168,8 +173,10 @@ evil operator.")
 
 
 (defun evil-ts-obj-avy--evil-motion-advice (&rest _r)
-  "This advice prevents evil-motion-range from restoring point after motion is executed.
-It is needed so evil operators can work on text objects in in other windows."
+  "This advice prevents evil-motion-range from restoring point after
+motion is executed.
+It is needed so evil operators can work on
+text objects in in other windows."
 
   (when evil-ts-obj-avy--activate-motion-range-advice
     (setq evil-ts-obj-avy--activate-motion-range-advice nil
@@ -273,10 +280,10 @@ It is needed so evil operators can work on text objects in in other windows."
 
 
 (evil-define-key '(normal operator visual) evil-ts-obj-mode-map
-  "zi" evil-ts-obj-avy-inner-text-objects-map
-  "za" evil-ts-obj-avy-outer-text-objects-map
-  "zu" evil-ts-obj-avy-upper-text-objects-map
-  "zo" evil-ts-obj-avy-lower-text-objects-map)
+  (kbd (concat evil-ts-obj-avy-key-prefix " i")) evil-ts-obj-avy-inner-text-objects-map
+  (kbd (concat evil-ts-obj-avy-key-prefix " a")) evil-ts-obj-avy-outer-text-objects-map
+  (kbd (concat evil-ts-obj-avy-key-prefix " u")) evil-ts-obj-avy-upper-text-objects-map
+  (kbd (concat evil-ts-obj-avy-key-prefix " o")) evil-ts-obj-avy-lower-text-objects-map)
 
 
 

@@ -27,6 +27,9 @@
 
 (require 'evil-ts-obj-yaml)
 
+(defgroup evil-ts-obj nil
+  "Provide evil text-objects using tree-sitter."
+  :group 'tools)
 
 ;; * interactive functions
 
