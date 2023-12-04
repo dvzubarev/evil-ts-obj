@@ -477,6 +477,16 @@ a THING exists jump to a parent THING."
       (goto-char (car range)))))
 
 
+;; * common predicates
+
+(defun evil-ts-obj-common-param-pred (parent-regex node)
+  "Predicate for detecting param thing.
+Return t if `NODE' is named and its parent is matching against
+`PARENT-REGEX'."
+  (when-let* (((treesit-node-check node 'named))
+              (parent (treesit-node-parent node)))
+    (string-match-p parent-regex (treesit-node-type parent))))
+
 
 ;; * modifiers
 

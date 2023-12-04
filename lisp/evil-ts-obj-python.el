@@ -48,7 +48,9 @@
     "pass_statement"
     "expression_statement"
     "named_expression"
-    "assert_statement")
+    "assert_statement"
+    "delete_statement"
+    "raise_statement")
   "Nodes that designate simple statement in python."
   :type '(repeat string)
   :group 'evil-ts-obj)
@@ -75,18 +77,11 @@
 
 
 
-(defun evil-ts-obj-python-param-pred (node)
-  "Predicate for detecting param thing.
-Return t if `NODE' is a node that represents a parameter."
-  (when-let* (((treesit-node-check node 'named))
-              (parent (treesit-node-parent node)))
-    (string-match-p evil-ts-obj-python-param-parent-regex
-                    (treesit-node-type parent))))
-
 (defcustom evil-ts-obj-python-things
   `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-compound-nodes))
     (statement ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-statement-nodes))
-    (param evil-ts-obj-python-param-pred))
+    (param ,(apply-partially #'evil-ts-obj-common-param-pred
+                             evil-ts-obj-python-param-parent-regex)))
   "Things for python."
   :type 'repeate
   :group 'evil-ts-obj)

@@ -214,6 +214,8 @@
 (defun evil-ts-obj-setup ()
 
   (cond
+   ((treesit-parser-list nil 'cpp)
+    (evil-ts-obj-cpp-setup-things))
    ((treesit-parser-list nil 'python)
     (evil-ts-obj-python-setup-things))
    ((treesit-parser-list nil 'bash)
