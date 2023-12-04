@@ -23,13 +23,13 @@
 (require 'ert-x)
 (require 'treesit)
 (require 'evil)
-(require 'evil-ts-obj-yaml)
+(require 'evil-ts-obj)
 
 (defun evil-ts-obj-yaml-tests-setup ()
   (evil-mode)
   (evil-normal-state)
   (yaml-ts-mode)
-  (evil-ts-obj-yaml-setup-things))
+  (evil-ts-obj-mode 1))
 
 (ert-deftest evil-ts-obj-yaml-text-objects-test ()
   (skip-unless (treesit-ready-p 'yaml))

@@ -24,14 +24,14 @@
 (require 'ert-x)
 (require 'treesit)
 (require 'evil)
-(require 'evil-ts-obj-bash)
+(require 'evil-ts-obj)
 
 (defun evil-ts-obj-bash-tests-setup ()
   (evil-mode)
   (evil-normal-state)
   (let ((inhibit-message t))
     (bash-ts-mode))
-  (evil-ts-obj-bash-setup-things))
+  (evil-ts-obj-mode 1))
 
 (ert-deftest evil-ts-obj-bash-text-objects-test ()
   (skip-unless (treesit-ready-p 'bash))

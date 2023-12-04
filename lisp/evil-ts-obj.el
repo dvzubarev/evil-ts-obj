@@ -183,12 +183,31 @@
     (define-key map (kbd "s") #'evil-ts-obj-statement-lower)
     map))
 
+(defun evil-ts-obj--maybe-create-parser (lang)
+  (unless (featurep 'treesit)
+    (user-error "Tree-sitter not supported in current Emacs version"))
+  (unless (treesit-ready-p lang)
+    (user-error (format "%s tree-sitter is not ready!" lang)))
+  (treesit-parser-create lang))
+
+(defun evil-ts-obj--guess-lang-from-mode ()
+  (pcase major-mode
+    ;; exceptions
+    ('sh-mode 'bash)
+    ((or 'c++-ts-mode 'c++-mode) 'cpp)
+    (_
+     ;; get first word from mode
+     (intern (car (string-split (symbol-name major-mode) "-"))))))
 
 ;;;###autoload
 (define-minor-mode evil-ts-obj-mode
   "A minor mode with tree sitter keybinds."
   :keymap (make-sparse-keymap)
-  (evil-normalize-keymaps))
+  (evil-normalize-keymaps)
+  (when evil-ts-obj-mode
+    (let ((lang (evil-ts-obj--guess-lang-from-mode)))
+      (evil-ts-obj--maybe-create-parser lang)
+      (funcall (intern (format "evil-ts-obj-%s-setup-things" lang))))))
 
 
 (evil-define-key '(visual operator) evil-ts-obj-mode-map
@@ -209,22 +228,6 @@
   (kbd "M-b") #'evil-ts-obj-previous-thing
   (kbd "C-M-b") #'evil-ts-obj-same-previous-thing)
 
-
-;;;###autoload
-(defun evil-ts-obj-setup ()
-
-  (cond
-   ((treesit-parser-list nil 'cpp)
-    (evil-ts-obj-cpp-setup-things))
-   ((treesit-parser-list nil 'python)
-    (evil-ts-obj-python-setup-things))
-   ((treesit-parser-list nil 'bash)
-    (evil-ts-obj-bash-setup-things))
-
-   ((treesit-parser-list nil 'yaml)
-    (evil-ts-obj-yaml-setup-things)))
-
-  (evil-ts-obj-mode 1))
 
 
 (provide 'evil-ts-obj)

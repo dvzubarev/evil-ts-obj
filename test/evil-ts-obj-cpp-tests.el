@@ -30,8 +30,9 @@
 (defun evil-ts-obj-cpp-tests-setup ()
   (evil-mode)
   (evil-normal-state)
-  (c++-ts-mode)
-  (evil-ts-obj-cpp-setup-things))
+  (let ((inhibit-message t))
+    (c++-ts-mode))
+  (evil-ts-obj-mode 1))
 
 (ert-deftest evil-ts-obj-cpp-text-objects-test ()
   (skip-unless (treesit-ready-p 'cpp))
