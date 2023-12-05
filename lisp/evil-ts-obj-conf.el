@@ -24,15 +24,20 @@
   "Plist that holds an extension function for each language in the buffer.
 A function should accept two arguments: SPEC and NODE.")
 
-(defvar-local evil-ts-obj-conf-nav-thing 'compound
-  "Default thing that used in movement commands.")
+(defvar-local evil-ts-obj-conf-nav-things nil
+  "This plist defines default things for movement for each language.
+It can be single thing, e.g. 'compound' or a list of things:
+'(or param compound thing)'. When list is provided navigating
+command will search for the first thing from this list.")
 
-(defvar-local evil-ts-obj-conf-param-sep-regexps nil
+(defvar-local evil-ts-obj-conf-sep-regexps nil
   "Plist that holds separator regexps for each language in the buffer.
-Separators are generally used to create outer text object. Also
-there is special behaviour when two things are separated and the
-point is on a separator. We prefer the previous thing in this
-case. Should be set for each language in appropriate file.")
+Some outer text objects may extend to the nearest separator.
+Special handling of separators is needed since they usually are
+siblings to the node that represent a thing. Also there is
+special behavior when two things are separated and the point is
+on a separator. We prefer the previous thing in this case. Should
+be set for each language in appropriate file.")
 
 
 (defun evil-ts-obj-conf--make-nodes-regex (nodes)

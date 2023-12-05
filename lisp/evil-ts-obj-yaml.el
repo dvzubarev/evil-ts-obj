@@ -66,15 +66,17 @@
 
 ;;;###autoload
 (defun evil-ts-obj-yaml-setup-things ()
+  "Set all variables needed by evil-ts-obj-core."
+
+  (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'yaml treesit-thing-settings)
     evil-ts-obj-yaml-things)
 
-  (setq-local evil-ts-obj-conf-thing-modifiers
-              '(yaml evil-ts-obj-yaml-ext-func))
+  (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
+   'yaml #'evil-ts-obj-yaml-ext-func)
 
-
-  (setq-local evil-ts-obj-conf-nav-thing
-              '(or param compound)))
+  (cl-callf plist-put evil-ts-obj-conf-nav-things
+    'yaml '(or param compound)))
 
 
 

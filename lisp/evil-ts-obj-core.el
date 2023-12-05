@@ -39,12 +39,12 @@ then return this node. If `POS' is on a whitespace, examine
 previous and next nodes that are on the same line. Prefer named
 nodes over anonymous ones. If both nodes are named select the
 next one. If both nodes are anonymous prefer node, which text
-matches against `evil-ts-obj-conf-param-sep-regexps' otherwise the
+matches against `evil-ts-obj-conf-sep-regexps' otherwise the
 next one. If the pos is on a node that matches against
-`evil-ts-obj-conf-param-sep-regexps' select the previous named
+`evil-ts-obj-conf-sep-regexps' select the previous named
 node, if it exists. Return nil if no node can be found."
 
-  (let ((sep-regex (plist-get evil-ts-obj-conf-param-sep-regexps
+  (let ((sep-regex (plist-get evil-ts-obj-conf-sep-regexps
                               (treesit-language-at pos)))
         prefer-previous)
     (if (or (memq (char-after pos) '(32 9 10 nil))
@@ -268,7 +268,7 @@ end, move to the end of the parent thing."
 
 (defun evil-ts-obj--jump-boundaries ()
   (interactive)
-  (when-let* ((thing evil-ts-obj-conf-nav-thing)
+  (when-let* ((thing evil-ts-obj-conf-nav-things)
               (node (evil-ts-obj--thing-around (point) thing)))
     (cond
      ((= (treesit-node-start node) (point)) (goto-char (1- (treesit-node-end node))))
@@ -385,13 +385,17 @@ a THING exists jump to a parent THING."
       (goto-char (car range)))))
 
 (defun evil-ts-obj--get-nav-thing (&optional current)
-  (let ((thing (or evil-ts-obj-conf-nav-thing
-                   'compound)))
+  "Return thing for the motion for current language.
+Language is decided based on current point position.
+If `CURRENT' is t, detect current thing at point and return this thing."
+  (when-let* ((lang (treesit-language-at (point)))
+              (thing (or (plist-get evil-ts-obj-conf-nav-things lang)
+                         'compound)))
     ;; try to guess to what thing to move
     (when-let* (current
-                (nav-thing evil-ts-obj-conf-nav-thing)
-                (node (evil-ts-obj--thing-around (point) nav-thing))
-                (cur-thing (evil-ts-obj--current-thing node nav-thing)))
+                ((listp thing))
+                (node (evil-ts-obj--thing-around (point) thing))
+                (cur-thing (evil-ts-obj--current-thing node thing)))
       (setq thing cur-thing))
     thing))
 
@@ -494,7 +498,7 @@ Return t if `NODE' is named and its parent is matching against
   (let ((next-sibling (treesit-node-next-sibling node t))
         (next-sibling-or-sep (treesit-node-next-sibling node))
         (end-pos (treesit-node-end node))
-        (sep-regex (plist-get evil-ts-obj-conf-param-sep-regexps
+        (sep-regex (plist-get evil-ts-obj-conf-sep-regexps
                               (treesit-language-at (treesit-node-start node))))
         sep-found)
 
@@ -543,7 +547,7 @@ Return t if `NODE' is named and its parent is matching against
 
 (defun evil-ts-obj-param-lower-mod (node)
   (let* ((start-pos (treesit-node-start node))
-         (sep-regex (plist-get evil-ts-obj-conf-param-sep-regexps
+         (sep-regex (plist-get evil-ts-obj-conf-sep-regexps
                                (treesit-language-at start-pos)))
          end-pos)
     (when-let ((prev-sibling (treesit-node-prev-sibling node t)))

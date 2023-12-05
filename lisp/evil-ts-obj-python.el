@@ -131,17 +131,17 @@ Compound is represented by a `NODE'."
 (defun evil-ts-obj-python-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
+  (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'python treesit-thing-settings)
     evil-ts-obj-python-things)
 
-  (setq-local evil-ts-obj-conf-thing-modifiers
-              '(python evil-ts-obj-python-ext-func))
+  (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
+   'python #'evil-ts-obj-python-ext-func)
 
-  (setq-local evil-ts-obj-conf-param-sep-regexps
-              '(python ","))
+  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'python ",")
 
-  (setq-local evil-ts-obj-conf-nav-thing
-              '(or param statement compound)))
+  (cl-callf plist-put evil-ts-obj-conf-nav-things
+    'python '(or param statement compound)))
 
 
 

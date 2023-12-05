@@ -140,18 +140,19 @@ Compound is represented by a `NODE'."
 ;;;###autoload
 (defun evil-ts-obj-bash-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
+  (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'bash treesit-thing-settings)
     evil-ts-obj-bash-things)
 
-  (setq-local evil-ts-obj-conf-thing-modifiers
-              '(bash evil-ts-obj-bash-ext-func))
+  (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
+   'bash #'evil-ts-obj-bash-ext-func)
 
-  (setq-local evil-ts-obj-conf-param-sep-regexps
-              `(bash ,(evil-ts-obj-conf--make-nodes-regex
-                       evil-ts-obj-bash-statement-seps)))
+  (cl-callf plist-put evil-ts-obj-conf-sep-regexps
+    'bash (evil-ts-obj-conf--make-nodes-regex
+           evil-ts-obj-bash-statement-seps))
 
-  (setq-local evil-ts-obj-conf-nav-thing
-              '(or param statement compound)))
+  (cl-callf plist-put evil-ts-obj-conf-nav-things
+    'bash '(or param statement compound)))
 
 
 

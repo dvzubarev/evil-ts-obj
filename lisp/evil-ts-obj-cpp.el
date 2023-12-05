@@ -136,17 +136,17 @@ the template_declaration. Current thing is represented by `NODE'."
 (defun evil-ts-obj-cpp-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
+  (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'cpp treesit-thing-settings)
     evil-ts-obj-cpp-things)
 
-  (setq-local evil-ts-obj-conf-thing-modifiers
-              '(cpp evil-ts-obj-cpp-ext-func))
+  (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
+   'cpp #'evil-ts-obj-cpp-ext-func)
 
-  (setq-local evil-ts-obj-conf-param-sep-regexps
-              '(cpp ","))
+  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'cpp ",")
 
-  (setq-local evil-ts-obj-conf-nav-thing
-              '(or param statement compound)))
+  (cl-callf plist-put evil-ts-obj-conf-nav-things
+    'cpp '(or param statement compound)))
 
 (provide 'evil-ts-obj-cpp)
 ;;; evil-ts-obj-cpp.el ends here
