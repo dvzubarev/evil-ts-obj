@@ -194,6 +194,21 @@ def func1():
     |print(here)
 =-=-=
 
+Name: next sibling t12
+
+=-=
+def func(|a=1, #a1
+         b=3, #b3
+         c =4):
+    pass
+=-=
+def func(a=1, #a1
+         |b=3, #b3
+         c =4):
+    pass
+=-=-=
+
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)

@@ -24,6 +24,7 @@
 
 (require 'evil-ts-obj-python)
 (require 'evil-ts-obj-bash)
+(require 'evil-ts-obj-cpp)
 
 (require 'evil-ts-obj-yaml)
 

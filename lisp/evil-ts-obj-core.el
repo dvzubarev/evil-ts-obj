@@ -488,6 +488,7 @@ If `CURRENT' is t, detect current thing at point and return this thing."
 Return t if `NODE' is named and its parent is matching against
 `PARENT-REGEX'."
   (when-let* (((treesit-node-check node 'named))
+              ((not (equal (treesit-node-type node) "comment")))
               (parent (treesit-node-parent node)))
     (string-match-p parent-regex (treesit-node-type parent))))
 
