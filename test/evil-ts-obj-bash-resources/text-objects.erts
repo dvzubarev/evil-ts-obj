@@ -84,6 +84,23 @@ Name: Delete if outer t3
     fi
 =-=-=
 
+Name: Delete list outer t1
+
+=-=
+[[ -z "$eval_mode" ]] && read -ra files || b|uffer=$(cat /dev/stdin ; echo .)
+=-=
+|
+=-=-=
+
+Name: Delete list outer t2
+
+=-=
+[[ -z "$eval_mode" ]] && |read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=
+|
+=-=-=
+
+
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)

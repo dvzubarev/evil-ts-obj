@@ -28,12 +28,20 @@
     "while_statement"
     "for_statement"
     "c_style_for_statement"
-    "case_statement")
+    "case_statement"
+    "list")
   "Nodes that designate compound statement in bash."
   :type '(repeat string)
   :group 'evil-ts-obj)
 
-
+(defun evil-ts-obj-bash-compound-pred (node)
+  "Predicate for detecting compound thing, represented by `NODE'.
+For list node,
+it returns t only for the furthest parent of the same type."
+  (let ((node-type (treesit-node-type node)))
+    (if (equal node-type "list")
+        (not (equal node-type (treesit-node-type (treesit-node-parent node))))
+      t)))
 
 
 (defcustom evil-ts-obj-bash-statement-nodes
@@ -43,8 +51,7 @@
     "declaration_command"
     "variable_assignment"
     "redirected_statement"
-    "pipeline"
-    "list")
+    "pipeline")
   "Nodes that designate simple statement in bash."
   :type '(repeat string)
   :group 'evil-ts-obj)
@@ -57,7 +64,8 @@ Return t if `NODE' is a node that represents a parameter."
   (equal (treesit-node-field-name node) "argument"))
 
 (defcustom evil-ts-obj-bash-things
-  `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-compound-nodes))
+  `((compound ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-compound-nodes)
+                     #'evil-ts-obj-bash-compound-pred))
      (statement ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-nodes))
      (param evil-ts-obj-bash-param-pred))
   "Things for bash."
