@@ -21,44 +21,39 @@ def main():
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (evil-ts-obj-avy-tests-with-avy-input "a"
+    (evil-ts-obj-avy-tests-with-avy-input "b"
       (evil-ts-obj-avy-param-outer-text-obj)))
 
 Name: nav parameters t1
 
 =-=
-|
-main([1])
+|main([1])
 =-=
-
 main([|1])
 =-=-=
 
 Name: nav parameters t2
 
 =-=
-
 def temp(var,
          temp):
    |pass
 =-=
-
-def temp(var,
-         |temp):
+def temp(|var,
+         temp):
    pass
 =-=-=
 
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (evil-ts-obj-avy-tests-with-avy-input "e"
+    (evil-ts-obj-avy-tests-with-avy-input "b"
       (apply #'evil-delete (evil-ts-obj-avy-compound-inner-text-obj)))
     (delete-trailing-whitespace))
 
 Name: delete avy compound inner text object t1
 
 =-=
-
 def temp():
     while True:
         i = 3
@@ -67,7 +62,6 @@ def temp():
 def main():
     |pass
 =-=
-
 def temp():
 
 
@@ -78,18 +72,34 @@ def main():
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (evil-ts-obj-avy-tests-with-avy-input "ea"
+    (evil-ts-obj-avy-tests-with-avy-input "a"
       (setq-local evil-this-operator t)
       (apply #'evil-delete (evil-ts-obj-avy-param-outer-text-obj))))
 
 Name: delete avy param outer text object t1
 
 =-=
-
 def temp(var, temp=(1,2)):
     |pass
 =-=
-
 def temp(var|):
     pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (evil-ts-obj-avy-tests-with-avy-input "b"
+      (evil-ts-obj-avy-statement-outer-text-obj)))
+
+Name: statement nav t1
+
+=-=
+    v = 3
+    v = 4
+|
+=-=
+    |v = 3
+    v = 4
+
 =-=-=

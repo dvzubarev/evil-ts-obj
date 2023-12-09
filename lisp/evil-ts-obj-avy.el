@@ -17,6 +17,8 @@
 ;;
 ;;; Code:
 
+(require 'generator)
+
 (require 'avy)
 
 (require 'evil-ts-obj-core)
@@ -130,14 +132,24 @@ evil operator.")
            (or (memq prop buffer-invisibility-spec)
                (assq prop buffer-invisibility-spec))))))
 
+(iter-defun evil-ts-obj-avy--iter-things (thing start end)
+  (let ((cursor (treesit-node-at start)))
+    (while (and cursor
+                (< (treesit-node-start cursor) end))
+      (setq cursor
+            (treesit-search-forward
+             cursor
+             (lambda (n) (treesit-node-match-p n thing t))))
+      (when (and cursor
+                 (< (treesit-node-start cursor) end))
+        (iter-yield cursor)))))
+
+
 (defun evil-ts-obj-avy--get-candidates-current-window (thing)
   (let ((window (selected-window))
-        candidates
-        node)
+        candidates)
     (pcase-dolist (`(,pos . ,end) (avy--find-visible-regions (window-start) (window-end)))
-      (while (and (setq node (evil-ts-obj--find-next-thing thing pos)
-                        pos (treesit-node-start node))
-                  (< pos end))
+      (iter-do (node (evil-ts-obj-avy--iter-things thing pos end))
         (push (cons (cons (treesit-node-start node) (treesit-node-end node))
                     window)
               candidates)))
