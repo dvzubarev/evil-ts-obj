@@ -473,6 +473,20 @@ def temp(var):
  |   i = 3
 =-=-=
 
+Name: next thing t11
+
+=-=
+def temp():
+|    return
+def main():
+    pass
+=-=
+def temp():
+    return
+|def main():
+    pass
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
