@@ -7,6 +7,8 @@
 
 (eldev-use-package-archive 'melpa-unstable)
 
-(eldev-add-extra-dependencies 'test 'with-simulated-input)
+(eldev-add-extra-dependencies 'test
+                              'with-simulated-input
+                              'nix-ts-mode)
 
 (eldev-use-plugin 'autoloads)

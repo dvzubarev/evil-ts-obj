@@ -1,0 +1,135 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-compound-outer)))
+
+Name: Delete compound outer t1
+
+=-=
+rec {
+  |description = "Temp";
+  inputs.nixpkgs.url = "nixpkgs";
+}
+=-=
+|
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-compound-inner)))
+
+Name: Delete compound inner t1
+
+=-=
+{
+  |description = "Temp";
+  inputs.nixpkgs.url = "nixpkgs";
+}
+=-=
+{
+  |
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-statement-outer)))
+
+Name: Delete statement outer t1
+
+=-=
+import |nixpkgs {system = "x86_64-linux";}
+=-=
+|
+=-=-=
+
+Name: Delete function statement outer t2
+
+=-=
+{
+  overlay = pyfinal: |pyprev: {};
+}
+=-=
+{
+  overlay = |;
+}
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-outer)))
+
+Name: Delete param outer t1
+
+=-=
+{stdenv, lib, w|riteTextFile }:
+=-=
+{stdenv, lib|}:
+=-=-=
+
+Name: Delete param outer t2
+
+=-=
+{stdenv, lib, ...| }:
+=-=
+{stdenv, lib|}:
+=-=-=
+
+Name: Delete param outer t3
+
+=-=
+[
+# pkgs.python311
+|pkgs.nodePackages.pyright
+# pkgs.python311.pkgs.numpy
+pkgs.nodePackages.bash-language-server
+]
+=-=
+[
+# pkgs.python311
+|# pkgs.python311.pkgs.numpy
+pkgs.nodePackages.bash-language-server
+]
+=-=-=
+
+Name: Delete param outer t4
+
+=-=
+[
+# pkgs.python311.pkgs.numpy
+|pkgs.nodePackages.bash-language-server
+]
+=-=
+[
+# pkgs.python311.pkgs.numpy|]
+=-=-=
+
+Name: Delete param outer t5
+
+=-=
+pyfina|l: pyprev: {};
+=-=
+|pyprev: {};
+=-=-=
+
+Name: Delete param outer t6
+
+=-=
+pyfinal:| pyprev: {};
+=-=
+pyfinal: {};
+=-=-=
+
+Name: Delete param outer t7
+
+=-=
+pyfinal|: pyprev: {};
+=-=
+pyprev: {};
+=-=-=

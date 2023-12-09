@@ -1,0 +1,93 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (evil-ts-obj-next-largest-thing))
+
+Name: next sibling thing t1
+
+=-=
+buildInputs = [
+    # pkgs.python311
+    pk|gs.hello
+    # pkgs.python311.pkgs.numpy
+    pkgs.nodePackages.bash-language-server
+]
+=-=
+buildInputs = [
+    # pkgs.python311
+    pkgs.hello
+    # pkgs.python311.pkgs.numpy
+    |pkgs.nodePackages.bash-language-server
+]
+=-=-=
+
+Name: next sibling thing t2
+
+=-=
+{
+  t = import |nixpkgs {system = "x86_64-linux";};
+  t2 = import nixpkgs {system = "x86_64-linux";};
+}
+=-=
+{
+  t = import nixpkgs {system = "x86_64-linux";};
+  |t2 = import nixpkgs {system = "x86_64-linux";};
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (evil-ts-obj--begin-of-thing 'statement))
+
+Name: beginnig of thing t1
+
+=-=
+{
+  overlay = pyfinal: pyprev|: {};
+}
+=-=
+{
+  overlay = |pyfinal: pyprev: {};
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (evil-ts-obj-end-of-thing))
+
+Name: end of thing t1
+
+=-=
+{
+  t = import |nixpkgs {system = "x86_64-linux";};
+  t2 = import nixpkgs {system = "x86_64-linux";};
+}
+=-=
+{
+  t = import nixpkgs {system = "x86_64-linux";|};
+  t2 = import nixpkgs {system = "x86_64-linux";};
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (evil-ts-obj-same-next-thing))
+
+Name: move to the same next thing t1
+
+=-=
+{
+  overlay =| pyfinal: pyprev: {};
+  overlay = pyfinal: pyprev: {};
+}
+=-=
+{
+  overlay = pyfinal: pyprev: {};
+  |overlay = pyfinal: pyprev: {};
+}
+=-=-=
