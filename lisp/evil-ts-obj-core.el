@@ -311,7 +311,8 @@ associated with the node that is not equal to
         ;; just try to move forward
         (setq next (treesit--thing-next init-pos thing))
 
-      ;; go to parent and try to move to next sibling from there
+      ;; try to move to next sibling from there and go to parent for next
+      ;; iteration
       (while (and (or (null next)
                       (= init-pos (treesit-node-start next)))
                   parent
@@ -432,12 +433,12 @@ If `CURRENT' is t, detect current thing at point and return this thing."
     child))
 
 (defun evil-ts-obj--find-next-thing (thing pos)
-  (let ((enclosing-node (evil-ts-obj--smallest-node-at pos))
+  (let ((init-enclosing-node (evil-ts-obj--thing-around pos thing t))
         (init-pos pos))
-    (if-let ((node enclosing-node)
+    (if-let ((node init-enclosing-node)
              (next (evil-ts-obj--search-subtree-forward node thing init-pos)))
         next
-      (evil-ts-obj--next-thing thing enclosing-node pos))))
+      (evil-ts-obj--next-thing thing init-enclosing-node pos))))
 
 (defun evil-ts-obj--goto-next-thing (thing)
   (when-let* ((spec (evil-ts-obj--make-spec 'nav))

@@ -462,6 +462,7 @@ def temp(var, temp=(1,2), ):
 
 Name: next thing t10
 
+No next thing
 =-=
 
 def temp(var):
@@ -469,7 +470,7 @@ def temp(var):
 =-=
 
 def temp(var):
-    |i = 3
+ |   i = 3
 =-=-=
 
 Code:
