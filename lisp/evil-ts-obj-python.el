@@ -116,7 +116,7 @@ Compound is represented by a `NODE'."
 (defun evil-ts-obj-python-ext-func (spec node)
   "Main extension function for python. TODO spec"
   (pcase spec
-    ((pmap (:thing 'compound) (:text-obj 'outer))
+    ((pmap (:thing 'compound) (:text-obj 'outer) (:op-kind 'mod))
      (evil-ts-obj-python-compound-outer-ext node))
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-python-extract-compound-inner node))

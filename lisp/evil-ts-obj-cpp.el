@@ -121,7 +121,7 @@ the template_declaration. Current thing is represented by `NODE'."
 (defun evil-ts-obj-cpp-ext-func (spec node)
   "Main extension function for python. TODO spec"
   (pcase spec
-    ((pmap (:thing 'compound) (:text-obj 'outer))
+    ((pmap (:thing 'compound) (:text-obj 'outer) (:op-kind 'mod))
      (evil-ts-obj-cpp-compound-outer-ext node))
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-cpp-extract-compound-inner node))

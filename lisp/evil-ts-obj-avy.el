@@ -43,6 +43,7 @@
 
 (defvar evil-ts-obj-avy--current-thing nil)
 (defvar evil-ts-obj-avy--current-text-obj nil)
+(defvar evil-ts-obj-avy--selected-node nil)
 (defvar evil-ts-obj-avy--current-range nil
   "Last goto range.
 Used for avy text objects. This range will be returned to the
@@ -53,12 +54,18 @@ evil operator.")
 (defvar evil-ts-obj-avy--dont-jump-back-ops '(evil-change))
 (defvar evil-ts-obj-avy--activate-motion-range-advice nil)
 
+(defun evil-ts-obj-avy--set-selected-node (cand)
+  (pcase-let ((`((,_ ,_ ,node) . ,_) cand))
+    (setq evil-ts-obj-avy--selected-node node)))
+
+(add-function :before avy-pre-action #'evil-ts-obj-avy--set-selected-node)
 
 (defun evil-ts-obj-avy--get-range (pos op-kind)
-  (let* ((thing evil-ts-obj-avy--current-thing)
+  (let* ((node evil-ts-obj-avy--selected-node)
+         (thing evil-ts-obj-avy--current-thing)
          (text-obj evil-ts-obj-avy--current-text-obj)
          (spec (evil-ts-obj--make-spec op-kind thing text-obj)))
-    (evil-ts-obj--get-text-obj-range pos thing spec)))
+    (evil-ts-obj--apply-modifiers node thing spec)))
 
 (defun evil-ts-obj-avy-action-goto (pt)
   (when-let ((range (evil-ts-obj-avy--get-range
@@ -147,11 +154,16 @@ evil operator.")
 
 (defun evil-ts-obj-avy--get-candidates-current-window (thing)
   (let ((window (selected-window))
+        (spec (evil-ts-obj--make-spec 'avy-cand
+                                      thing
+                                      evil-ts-obj-avy--current-text-obj))
+        range
         candidates)
     (pcase-dolist (`(,pos . ,end) (avy--find-visible-regions (window-start) (window-end)))
       (iter-do (node (evil-ts-obj-avy--iter-things thing pos end))
-        (push (cons (cons (treesit-node-start node) (treesit-node-end node))
-                    window)
+        (setq range (evil-ts-obj--apply-modifiers node thing spec))
+        (push (cons (append range (list node))
+               window)
               candidates)))
     candidates))
 
