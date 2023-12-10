@@ -64,6 +64,8 @@
     "argument_list"
     "expression_list"
     "pattern_list"
+    "list_pattern"
+    "tuple_pattern"
     "dictionary"
     "list"
     "tuple")
