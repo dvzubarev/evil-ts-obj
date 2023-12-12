@@ -93,6 +93,12 @@ Return t if `NODE' is named and it is matching against
   :type 'repeate
   :group 'evil-ts-obj)
 
+(defcustom evil-ts-obj-nix-param-seps
+  "^[,:]$"
+  "Separators for nix params."
+  :type '(choice (repeat string) string)
+  :group 'evil-ts-obj)
+
 (defun evil-ts-obj-nix-extract-compound-inner (node)
   "Return range for a compound inner text object.
 Compound is represented by a `NODE'."
@@ -107,7 +113,7 @@ Compound is represented by a `NODE'."
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-nix-extract-compound-inner node))
     ((pmap (:thing 'param) (:text-obj 'outer))
-     (evil-ts-obj-param-outer-mod node))))
+     (evil-ts-obj-param-outer-universal-mod node evil-ts-obj-nix-param-seps))))
 
 ;;;###autoload
 (defun evil-ts-obj-nix-setup-things ()
@@ -121,7 +127,8 @@ Compound is represented by a `NODE'."
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
    'nix #'evil-ts-obj-nix-ext-func)
 
-  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'nix "^[,:]$")
+  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'nix
+            evil-ts-obj-nix-param-seps)
 
   (cl-callf plist-put evil-ts-obj-conf-nav-things
     'nix '(or param statement compound)))

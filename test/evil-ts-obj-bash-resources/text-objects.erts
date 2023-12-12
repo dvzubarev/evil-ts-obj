@@ -264,7 +264,7 @@ Name: Delete statement outer t1
 =-=
 buffer=$(cat |/dev/stdin ; echo .)
 =-=
-buffer=$(| echo .)
+buffer=$(|echo .)
 =-=-=
 
 Name: Delete statement outer t2
@@ -272,7 +272,7 @@ Name: Delete statement outer t2
 =-=
 buffer=$(cat /dev/stdin ; |echo .)
 =-=
-buffer=$(cat /dev/stdin ; |)
+buffer=$(cat /dev/stdin|)
 =-=-=
 
 Name: Delete statement outer t3
@@ -296,8 +296,83 @@ Name: Delete statement outer t5
 =-=
 buffer=$(cat /dev/stdin ; echo .| )
 =-=
-buffer=$(cat /dev/stdin ; | )
+buffer=$(cat /dev/stdin| )
 =-=-=
+
+Name: Delete statement outer t6
+
+=-=
+case $key in
+    -s|) send_mode="1"; shift ;;
+esac
+=-=
+case $key in
+    -s) |shift ;;
+esac
+=-=-=
+
+
+Name: Delete statement outer t7
+
+=-=
+case $key in
+    -s) send_mode="1"|; shift ;;
+esac
+=-=
+case $key in
+    -s) |shift ;;
+esac
+=-=-=
+
+Name: Delete statement outer t8
+
+=-=
+case $key in
+    -s) send_mode="1"; |shift ;;
+esac
+=-=
+case $key in
+    -s) send_mode="1"| ;;
+esac
+=-=-=
+
+Name: Delete statement outer t9
+
+=-=
+if true ; then
+    echo |e
+fi
+=-=
+if true ; then
+    |
+fi
+=-=-=
+
+Point-Char: @
+
+Name: Delete pipe statement outer t1
+
+=-=
+echo te | echo pr | echo @en
+echo k
+=-=
+echo te | echo pr@
+echo k
+=-=-=
+
+Name: Delete pipe statement outer t2
+
+=-=
+    echo b
+    echo te @| echo pr | echo en
+    echo e
+=-=
+    echo b
+    @echo pr | echo en
+    echo e
+=-=-=
+
+Point-Char: |
 
 Code:
   (lambda ()
@@ -312,6 +387,164 @@ buffer=$(cat |/dev/stdin ; echo .)
 buffer=$(| ; echo .)
 =-=-=
 
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-statement-upper)))
+
+Name: Delete statement upper t1
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        e|cho e
+        exit
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        |exit
+    fi
+=-=-=
+
+Name: Delete statement upper t2
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        e|cho e; echo t
+        exit
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        |echo t
+        exit
+    fi
+=-=-=
+
+Name: Delete statement upper t3
+
+=-=
+case $key in
+    -s) send_mode="1"; echo t| ; shift  ;;
+esac
+=-=
+case $key in
+    -s) |shift  ;;
+esac
+=-=-=
+
+Name: Delete statement upper t4
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        e|cho e
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        |
+    fi
+=-=-=
+
+Name: Delete statement upper t5
+Skip: t
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        e|cho i
+    else
+        echo e
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        |
+    else
+        echo e
+    fi
+=-=-=
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-statement-lower)))
+
+Name: Delete statement lower t1
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        e|cho e
+        exit
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        test|
+    fi
+=-=-=
+
+Name: Delete statement lower t2
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        echo e; |echo t
+        exit
+    elif [[ $v -eq 0 ]]; then
+        echo t
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        echo e|
+    elif [[ $v -eq 0 ]]; then
+        echo t
+    fi
+=-=-=
+
+Name: Delete statement lower t3
+
+=-=
+case $key in
+    -s) send_mode="1"; echo t| ; shift  ;;
+esac
+=-=
+case $key in
+    -s) send_mode="1"|  ;;
+esac
+=-=-=
+
+Name: Delete statement lower t4
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        e|cho e
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        |
+    fi
+=-=-=
+
+Name: Delete statement lower t5
+Skip: t
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        e|cho i
+    else
+        echo e
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        |
+    else
+        echo e
+    fi
+=-=-=
 
 Code:
   (lambda ()

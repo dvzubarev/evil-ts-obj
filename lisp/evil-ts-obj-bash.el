@@ -113,23 +113,29 @@ Compound is represented by a `NODE'."
             (treesit-node-end last-child)))))
 
 (defun evil-ts-obj-bash-statement-ext (node)
-  (when-let* ((next-sibl (treesit-node-next-sibling node))
-              ((equal (treesit-node-type next-sibl) ";")))
-    (list (treesit-node-start node)
-          (treesit-node-end next-sibl))))
+  (evil-ts-obj-thing-with-sep-outer
+   node
+   (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-seps)
+   nil t))
 
-(defun evil-ts-obj-bash-param-upper (node)
-  (let ((start-pos (treesit-node-start node))
-               (end-pos (treesit-node-end node)))
-    (when-let (next-sibling (treesit-node-next-sibling node t))
-      (setq end-pos (treesit-node-start next-sibling)))
+(defun evil-ts-obj-bash-statement-get-sibling (dir node)
+  (when-let ((sibling (pcase dir
+                        ('next (treesit-node-next-sibling node))
+                        ('prev (treesit-node-prev-sibling node)))))
+    (if (member (treesit-node-type sibling) '("else_clause" "elif_clause"))
+        nil
+      sibling)))
 
-    (let ((final-sibling node))
-      (while (and (setq node (treesit-node-prev-sibling node t))
-                  (not (equal (treesit-node-type node) "command_name")))
-        (setq final-sibling node))
-      (setq start-pos (treesit-node-start final-sibling)))
-    (list start-pos end-pos)))
+(defun evil-ts-obj-bash-statement-sibling-kind (cur-node cur-kind node)
+  (evil-ts-obj--get-node-kind
+   (evil-ts-obj-conf--make-nodes-regex
+    evil-ts-obj-bash-statement-seps)
+   cur-node cur-kind node))
+
+(defun evil-ts-obj-bash-param-sibling-kind (_cur-node _cur-kind node)
+  (when (not (equal (treesit-node-type node) "command_name"))
+    'sibling))
+
 
 (defun evil-ts-obj-bash-ext-func (spec node)
   "Main extension function for bash. TODO spec"
@@ -139,10 +145,23 @@ Compound is represented by a `NODE'."
      (evil-ts-obj-bash-extract-compound-inner node))
     ((pmap (:thing 'statement) (:text-obj 'outer))
      (evil-ts-obj-bash-statement-ext node))
+    ((pmap (:thing (or 'statement 'compound)) (:text-obj 'upper))
+     (evil-ts-obj-generic-thing-upper
+      node
+      #'evil-ts-obj-bash-statement-sibling-kind
+      #'evil-ts-obj-bash-statement-get-sibling))
+    ((pmap (:thing (or 'statement 'compound)) (:text-obj 'lower))
+     (evil-ts-obj-generic-thing-lower
+      node
+      #'evil-ts-obj-bash-statement-sibling-kind
+      #'evil-ts-obj-bash-statement-get-sibling))
     ((pmap (:thing 'param) (:text-obj 'outer))
-     (evil-ts-obj-param-outer-mod node))
+     (evil-ts-obj-param-outer-universal-mod node))
     ((pmap (:thing 'param) (:text-obj 'upper))
-     (evil-ts-obj-bash-param-upper node))))
+     (evil-ts-obj-generic-thing-upper
+      node
+      #'evil-ts-obj-bash-param-sibling-kind
+      #'evil-ts-obj--get-sibling-simple))))
 
 
 ;;;###autoload

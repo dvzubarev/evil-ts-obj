@@ -26,8 +26,8 @@ A function should accept two arguments: SPEC and NODE.")
 
 (defvar-local evil-ts-obj-conf-nav-things nil
   "This plist defines default things for movement for each language.
-It can be single thing, e.g. 'compound' or a list of things:
-'(or param compound thing)'. When list is provided navigating
+It can be single thing, e.g. compound or a list of things:
+(or param compound thing). When list is provided navigating
 command will search for the first thing from this list.")
 
 (defvar-local evil-ts-obj-conf-sep-regexps nil

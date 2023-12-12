@@ -77,6 +77,12 @@
   :type 'repeate
   :group 'evil-ts-obj)
 
+(defcustom evil-ts-obj-cpp-param-seps
+  ","
+  "Separators for cpp params."
+  :type '(choice (repeat string) string)
+  :group 'evil-ts-obj)
+
 (defun evil-ts-obj-cpp-extract-compound-inner (node)
   "Return range for a compound inner text object.
 Compound is represented by a `NODE'."
@@ -126,11 +132,11 @@ the template_declaration. Current thing is represented by `NODE'."
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-cpp-extract-compound-inner node))
     ((pmap (:thing 'param) (:text-obj 'outer) (:op-kind 'mod))
-     (evil-ts-obj-param-outer-mod node))
+     (evil-ts-obj-param-outer-mod node evil-ts-obj-cpp-param-seps))
     ((pmap (:thing 'param) (:text-obj 'upper))
-     (evil-ts-obj-param-upper-mod node))
+     (evil-ts-obj-param-upper-mod node evil-ts-obj-cpp-param-seps))
     ((pmap (:thing 'param) (:text-obj 'lower))
-     (evil-ts-obj-param-lower-mod node))))
+     (evil-ts-obj-param-lower-mod node evil-ts-obj-cpp-param-seps))))
 
 ;;;###autoload
 (defun evil-ts-obj-cpp-setup-things ()
@@ -143,7 +149,8 @@ the template_declaration. Current thing is represented by `NODE'."
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
    'cpp #'evil-ts-obj-cpp-ext-func)
 
-  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'cpp ",")
+  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'cpp
+            evil-ts-obj-cpp-param-seps)
 
   (cl-callf plist-put evil-ts-obj-conf-nav-things
     'cpp '(or param statement compound)))

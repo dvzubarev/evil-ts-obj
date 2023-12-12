@@ -88,6 +88,11 @@
   :type 'repeate
   :group 'evil-ts-obj)
 
+(defcustom evil-ts-obj-python-param-seps
+  ","
+  "Separators for python params."
+  :type '(choice (repeat string) string)
+  :group 'evil-ts-obj)
 
 (defun evil-ts-obj-python-compound-outer-ext (node)
   "Extend a function range to the start of decorator, if it exists.
@@ -123,11 +128,11 @@ Compound is represented by a `NODE'."
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-python-extract-compound-inner node))
     ((pmap (:thing 'param) (:text-obj 'outer) (:op-kind 'mod))
-     (evil-ts-obj-param-outer-mod node))
+     (evil-ts-obj-param-outer-mod node evil-ts-obj-python-param-seps))
     ((pmap (:thing 'param) (:text-obj 'upper))
-     (evil-ts-obj-param-upper-mod node))
+     (evil-ts-obj-param-upper-mod node evil-ts-obj-python-param-seps))
     ((pmap (:thing 'param) (:text-obj 'lower))
-     (evil-ts-obj-param-lower-mod node))))
+     (evil-ts-obj-param-lower-mod node evil-ts-obj-python-param-seps))))
 
 ;;;###autoload
 (defun evil-ts-obj-python-setup-things ()
@@ -140,7 +145,8 @@ Compound is represented by a `NODE'."
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
    'python #'evil-ts-obj-python-ext-func)
 
-  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'python ",")
+  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'python
+            evil-ts-obj-python-param-seps)
 
   (cl-callf plist-put evil-ts-obj-conf-nav-things
     'python '(or param statement compound)))
