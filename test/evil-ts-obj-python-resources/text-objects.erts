@@ -40,6 +40,21 @@ def main():
         |
 =-=-=
 
+Name: Delete loop inner t3
+
+=-=
+for |t in range(3):
+    t = 3
+    break
+else:
+    t =1
+=-=
+for t in range(3):
+    |
+else:
+    t =1
+=-=-=
+
 Name: Delete if inner t1
 
 =-=
@@ -89,6 +104,34 @@ def f():
         pass
 =-=-=
 
+
+Name: Delete except inner t1
+
+=-=
+try:
+    raise RuntimeError()
+except |RuntimeError:
+    pass
+=-=
+try:
+    raise RuntimeError()
+except RuntimeError:
+    |
+=-=-=
+
+Name: Delete finally inner t1
+
+=-=
+try:
+    raise RuntimeError()
+finall|y:
+    pass
+=-=
+try:
+    raise RuntimeError()
+finally:
+    |
+=-=-=
 
 
 Code:
@@ -397,6 +440,61 @@ def func(a, e):
 =-=
 def func(a, e):
     |
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-compound-upper)))
+
+Name: Delete compound upper t1
+
+=-=
+if b and b >3:
+    b =832
+    b =833
+elif False:
+    b = 38
+elif |True:
+    b = 38
+else:
+    pass
+=-=
+if b and b >3:
+    |
+else:
+    pass
+=-=-=
+
+Name: Delete compound upper t2
+
+=-=
+    try:
+        raise RuntimeError()
+    except RuntimeError:
+        pass
+    else:
+        |print()
+    finally:
+        pass
+=-=
+    try:
+        |
+    finally:
+        pass
+=-=-=
+
+Name: Delete compound upper t3
+
+=-=
+    for t in range(3):
+        t = 3
+        break
+    else:
+        |t =1
+=-=
+    for t in range(3):
+        |
 =-=-=
 
 Code:

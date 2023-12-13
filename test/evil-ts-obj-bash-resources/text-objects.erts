@@ -402,7 +402,8 @@ Name: Delete statement upper t1
     fi
 =-=
     if [[ $v -eq 1 ]]; then
-        |exit
+        |
+        exit
     fi
 =-=-=
 
@@ -480,7 +481,8 @@ Name: Delete statement lower t1
     fi
 =-=
     if [[ $v -eq 1 ]]; then
-        test|
+        test
+        |
     fi
 =-=-=
 

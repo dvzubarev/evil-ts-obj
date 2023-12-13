@@ -35,6 +35,7 @@
     "with_statement"
     "try_statement"
     "except_clause"
+    "finally_clause"
     "match_statement"
     "case_clause")
   "Nodes that designate compound statement in python."
@@ -107,17 +108,20 @@ Current thing is represented by `NODE'."
   "Return range for a compound inner text object.
 Compound is represented by a `NODE'."
   (when-let* ((block-node
-               (cond
-                ((equal (treesit-node-type node) "if_statement")
-                 (treesit-node-child-by-field-name node "consequence"))
-                ((equal (treesit-node-type node) "try_statement")
-                 (treesit-node-child-by-field-name node "body"))
-                (t
-                 (treesit-node-child node -1))))
+               (pcase (treesit-node-type node)
+                 ((or "if_statement" "elif_clause" "case_clause")
+                  (treesit-node-child-by-field-name node "consequence"))
+                 ((or "except_clause" "finally_clause")
+                  (treesit-node-child node -1))
+                (_
+                 (treesit-node-child-by-field-name node "body"))))
               ((equal (treesit-node-type block-node) "block")))
     (list (treesit-node-start block-node)
           (treesit-node-end block-node))))
 
+(defun evil-ts-obj-python-compound-sibling-kind (_cur-node _cur-kind node)
+  (unless (equal (treesit-node-type node) ":")
+    'sibling))
 
 
 (defun evil-ts-obj-python-ext-func (spec node)
@@ -127,6 +131,11 @@ Compound is represented by a `NODE'."
      (evil-ts-obj-python-compound-outer-ext node))
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-python-extract-compound-inner node))
+    ((pmap (:thing 'compound) (:text-obj 'upper))
+     (evil-ts-obj-generic-thing-upper
+      node
+      #'evil-ts-obj-python-compound-sibling-kind
+      #'evil-ts-obj--get-sibling-simple))
     ((pmap (:thing 'param) (:text-obj 'outer) (:op-kind 'mod))
      (evil-ts-obj-param-outer-mod node evil-ts-obj-python-param-seps))
     ((pmap (:thing 'param) (:text-obj 'upper))
