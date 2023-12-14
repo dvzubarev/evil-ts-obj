@@ -84,22 +84,6 @@ Name: Delete if outer t3
     fi
 =-=-=
 
-Name: Delete list outer t1
-
-=-=
-[[ -z "$eval_mode" ]] && read -ra files || b|uffer=$(cat /dev/stdin ; echo .)
-=-=
-|
-=-=-=
-
-Name: Delete list outer t2
-
-=-=
-[[ -z "$eval_mode" ]] && |read -ra files || buffer=$(cat /dev/stdin ; echo .)
-=-=
-|
-=-=-=
-
 
 Code:
   (lambda ()
@@ -350,6 +334,61 @@ fi
 
 Point-Char: @
 
+Name: Delete statement outer t10
+
+=-=
+[[ @-z "$e" ]] && read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=
+@read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=-=
+
+Name: Delete statement outer t11
+=-=
+[[ -z "$e" ]] @&& read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=
+@read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=-=
+
+Name: Delete statement outer t11-2
+=-=
+[[ -z "$e" ]] &@& read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=
+@read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=-=
+
+Name: Delete statement outer t11-3
+=-=
+[[ -z "$e" ]] @ && read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=
+@read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=-=
+
+Name: Delete statement outer t12
+
+=-=
+[[ -z "$e" ]] && @read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=
+[[ -z "$e" ]] && @buffer=$(cat /dev/stdin ; echo .)
+=-=-=
+
+Name: Delete statement outer t13
+
+=-=
+[[ -z "$e" ]] && read -ra files || @buffer=$(cat /dev/stdin ; echo .)
+=-=
+[[ -z "$e" ]] && read -ra files@
+=-=-=
+
+# Name: Delete list outer t1
+
+# =-=
+#  | [[ -z "$e" ]] && read -ra files || b|uffer=$(cat /dev/stdin ; echo .)
+# =-=
+#  |
+# =-=-=
+
+
+
 Name: Delete pipe statement outer t1
 
 =-=
@@ -448,7 +487,6 @@ Name: Delete statement upper t4
 =-=-=
 
 Name: Delete statement upper t5
-Skip: t
 
 =-=
     if [[ $v -eq 1 ]]; then
@@ -464,6 +502,30 @@ Skip: t
         echo e
     fi
 =-=-=
+
+Name: Delete statement upper t6
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        e|cho i
+    else
+        echo e
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        |
+    else
+        echo e
+    fi
+=-=-=
+
+Name: Delete statement lower t7
+
+=-=
+[[ -z "$e" ]] && read -ra files| && echo e && echo t
+=-=
+echo e && echo t
 =-=-=
 
 Code:
@@ -530,7 +592,6 @@ Name: Delete statement lower t4
 =-=-=
 
 Name: Delete statement lower t5
-Skip: t
 
 =-=
     if [[ $v -eq 1 ]]; then
@@ -548,6 +609,15 @@ Skip: t
     fi
 =-=-=
 
+Name: Delete statement lower t6
+
+=-=
+[[ -z "$e" ]] && read -ra files && |echo e && echo t
+=-=
+[[ -z "$e" ]] && read -ra files|
+=-=-=
+
+
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
@@ -558,5 +628,5 @@ Name: Delete param upper t1
 =-=
 buffer=$(read -x -r|a files)
 =-=
-buffer=$(read |files)
+buffer=$(read | files)
 =-=-=

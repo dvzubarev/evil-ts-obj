@@ -32,6 +32,53 @@
         (treesit-parser-root-node parser))
       (treesit-buffer-root-node (treesit-language-at pos))))
 
+(defun evil-ts-obj--text-bounds-at-pos (pos)
+  (let ((syntax (char-to-string (char-syntax (char-after pos))))
+        (start nil) (end nil))
+
+    (save-excursion
+      (goto-char pos)
+      (skip-syntax-backward syntax)
+      (setq start (point))
+      (goto-char pos)
+      (skip-syntax-forward syntax)
+      (setq end (point)))
+    (cons start end)))
+
+(defun evil-ts-obj--find-next-prev-non-space (pos &optional end-pos)
+  (let ((end-pos (or end-pos pos))
+        (prev-pos nil)
+        (next-pos nil))
+    (save-excursion
+      (goto-char pos)
+      (skip-chars-backward " \t")
+      (setq prev-pos
+            (and (not (bolp)) (1- (point))))
+
+      (goto-char end-pos)
+      (skip-chars-forward " \t")
+      (setq next-pos
+            (and (not (eolp))
+                 (point))))
+    (cons prev-pos next-pos)))
+
+(defun evil-ts-obj--get-nearest-words-pos (pos sep-regex)
+
+  (if (memq (char-after pos) '(32 9 10 nil))
+      ;; pos at whitespace
+      (pcase-let ((`(,prev-pos . ,next-pos) (evil-ts-obj--find-next-prev-non-space pos)))
+        (list 'space prev-pos next-pos))
+
+    (pcase-let* ((`(,cur-word-start . ,cur-word-end) (evil-ts-obj--text-bounds-at-pos pos))
+                 (cur-word (buffer-substring-no-properties cur-word-start cur-word-end)))
+
+      (if (and sep-regex (string-match-p sep-regex cur-word))
+          (pcase-let ((`(,prev-pos . ,next-pos)
+                       (evil-ts-obj--find-next-prev-non-space cur-word-start cur-word-end)))
+
+            (list 'sep prev-pos next-pos))
+        (list 'other nil nil)))))
+
 (defun evil-ts-obj--node-at-or-around (pos)
   "Return leaf node, which is at or near `POS'.
 If `POS' is inside some leaf node (node-start <= pos < node-end),
@@ -44,60 +91,54 @@ next one. If the pos is on a node that matches against
 `evil-ts-obj-conf-sep-regexps' select the previous named
 node, if it exists. Return nil if no node can be found."
 
-  (let ((sep-regex (plist-get evil-ts-obj-conf-sep-regexps
-                              (treesit-language-at pos)))
-        prefer-previous)
-    (if (or (memq (char-after pos) '(32 9 10 nil))
-            (and sep-regex
-                 (string-match-p sep-regex
-                                 (char-to-string (char-after pos)))
-                 (setq prefer-previous t)))
+  (pcase-let* ((sep-regex (plist-get evil-ts-obj-conf-sep-regexps
+                                     (treesit-language-at pos)))
+               (`(,pos-at ,prev-pos ,next-pos) (evil-ts-obj--get-nearest-words-pos pos sep-regex))
+               (prefer-previous))
 
-        ;; special case:
-        ;; point is either on space or on a separator
-        (let* ((prev-pos (save-excursion
-                           (goto-char pos)
-                           (skip-chars-backward " \t")
-                           (and (not (bolp)) (1- (point)))))
+    (pcase pos-at
+      ('other
+       (treesit-node-at pos))
+      ((or 'space 'sep)
+       (setq prefer-previous (eq pos-at 'sep))
+       (let (node
+             next-node
+             next-named
+             prev-node)
 
-               (next-pos (save-excursion
-                           (goto-char pos)
-                           (skip-chars-forward " \t")
-                           (and (not (eolp)) (/= (point) pos) (point))))
-               node
-               next-node
-               next-named
-               prev-node)
+         (when next-pos
+           (setq next-node (treesit-node-at next-pos))
+           (when (and (not prefer-previous)
+                      (setq next-named (treesit-node-check next-node 'named)))
+             (setq node next-node)))
 
-          (when next-pos
-            (setq next-node (treesit-node-at next-pos))
-            (when (and (not prefer-previous)
-                       (setq next-named (treesit-node-check next-node 'named)))
-              (setq node next-node)))
 
-          (when (and prev-pos
-                     (null node))
-            (setq prev-node (treesit-node-at prev-pos))
-            (when (treesit-node-check prev-node 'named)
-              (setq node prev-node)))
+         (when (and prev-pos
+                    (null node))
+           (setq prev-node (treesit-node-at prev-pos))
+           (when (or prefer-previous
+                     (treesit-node-check prev-node 'named))
+             (setq node prev-node)))
 
-          (when (null node)
-            (cond (next-named
-                   ;; prefer-previous was t, but previous one was anonymous
-                   (setq node next-node))
+         (when (null node)
+           (cond (next-named
+                  ;; prefer-previous was t, but previous one was null
+                  (setq node next-node))
 
-                  ;; no named nodes on both sides
-                  ((and
-                    prev-node
-                    sep-regex
-                    (string-match-p sep-regex (treesit-node-type prev-node)))
-                   (setq node (evil-ts-obj--node-at-or-around (treesit-node-start prev-node))))
-                  ((null next-node)
-                   (setq node prev-node))
-                  (t
-                   (setq node next-node))))
-          node)
-      (treesit-node-at pos))))
+                 ;; no named nodes on both sides
+                 ((and
+                   prev-node sep-regex (string-match-p sep-regex (treesit-node-type prev-node)))
+                  (setq node (evil-ts-obj--node-at-or-around (treesit-node-start prev-node))))
+                 ((and
+                   next-node sep-regex (string-match-p sep-regex (treesit-node-type next-node)))
+                  (if prev-node
+                      (setq node prev-node)
+                    (setq node (evil-ts-obj--node-at-or-around (treesit-node-start next-node)))))
+                 ((null next-node)
+                  (setq node prev-node))
+                 (t
+                  (setq node next-node))))
+         node)))))
 
 (defun evil-ts-obj--smallest-node-at (pos &optional named)
   (let* ((root (evil-ts-obj--root-at pos))
@@ -589,6 +630,37 @@ Return a next or previous sibling for `NODE' based on value of
   (pcase dir
     ('next (treesit-node-next-sibling node))
     ('prev (treesit-node-prev-sibling node))))
+
+(defun evil-ts-obj--get-sibling-bin-op (node-types dir node)
+  "Traverse typical tree structure of binary operators.
+Return sibling of a given `NODE' in the specified direction
+`DIR'. Parent of the `NODE' should have one of the type from the
+`NODE-TYPES'. For a tree like below, when `NODE' is (3) and `DIR'
+is prev, jump to the the last child of its sibling (node (5)).
+When node is (5) and `DIR' is next jump to its grandparent's
+second child (node (3)).
+
+         (1) bin_op----------
+               |            |
+         (2) bin_op------  (3) and i < 9
+               |        |
+         (4) bin_op    (5) and j < 3
+               |
+    (6) i > 0 and j > 0"
+
+  (when-let* ((parent (treesit-node-parent node))
+              ((member (treesit-node-type parent) node-types)))
+    (let ((sibling (evil-ts-obj--get-sibling-simple dir node)))
+      (pcase (treesit-node-type sibling)
+        ('()
+         (when-let* (((eq dir 'next))
+                     (grandparent (treesit-node-parent parent))
+                     ((member (treesit-node-type grandparent) node-types)))
+           (treesit-node-child grandparent 1)))
+        ((pred (seq-contains-p node-types))
+         (when (eq dir 'prev)
+           (treesit-node-child sibling -1)))
+        (_ sibling)))))
 
 (defun evil-ts-obj--get-node-kind-strict (sep-regex _cur-node cur-kind node)
   "Return sibling kind for `NODE' only if it is preceded by the separator.

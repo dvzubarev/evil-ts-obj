@@ -28,20 +28,12 @@
     "while_statement"
     "for_statement"
     "c_style_for_statement"
-    "case_statement"
-    "list")
+    "case_statement")
   "Nodes that designate compound statement in bash."
   :type '(repeat string)
   :group 'evil-ts-obj)
 
-(defun evil-ts-obj-bash-compound-pred (node)
-  "Predicate for detecting compound thing, represented by `NODE'.
-For list node,
-it returns t only for the furthest parent of the same type."
-  (let ((node-type (treesit-node-type node)))
-    (if (equal node-type "list")
-        (not (equal node-type (treesit-node-type (treesit-node-parent node))))
-      t)))
+
 
 
 (defcustom evil-ts-obj-bash-statement-nodes
@@ -51,12 +43,20 @@ it returns t only for the furthest parent of the same type."
     "declaration_command"
     "variable_assignment"
     "redirected_statement"
-    "pipeline")
+    "pipeline"
+    "list")
   "Nodes that designate simple statement in bash."
   :type '(repeat string)
   :group 'evil-ts-obj)
 
-
+(defun evil-ts-obj-bash-statement-pred (node)
+  "Predicate for detecting statement thing, represented by `NODE'.
+For list node, it returns t only for the furthest parent of the
+same type."
+  (let ((node-type (treesit-node-type node)))
+    (if (equal node-type "list")
+        (not (equal node-type (treesit-node-type (treesit-node-parent node))))
+      t)))
 
 (defun evil-ts-obj-bash-param-pred (node)
   "Predicate for detecting param thing.
@@ -64,17 +64,17 @@ Return t if `NODE' is a node that represents a parameter."
   (equal (treesit-node-field-name node) "argument"))
 
 (defcustom evil-ts-obj-bash-things
-  `((compound ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-compound-nodes)
-                     #'evil-ts-obj-bash-compound-pred))
-     (statement ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-nodes))
-     (param evil-ts-obj-bash-param-pred))
+  `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-compound-nodes))
+    (statement ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-nodes)
+                      #'evil-ts-obj-bash-statement-pred))
+    (param evil-ts-obj-bash-param-pred))
   "Things for bash."
   :type 'repeate
   :group 'evil-ts-obj)
 
 
 (defcustom evil-ts-obj-bash-statement-seps
-  '("|" ";")
+  '("|" ";" "||" "&&")
   "Separators for bash statement."
   :type '(repeat string)
   :group 'evil-ts-obj)
@@ -112,19 +112,24 @@ Compound is represented by a `NODE'."
       (list (treesit-node-start first-child)
             (treesit-node-end last-child)))))
 
-(defun evil-ts-obj-bash-statement-ext (node)
-  (evil-ts-obj-thing-with-sep-outer
-   node
-   (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-seps)
-   nil t))
-
 (defun evil-ts-obj-bash-statement-get-sibling (dir node)
-  (when-let ((sibling (pcase dir
-                        ('next (treesit-node-next-sibling node))
-                        ('prev (treesit-node-prev-sibling node)))))
-    (if (member (treesit-node-type sibling) '("else_clause" "elif_clause"))
-        nil
-      sibling)))
+
+  (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("list") dir node)))
+      sibling
+    (let ((sibling (evil-ts-obj--get-sibling-simple dir node)))
+      (pcase (treesit-node-type sibling)
+        ((or "else_clause" "elif_clause")
+         nil)
+        (_ sibling)))))
+
+(defun evil-ts-obj-bash-statement-ext (node)
+  (evil-ts-obj-generic-thing-with-sep-outer
+   node
+   (apply-partially #'evil-ts-obj--get-node-kind-strict
+                    (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-seps))
+   #'evil-ts-obj-bash-statement-get-sibling))
+
+
 
 (defun evil-ts-obj-bash-statement-sibling-kind (cur-node cur-kind node)
   (evil-ts-obj--get-node-kind

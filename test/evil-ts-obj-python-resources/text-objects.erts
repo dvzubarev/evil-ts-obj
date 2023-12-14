@@ -373,6 +373,33 @@ for var| in funcs():
     pass
 =-=-=
 
+Name: Delete param outer t19
+
+=-=
+def func(par
+         |, par2
+         , par3
+        ):
+    pass
+=-=
+def func(par
+         , |par3
+        ):
+    pass
+=-=-=
+
+Name: Delete param outer t20
+
+=-=
+def func(par
+         |, par3
+        ):
+    pass
+=-=
+def func(par|):
+    pass
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
@@ -424,6 +451,21 @@ func(1,
               [3]), ab='s')
 =-=-=
 
+Name: Delete param outer t6
+
+=-=
+def func(par
+         |, par2
+         , par3
+        ):
+    pass
+=-=
+def func(par
+         , |
+         , par3
+        ):
+    pass
+=-=-=
 
 
 Code:
