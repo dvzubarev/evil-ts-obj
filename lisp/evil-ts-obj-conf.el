@@ -53,9 +53,42 @@ from node names."
             ((string-match "evil-ts-obj-\\([a-z]+\\)-\\([a-z]+\\)\\([-a-z]*\\)-nodes" sym-name))
             (lang (match-string 1 sym-name))
             (thing (match-string 2 sym-name))
-            (suffix (match-string 3 sym-name)))
-      (set (intern (format "evil-ts-obj-%s-%s%s-regex" lang thing suffix))
-           (evil-ts-obj-conf--make-nodes-regex val))
+            (suffix (match-string 3 sym-name))
+            (sym (intern (format "evil-ts-obj-%s-%s%s-regex" lang thing suffix))))
+      (if (boundp sym)
+          (set sym (evil-ts-obj-conf--make-nodes-regex val))
+        (user-error "Variable %s is not defined!" sym))
+    (user-error "Unknown pattern for a nodes symbol %s" (symbol-name sym))))
+
+(defun evil-ts-obj-conf-seps-setter (sym val)
+  "Setter for use with `evil-ts-obj-<lang>-<thing>-seps` defcustoms.
+It sets SYM to VAL and updates variable that holds regex built
+from node names. It also updates the variable
+evil-ts-obj-<lang>-all-seps-regex if it is bound."
+  (set-default sym val)
+  (if-let* ((sym-name (symbol-name sym))
+            ((string-match "evil-ts-obj-\\([a-z]+\\)-\\([a-z]+\\)-seps" sym-name))
+            (lang (match-string 1 sym-name))
+            (thing (match-string 2 sym-name))
+            (sym (intern (format "evil-ts-obj-%s-%s-seps-regex" lang thing)))
+            (all-sym (intern (format "evil-ts-obj-%s-all-seps-regex" lang)))
+            (val (or (and (listp val) val)
+                     (list val))))
+      (progn
+        (if (boundp sym)
+            (set sym (evil-ts-obj-conf--make-nodes-regex val))
+          (user-error "Variable %s is not defined!" sym))
+        (when (boundp all-sym)
+          (let ((all-seps nil))
+            (dolist (thing '(statement param))
+              (when-let* ((sym-other (intern (format "evil-ts-obj-%s-%s-seps" lang thing)))
+                         ((boundp sym-other))
+                         (val (symbol-value sym-other))
+                         (val (or (and (listp val) val)
+                                  (list val))))
+                (setq all-seps (append all-seps val))))
+            (set all-sym (evil-ts-obj-conf--make-nodes-regex all-seps)))))
+
     (user-error "Unknown pattern for a nodes symbol %s" (symbol-name sym))))
 
 

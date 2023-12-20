@@ -42,7 +42,7 @@
   `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-yaml-compound-nodes))
     (param ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-yaml-param-nodes)))
   "Things for yaml."
-  :type 'repeate
+  :type 'plist
   :group 'evil-ts-obj)
 
 (defun evil-ts-obj-yaml-param-mod (node)

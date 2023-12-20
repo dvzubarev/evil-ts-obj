@@ -484,6 +484,87 @@ def func(a, e):
     |
 =-=-=
 
+Name: Delete statement outer t2
+
+=-=
+if T|rue:
+    pass
+=-=
+if |:
+    pass
+=-=-=
+
+Name: Delete statement outer t3
+
+=-=
+if T|rue and False:
+    pass
+=-=
+if |False:
+    pass
+=-=-=
+
+Name: Delete statement outer t4
+
+=-=
+if True and False and i < |3:
+    pass
+=-=
+if True and False|:
+    pass
+=-=-=
+
+Name: Delete statement outer t5
+
+=-=
+if True and False an|d i < 3:
+    pass
+=-=
+if True and |i < 3:
+    pass
+=-=-=
+
+Name: Delete statement outer t6
+
+=-=
+if ( |v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
+    pass
+=-=
+if ( | ) is not None and (isinstance(v, int) or v) and v > 3:
+    pass
+=-=-=
+
+Name: Delete statement outer t7
+
+=-=
+if |( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
+    pass
+=-=
+if |(isinstance(v, int) or v) and v > 3:
+    pass
+=-=-=
+
+Name: Delete statement outer t8
+
+=-=
+if ( v := d.get(k) ) is not None and |(isinstance(v, int) or v) and v > 3:
+    pass
+=-=
+if ( v := d.get(k) ) is not None and |v > 3:
+    pass
+=-=-=
+
+Name: Delete statement outer t9
+
+=-=
+if ( v := d.get(k) ) is not None and (isinstance(v, |int) or v) and v > 3:
+    pass
+=-=
+if ( v := d.get(k) ) is not None and (|v) and v > 3:
+    pass
+=-=-=
+
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)

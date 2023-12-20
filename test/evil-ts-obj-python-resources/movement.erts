@@ -208,6 +208,26 @@ def func(a=1, #a1
     pass
 =-=-=
 
+Name: next sibling t13
+
+=-=
+if |( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
+    pass
+=-=
+if ( v := d.get(k) ) is not None and |(isinstance(v, int) or v) and v > 3:
+    pass
+=-=-=
+
+Name: next sibling t14
+
+=-=
+if ( v := d.get(k) ) is not None and |(isinstance(v, int) or v) and v > 3:
+    pass
+=-=
+if ( v := d.get(k) ) is not None and (isinstance(v, int) or v) and |v > 3:
+    pass
+=-=-=
+
 
 Code:
   (lambda ()
@@ -267,7 +287,7 @@ def func1():
         a = 3
         if i % 2 == 0:
             pass
-    if T|rue:
+    i|f True:
         pass
 =-=
 def func1():
@@ -338,13 +358,13 @@ Name: prev sibling t8
 =-=
 def func1():
     aa *= 8
-    if i % 2 == 0:
+    for i in []:
         |aa *= 3
     print(here)
 =-=
 def func1():
     aa *= 8
-    |if i % 2 == 0:
+    |for i in []:
         aa *= 3
     print(here)
 =-=-=
@@ -373,7 +393,26 @@ def func3():
     pass
 =-=-=
 
+Name: prev sibling t10
+
+=-=
+if ( v := d.get(k) ) is not None and (isinstance(v, int) or v) and |v > 3:
+    pass
+=-=
+if ( v := d.get(k) ) is not None and |(isinstance(v, int) or v) and v > 3:
+    pass
 =-=-=
+
+Name: next sibling t11
+
+=-=
+if ( v := d.get(k) ) is not None and |(isinstance(v, int) or v) and v > 3:
+    pass
+=-=
+if |( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
+    pass
+=-=-=
+
 
 Code:
   (lambda ()
@@ -584,6 +623,20 @@ if True:
     pass
 elif not b:
     b| = 38
+=-=
+if True:
+    pass
+elif |not b:
+    b = 38
+=-=-=
+
+Name: previous thing t11
+
+=-=
+if True:
+    pass
+elif |not b:
+    b = 38
 =-=
 if True:
     pass

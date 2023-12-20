@@ -146,7 +146,7 @@ def tempf():
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (evil-ts-obj-avy-tests-with-avy-input "e"
+    (evil-ts-obj-avy-tests-with-avy-input "ee"
       (evil-ts-obj-avy-statement-outer-paste-after)))
 
 Name: paste expression t1

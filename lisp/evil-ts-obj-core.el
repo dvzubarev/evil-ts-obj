@@ -565,9 +565,6 @@ and return next sibling node. `NODE-KIND-FUNC' is described in
          (setq next-term next-node))))
     (list next-sibling next-sep next-term)))
 
-;; Typical usage  are siblings with
-;; each other in the syntax tree. Siblings may be delimited by
-;; another sibling - a separator.
 
 (defun evil-ts-obj-generic-thing-with-sep-outer (node node-kind-func
                                                       node-fetcher
@@ -669,7 +666,9 @@ Implementation of a node-kind-func for
 
 Return sep if `NODE' matches against `SEP-REGEX'. Otherwise
 return sibling if `NODE' is named and current node is
-separator (`CUR-KIND'). Return term is `NODE' is anonymous."
+separator (`CUR-KIND'). Return term is `NODE' is anonymous and on
+the same line as `CUR-NODE' (examples of possible termination nodes:
+\) ,\] ,end ,fi, etc.)."
 
   (if (string-match-p sep-regex (treesit-node-type node))
       'sep
@@ -832,6 +831,38 @@ information about `NODE' and `SEP-REGEX'."
    t))
 
 
+;; * extentision functions
+(defun evil-ts-obj-common-statement-ext-func (spec node sep-regex &optional get-sibling-func)
+  "Common statetement extension function."
+  (pcase spec
+    ((pmap (:text-obj 'outer))
+     (evil-ts-obj-generic-thing-with-sep-outer
+      node
+      (apply-partially #'evil-ts-obj--get-node-kind-strict
+                       sep-regex)
+      (or get-sibling-func #'evil-ts-obj--get-sibling-simple)))
+
+    ((pmap (:text-obj 'upper))
+     (evil-ts-obj-generic-thing-upper
+      node
+      (apply-partially #'evil-ts-obj--get-node-kind sep-regex)
+      (or get-sibling-func #'evil-ts-obj--get-sibling-simple)))
+
+    ((pmap (:text-obj 'lower))
+     (evil-ts-obj-generic-thing-lower
+      node
+      (apply-partially #'evil-ts-obj--get-node-kind
+                         sep-regex)
+      (or get-sibling-func #'evil-ts-obj--get-sibling-simple)))))
+
+(defun evil-ts-obj-common-param-ext-func (spec node sep-regex)
+  (pcase spec
+    ((pmap (:text-obj 'outer))
+     (evil-ts-obj-param-outer-mod node sep-regex))
+    ((pmap (:text-obj 'upper))
+     (evil-ts-obj-param-upper-mod node sep-regex))
+    ((pmap (:text-obj 'lower))
+     (evil-ts-obj-param-lower-mod node sep-regex))))
 
 (provide 'evil-ts-obj-core)
 ;;; evil-ts-obj-core.el ends here

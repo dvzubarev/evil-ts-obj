@@ -43,6 +43,8 @@
   :group 'evil-ts-obj)
 
 
+(defvar evil-ts-obj-python-statement-regex nil
+  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
 
 (defcustom evil-ts-obj-python-statement-nodes
   '("return_statement"
@@ -54,10 +56,23 @@
     "raise_statement")
   "Nodes that designate simple statement in python."
   :type '(repeat string)
-  :group 'evil-ts-obj)
+  :group 'evil-ts-obj
+  :set #'evil-ts-obj-conf-nodes-setter)
 
 
 
+
+
+(defun evil-ts-obj-python-statement-pred (node)
+  (if (or (equal (treesit-node-field-name node) "condition")
+          (and (not (equal (treesit-node-type node) "boolean_operator"))
+               (equal (treesit-node-type (treesit-node-parent node)) "boolean_operator")
+               (member (treesit-node-field-name node) '("left" "right"))))
+      t
+    (string-match-p evil-ts-obj-python-statement-regex (treesit-node-type node))))
+
+(defvar evil-ts-obj-python-param-parent-regex nil
+  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
 
 (defcustom evil-ts-obj-python-param-parent-nodes
   '("parameters"
@@ -75,25 +90,40 @@
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-nodes-setter)
 
-(defvar evil-ts-obj-python-param-parent-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
-
-
 
 (defcustom evil-ts-obj-python-things
   `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-compound-nodes))
-    (statement ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-statement-nodes))
+    (statement evil-ts-obj-python-statement-pred)
     (param ,(apply-partially #'evil-ts-obj-common-param-pred
                              evil-ts-obj-python-param-parent-regex)))
   "Things for python."
-  :type 'repeate
+  :type 'plist
   :group 'evil-ts-obj)
+
+(defvar evil-ts-obj-python-all-seps-regex nil
+  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
+
+(defvar evil-ts-obj-python-statement-seps-regex nil
+  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
+
+(defcustom evil-ts-obj-python-statement-seps
+  '(";" "and" "or")
+  "Separators for python statements."
+  :type '(choice (repeat string) string)
+  :group 'evil-ts-obj
+  :set #'evil-ts-obj-conf-seps-setter)
+
+
+(defvar evil-ts-obj-python-param-seps-regex nil
+  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
 
 (defcustom evil-ts-obj-python-param-seps
   ","
   "Separators for python params."
   :type '(choice (repeat string) string)
-  :group 'evil-ts-obj)
+  :group 'evil-ts-obj
+  :set #'evil-ts-obj-conf-seps-setter)
+
 
 (defun evil-ts-obj-python-compound-outer-ext (node)
   "Extend a function range to the start of decorator, if it exists.
@@ -123,25 +153,33 @@ Compound is represented by a `NODE'."
   (unless (equal (treesit-node-type node) ":")
     'sibling))
 
+(defun evil-ts-obj-python-statement-get-sibling (dir node)
+
+  (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("boolean_operator") dir node)))
+      sibling
+    (evil-ts-obj--get-sibling-simple dir node)))
 
 (defun evil-ts-obj-python-ext-func (spec node)
   "Main extension function for python. TODO spec"
   (pcase spec
-    ((pmap (:thing 'compound) (:text-obj 'outer) (:op-kind 'mod))
-     (evil-ts-obj-python-compound-outer-ext node))
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-python-extract-compound-inner node))
-    ((pmap (:thing 'compound) (:text-obj 'upper))
+    ((pmap (:thing 'compound) (:text-obj 'outer) (:op-kind 'mod))
+     (evil-ts-obj-python-compound-outer-ext node))
+    ((pmap (:thing 'compound) (:text-obj 'upper) (:op-kind 'mod))
      (evil-ts-obj-generic-thing-upper
       node
       #'evil-ts-obj-python-compound-sibling-kind
       #'evil-ts-obj--get-sibling-simple))
-    ((pmap (:thing 'param) (:text-obj 'outer) (:op-kind 'mod))
-     (evil-ts-obj-param-outer-mod node evil-ts-obj-python-param-seps))
-    ((pmap (:thing 'param) (:text-obj 'upper))
-     (evil-ts-obj-param-upper-mod node evil-ts-obj-python-param-seps))
-    ((pmap (:thing 'param) (:text-obj 'lower))
-     (evil-ts-obj-param-lower-mod node evil-ts-obj-python-param-seps))))
+
+    ((pmap (:op-kind 'mod) (:thing 'statement))
+     (evil-ts-obj-common-statement-ext-func
+      spec node
+      evil-ts-obj-python-statement-seps-regex
+      #'evil-ts-obj-python-statement-get-sibling))
+
+    ((pmap (:thing 'param)  (:op-kind 'mod))
+     (evil-ts-obj-common-param-ext-func spec node evil-ts-obj-python-param-seps))))
 
 ;;;###autoload
 (defun evil-ts-obj-python-setup-things ()
@@ -154,8 +192,7 @@ Compound is represented by a `NODE'."
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
    'python #'evil-ts-obj-python-ext-func)
 
-  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'python
-            evil-ts-obj-python-param-seps)
+  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'python evil-ts-obj-python-all-seps-regex)
 
   (cl-callf plist-put evil-ts-obj-conf-nav-things
     'python '(or param statement compound)))

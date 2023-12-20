@@ -69,15 +69,18 @@ Return t if `NODE' is a node that represents a parameter."
                       #'evil-ts-obj-bash-statement-pred))
     (param evil-ts-obj-bash-param-pred))
   "Things for bash."
-  :type 'repeate
+  :type 'plist
   :group 'evil-ts-obj)
 
+(defvar evil-ts-obj-bash-statement-seps-regex nil
+  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
 
 (defcustom evil-ts-obj-bash-statement-seps
   '("|" ";" "||" "&&")
-  "Separators for bash statement."
+  "Separators for bash statements."
   :type '(repeat string)
-  :group 'evil-ts-obj)
+  :group 'evil-ts-obj
+  :set #'evil-ts-obj-conf-seps-setter)
 
 (defun evil-ts-obj-bash-extract-compound-inner (node)
   "Return range for a compound inner text object.
@@ -122,20 +125,6 @@ Compound is represented by a `NODE'."
          nil)
         (_ sibling)))))
 
-(defun evil-ts-obj-bash-statement-ext (node)
-  (evil-ts-obj-generic-thing-with-sep-outer
-   node
-   (apply-partially #'evil-ts-obj--get-node-kind-strict
-                    (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-seps))
-   #'evil-ts-obj-bash-statement-get-sibling))
-
-
-
-(defun evil-ts-obj-bash-statement-sibling-kind (cur-node cur-kind node)
-  (evil-ts-obj--get-node-kind
-   (evil-ts-obj-conf--make-nodes-regex
-    evil-ts-obj-bash-statement-seps)
-   cur-node cur-kind node))
 
 (defun evil-ts-obj-bash-param-sibling-kind (_cur-node _cur-kind node)
   (when (not (equal (treesit-node-type node) "command_name"))
@@ -148,20 +137,16 @@ Compound is represented by a `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-bash-extract-compound-inner node))
-    ((pmap (:thing 'statement) (:text-obj 'outer))
-     (evil-ts-obj-bash-statement-ext node))
-    ((pmap (:thing (or 'statement 'compound)) (:text-obj 'upper))
-     (evil-ts-obj-generic-thing-upper
-      node
-      #'evil-ts-obj-bash-statement-sibling-kind
+
+    ((pmap (:op-kind 'mod) (:thing 'statement))
+     (evil-ts-obj-common-statement-ext-func
+      spec node
+      evil-ts-obj-bash-statement-seps-regex
       #'evil-ts-obj-bash-statement-get-sibling))
-    ((pmap (:thing (or 'statement 'compound)) (:text-obj 'lower))
-     (evil-ts-obj-generic-thing-lower
-      node
-      #'evil-ts-obj-bash-statement-sibling-kind
-      #'evil-ts-obj-bash-statement-get-sibling))
+
     ((pmap (:thing 'param) (:text-obj 'outer))
      (evil-ts-obj-param-outer-universal-mod node))
+
     ((pmap (:thing 'param) (:text-obj 'upper))
      (evil-ts-obj-generic-thing-upper
       node

@@ -53,6 +53,9 @@
   :type '(repeat string)
   :group 'evil-ts-obj)
 
+(defvar evil-ts-obj-cpp-param-parent-regex nil
+  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
+
 (defcustom evil-ts-obj-cpp-param-parent-nodes
   '("parameter_list"
     "argument_list"
@@ -66,22 +69,24 @@
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-nodes-setter)
 
-(defvar evil-ts-obj-cpp-param-parent-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
 
 (defcustom evil-ts-obj-cpp-things
   `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-cpp-compound-nodes))
     (statement ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-cpp-statement-nodes))
     (param ,(apply-partially #'evil-ts-obj-common-param-pred evil-ts-obj-cpp-param-parent-regex)))
   "Things for cpp."
-  :type 'repeate
+  :type 'plist
   :group 'evil-ts-obj)
+
+(defvar evil-ts-obj-cpp-param-seps-regex nil
+  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
 
 (defcustom evil-ts-obj-cpp-param-seps
   ","
   "Separators for cpp params."
   :type '(choice (repeat string) string)
-  :group 'evil-ts-obj)
+  :group 'evil-ts-obj
+  :set #'evil-ts-obj-conf-seps-setter)
 
 (defun evil-ts-obj-cpp-extract-compound-inner (node)
   "Return range for a compound inner text object.
@@ -131,12 +136,9 @@ the template_declaration. Current thing is represented by `NODE'."
      (evil-ts-obj-cpp-compound-outer-ext node))
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-cpp-extract-compound-inner node))
-    ((pmap (:thing 'param) (:text-obj 'outer) (:op-kind 'mod))
-     (evil-ts-obj-param-outer-mod node evil-ts-obj-cpp-param-seps))
-    ((pmap (:thing 'param) (:text-obj 'upper))
-     (evil-ts-obj-param-upper-mod node evil-ts-obj-cpp-param-seps))
-    ((pmap (:thing 'param) (:text-obj 'lower))
-     (evil-ts-obj-param-lower-mod node evil-ts-obj-cpp-param-seps))))
+
+    ((pmap (:thing 'param)  (:op-kind 'mod))
+     (evil-ts-obj-common-param-ext-func spec node evil-ts-obj-cpp-param-seps-regex))))
 
 ;;;###autoload
 (defun evil-ts-obj-cpp-setup-things ()
@@ -150,7 +152,7 @@ the template_declaration. Current thing is represented by `NODE'."
    'cpp #'evil-ts-obj-cpp-ext-func)
 
   (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'cpp
-            evil-ts-obj-cpp-param-seps)
+            evil-ts-obj-cpp-param-seps-regex)
 
   (cl-callf plist-put evil-ts-obj-conf-nav-things
     'cpp '(or param statement compound)))

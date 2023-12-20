@@ -48,6 +48,8 @@ it returns t only for the furthest parent of the same type."
         (not (equal node-type (treesit-node-type (treesit-node-parent node))))
       t)))
 
+(defvar evil-ts-obj-nix-param-regex nil
+  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
 
 (defcustom evil-ts-obj-nix-param-nodes
   '("formal" "ellipses")
@@ -56,9 +58,9 @@ it returns t only for the furthest parent of the same type."
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-nodes-setter)
 
-(defvar evil-ts-obj-nix-param-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
 
+(defvar evil-ts-obj-nix-param-parent-regex nil
+  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
 
 (defcustom evil-ts-obj-nix-param-parent-nodes
   '("list_expression")
@@ -66,9 +68,6 @@ it returns t only for the furthest parent of the same type."
   :type '(repeat string)
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-nodes-setter)
-
-(defvar evil-ts-obj-nix-param-parent-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
 
 (defun evil-ts-obj-nix-param-pred (node)
   "Predicate for detecting param thing.
@@ -90,14 +89,18 @@ Return t if `NODE' is named and it is matching against
                       #'evil-ts-obj-nix-statement-pred))
     (param evil-ts-obj-nix-param-pred))
   "Things for nix."
-  :type 'repeate
+  :type 'plist
   :group 'evil-ts-obj)
 
+(defvar evil-ts-obj-nix-param-seps-regex nil
+  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
+
 (defcustom evil-ts-obj-nix-param-seps
-  "^[,:]$"
+  '("," ":")
   "Separators for nix params."
   :type '(choice (repeat string) string)
-  :group 'evil-ts-obj)
+  :group 'evil-ts-obj
+  :set #'evil-ts-obj-conf-seps-setter)
 
 (defun evil-ts-obj-nix-extract-compound-inner (node)
   "Return range for a compound inner text object.
@@ -112,8 +115,8 @@ Compound is represented by a `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-nix-extract-compound-inner node))
-    ((pmap (:thing 'param) (:text-obj 'outer))
-     (evil-ts-obj-param-outer-universal-mod node evil-ts-obj-nix-param-seps))))
+    ((pmap (:thing 'param) (:text-obj 'outer) (:op-kind 'mod))
+     (evil-ts-obj-param-outer-universal-mod node evil-ts-obj-nix-param-seps-regex))))
 
 ;;;###autoload
 (defun evil-ts-obj-nix-setup-things ()
@@ -128,7 +131,7 @@ Compound is represented by a `NODE'."
    'nix #'evil-ts-obj-nix-ext-func)
 
   (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'nix
-            evil-ts-obj-nix-param-seps)
+            evil-ts-obj-nix-param-seps-regex)
 
   (cl-callf plist-put evil-ts-obj-conf-nav-things
     'nix '(or param statement compound)))
