@@ -149,6 +149,16 @@ evil operator.")
              (lambda (n) (treesit-node-match-p n thing t))))
       (when (and cursor
                  (< (treesit-node-start cursor) end))
+        (iter-yield cursor)))
+
+    ;; Since treesit-search-forward returns leafs first, we stopped on the first
+    ;; leaf that starts aftr end. We should go up to its parents since they can
+    ;; be inside range (start end).
+    (while (and (setq cursor (treesit-node-parent cursor))
+                (<= start (treesit-node-start cursor)))
+
+      (when (and (< (treesit-node-start cursor) end)
+                 (treesit-node-match-p cursor thing t))
         (iter-yield cursor)))))
 
 
