@@ -219,17 +219,22 @@ and the first that matches against `NODE' is returned."
   "Return default text object range for a `NODE' based on `SPEC'."
   (let ((start (treesit-node-start node))
         (end (treesit-node-end node)))
-    (pcase spec
-      ((pmap (:text-obj 'upper))
-       (let ((final-sibling node))
-         (while (setq node (treesit-node-prev-sibling node t))
-           (setq final-sibling node))
-         (setq start (treesit-node-start final-sibling))))
-      ((pmap (:text-obj 'lower))
-       (let ((final-sibling node))
-         (while (setq node (treesit-node-next-sibling node t))
-           (setq final-sibling node))
-         (setq end (treesit-node-end final-sibling)))))
+
+    ;; If we collecting text objects for previewing of candidates,
+    ;; we do not need to extend each thing to its full upper/lower ranges.
+    (when (not (eq (plist-get spec :op-kind) 'cand))
+      ;; default handling of upper/lower text objects
+      (pcase spec
+        ((pmap (:text-obj 'upper))
+         (let ((final-sibling node))
+           (while (setq node (treesit-node-prev-sibling node t))
+             (setq final-sibling node))
+           (setq start (treesit-node-start final-sibling))))
+        ((pmap (:text-obj 'lower))
+         (let ((final-sibling node))
+           (while (setq node (treesit-node-next-sibling node t))
+             (setq final-sibling node))
+           (setq end (treesit-node-end final-sibling))))))
     (list start end)))
 
 (defun evil-ts-obj--apply-modifiers (node thing spec)
