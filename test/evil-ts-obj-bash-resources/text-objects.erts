@@ -628,5 +628,20 @@ Name: Delete param upper t1
 =-=
 buffer=$(read -x -r|a files)
 =-=
-buffer=$(read | files)
+buffer=$(read |files)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-lower)))
+
+Name: Delete param lower t1
+
+=-=
+echo here |temp str
+[[ -n "$mode" ]]
+=-=
+echo here|
+[[ -n "$mode" ]]
 =-=-=

@@ -125,8 +125,7 @@ Name: Delete list item lower t1
 =-=
 ---
 - a:
-    - 111
-    |
+    - 111|
 =-=-=
 
 Code:
@@ -146,6 +145,5 @@ Name: Delete list item upper t1
 =-=
 ---
 - a:
-    |
-    - 444
+    |- 444
 =-=-=

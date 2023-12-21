@@ -144,14 +144,15 @@ Compound is represented by a `NODE'."
       evil-ts-obj-bash-statement-seps-regex
       #'evil-ts-obj-bash-statement-get-sibling))
 
-    ((pmap (:thing 'param) (:text-obj 'outer))
-     (evil-ts-obj-param-outer-universal-mod node))
-
-    ((pmap (:thing 'param) (:text-obj 'upper))
+    ((pmap (:op-kind 'mod) (:thing 'param) (:text-obj 'upper))
      (evil-ts-obj-generic-thing-upper
       node
       #'evil-ts-obj-bash-param-sibling-kind
-      #'evil-ts-obj--get-sibling-simple))))
+      #'evil-ts-obj--get-sibling-simple
+      t))
+
+    ((pmap (:op-kind 'mod) (:thing 'param))
+     (evil-ts-obj-common-param-ext-func spec node))))
 
 
 ;;;###autoload

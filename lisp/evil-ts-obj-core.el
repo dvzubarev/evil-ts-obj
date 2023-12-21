@@ -659,7 +659,16 @@ second child (node (3)).
            (treesit-node-child sibling -1)))
         (_ sibling)))))
 
-(defun evil-ts-obj--get-node-kind-strict (sep-regex _cur-node cur-kind node)
+(defun evil-ts-obj--nodes-on-the-same-line (node other-node)
+  "Return t if `NODE' and `OTHER-NODE' end on the same line."
+  (save-excursion
+    (goto-char (treesit-node-end node))
+    (let ((other-end (treesit-node-end other-node)))
+      (and
+       (<= other-end (line-end-position))
+       (>= other-end (line-beginning-position))))))
+
+(defun evil-ts-obj--get-node-kind-strict (sep-regex cur-node cur-kind node)
   "Return sibling kind for `NODE' only if it is preceded by the separator.
 Implementation of a node-kind-func for
 `evil-ts-obj-generic-thing-with-sep-outer'.
@@ -672,12 +681,15 @@ the same line as `CUR-NODE' (examples of possible termination nodes:
 
   (if (string-match-p sep-regex (treesit-node-type node))
       'sep
+
     (let ((named (treesit-node-check node 'named)))
       (pcase (cons named cur-kind)
         (`(t . ,'sep) 'sibling)
-        (`(nil . ,_) 'term)))))
+        ((and `(nil . ,_)
+              (guard (evil-ts-obj--nodes-on-the-same-line node cur-node)))
+         'term)))))
 
-(defun evil-ts-obj--get-node-kind (sep-regex _cur-node _cur-kind node)
+(defun evil-ts-obj--get-node-kind (sep-regex cur-node _cur-kind node)
   "Return sibling kind for `NODE' if it is named.
 Implementation of a node-kind-func for
 `evil-ts-obj-generic-thing-with-sep-outer'.
@@ -685,12 +697,15 @@ Implementation of a node-kind-func for
 Return sep if `NODE' matches against `SEP-REGEX'. Otherwise
 return sibling if `NODE' is named. Return term is `NODE' is
 anonymous."
-  (if (and sep-regex
-           (string-match-p sep-regex (treesit-node-type node)))
-      'sep
-    (if (treesit-node-check node 'named)
-        'sibling
-      'term)))
+
+  (cond
+   ((and sep-regex
+         (string-match-p sep-regex (treesit-node-type node)))
+    'sep)
+   ((treesit-node-check node 'named)
+    'sibling)
+   ((when (evil-ts-obj--nodes-on-the-same-line node cur-node)
+      'term))))
 
 (defun evil-ts-obj-thing-with-sep-outer (node sep-regex &optional extend-to-term strict)
   "Create a range for an outer text object that is associated with the `NODE'.
@@ -855,10 +870,13 @@ information about `NODE' and `SEP-REGEX'."
                          sep-regex)
       (or get-sibling-func #'evil-ts-obj--get-sibling-simple)))))
 
-(defun evil-ts-obj-common-param-ext-func (spec node sep-regex)
+(defun evil-ts-obj-common-param-ext-func (spec node &optional sep-regex universal)
   (pcase spec
     ((pmap (:text-obj 'outer))
-     (evil-ts-obj-param-outer-mod node sep-regex))
+     (if (or universal
+             (null sep-regex))
+         (evil-ts-obj-param-outer-universal-mod node sep-regex)
+       (evil-ts-obj-param-outer-mod node sep-regex)))
     ((pmap (:text-obj 'upper))
      (evil-ts-obj-param-upper-mod node sep-regex))
     ((pmap (:text-obj 'lower))

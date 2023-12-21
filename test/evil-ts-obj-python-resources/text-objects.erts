@@ -396,7 +396,20 @@ def func(par
         ):
     pass
 =-=
-def func(par|):
+def func(par|
+        ):
+    pass
+=-=-=
+
+Name: Delete param outer t21
+
+=-=
+def func(par|
+        ):
+    pass
+=-=
+def func(|
+        ):
     pass
 =-=-=
 

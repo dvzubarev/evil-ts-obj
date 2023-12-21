@@ -115,8 +115,8 @@ Compound is represented by a `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-nix-extract-compound-inner node))
-    ((pmap (:thing 'param) (:text-obj 'outer) (:op-kind 'mod))
-     (evil-ts-obj-param-outer-universal-mod node evil-ts-obj-nix-param-seps-regex))))
+    ((pmap (:op-kind 'mod) (:thing 'param))
+     (evil-ts-obj-common-param-ext-func spec node evil-ts-obj-nix-param-seps-regex t))))
 
 ;;;###autoload
 (defun evil-ts-obj-nix-setup-things ()

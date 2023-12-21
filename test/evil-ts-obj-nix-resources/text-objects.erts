@@ -107,7 +107,8 @@ Name: Delete param outer t4
 ]
 =-=
 [
-# pkgs.python311.pkgs.numpy|]
+# pkgs.python311.pkgs.numpy|
+]
 =-=-=
 
 Name: Delete param outer t5

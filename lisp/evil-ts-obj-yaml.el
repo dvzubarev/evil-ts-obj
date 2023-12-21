@@ -61,8 +61,8 @@
      (evil-ts-obj-yaml-param-mod node))
     ((pmap (:thing 'param) (:op-kind 'nav))
      (evil-ts-obj-yaml-param-mod node))
-    ((pmap (:thing 'param) (:text-obj 'outer) (:op-kind 'mod))
-     (evil-ts-obj-param-outer-universal-mod node))))
+    ((pmap (:thing 'param) (:op-kind 'mod))
+     (evil-ts-obj-common-param-ext-func spec node))))
 
 ;;;###autoload
 (defun evil-ts-obj-yaml-setup-things ()
