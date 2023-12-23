@@ -32,8 +32,6 @@ def main():
 
 Name: the same indentation level t2
 
-Paste on empty line
-
 =-=
 def tempf():
     i = 3
@@ -42,7 +40,7 @@ def tempf():
             break
     i = 0
 def main():
-|
+    |
 =-=
 def tempf():
     i = 3
@@ -100,7 +98,7 @@ def tempf():
             break
     i = 0
 def main():
-|
+    |
 =-=
 def tempf():
     i = 3

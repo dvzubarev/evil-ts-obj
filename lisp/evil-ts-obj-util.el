@@ -19,7 +19,7 @@
 
 ;; * paste utils
 
-(defun evil-ts-obj-util--indent-text-according-to-point-pos (text)
+(defun evil-ts-obj-util--indent-text-according-to-point-pos (text &optional indent-empty-line)
   "Indent `TEXT' for later inserting to the buffer.
 The functions should be called with the destination buffer as the
 current buffer, and with point at the place where the string is
@@ -30,7 +30,7 @@ to be inserted."
                                     (back-to-indentation)
                                     (point)))))
         (del-leading-spaces-for-first-line t))
-    (when (and (bolp) (eolp))
+    (when (and indent-empty-line (bolp) (eolp))
       ;; empty line
       (with-undo-amalgamate
         (indent-according-to-mode)
@@ -41,10 +41,9 @@ to be inserted."
 
 ;; based on https://emacs.stackexchange.com/a/34981
 (defun evil-ts-obj-util--pad-text (pad text &optional del-leading-spaces-for-first-line)
-  "Return string, un-indented by the length of its minimum indent.
-
-If numeric prefix argument PAD is supplied, indent the resulting
-text by that amount."
+  "Indent the `TEXT' by the `PAD' amount.
+If `DEL-LEADING-SPACES-FOR-FIRST-LINE' is t remove space before
+the first line of TEXT."
   (let ((itm indent-tabs-mode)
         (tw tab-width)
         (st (syntax-table))
