@@ -111,7 +111,9 @@ Compound is represented by a `NODE'."
 
 
 (defun evil-ts-obj-nix-ext-func (spec node)
-  "Main extension function for nix."
+  "Main extension function for nix.
+See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
+and `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-nix-extract-compound-inner node))

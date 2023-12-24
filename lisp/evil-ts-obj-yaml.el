@@ -54,7 +54,9 @@
           (treesit-node-end child))))
 
 (defun evil-ts-obj-yaml-ext-func (spec node)
-  "Main extension function for yaml."
+  "Main extension function for yaml.
+See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
+and `NODE'."
 
   (pcase spec
     ((pmap (:thing 'param) (:text-obj 'inner))

@@ -694,3 +694,92 @@ def func(a, e):
 def func(a, e):
     this_is = func(|)
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-visual-char)
+    (call-interactively #'evil-ts-obj-statement-inner)
+    (evil-ts-obj-end-of-thing)
+    (call-interactively #'delete-region))
+
+evil does not select the whole word pass
+It is not reproducible when calling command interactively, only in tests.
+See also https://github.com/emacs-evil/evil/issues/1852
+
+Name: extend visual by movement t1
+
+=-=
+def tempf():
+    i| = 0
+    while i < 3:
+        pass
+=-=
+def tempf():
+    |s
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-visual-char)
+    (call-interactively #'evil-ts-obj-compound-inner)
+    (call-interactively #'evil-ts-obj-compound-inner)
+    (call-interactively #'delete-region))
+
+Name: extend visual text object t1
+
+=-=
+def tempf():
+    i = 0
+    while i < 3:
+        |pass
+=-=
+def tempf():
+    |s
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-visual-char)
+    (call-interactively #'evil-ts-obj-compound-outer)
+    (call-interactively #'evil-ts-obj-compound-outer)
+    (exchange-point-and-mark)
+    (call-interactively #'evil-ts-obj-compound-inner)
+    (call-interactively #'delete-region))
+
+Name: extend visual text object t2
+
+=-=
+def tempf():
+    i = 0
+    while i < 3:
+        |pass
+=-=
+def tempf():
+    |s
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-visual-char)
+    (call-interactively #'evil-ts-obj-compound-outer)
+    (call-interactively #'evil-ts-obj-compound-outer)
+    (exchange-point-and-mark)
+    (call-interactively #'evil-ts-obj-compound-upper)
+    (call-interactively #'delete-region))
+
+Name: extend visual text object t3
+
+=-=
+def tempf():
+    i = 0
+    while i < 3:
+        if i == 0:
+            |break
+=-=
+def tempf():
+    |k
+=-=-=

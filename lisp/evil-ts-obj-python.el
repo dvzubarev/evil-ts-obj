@@ -160,7 +160,9 @@ Compound is represented by a `NODE'."
     (evil-ts-obj--get-sibling-simple dir node)))
 
 (defun evil-ts-obj-python-ext-func (spec node)
-  "Main extension function for python. TODO spec"
+  "Main extension function for python.
+See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
+and `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-python-extract-compound-inner node))
@@ -178,7 +180,7 @@ Compound is represented by a `NODE'."
       evil-ts-obj-python-statement-seps-regex
       #'evil-ts-obj-python-statement-get-sibling))
 
-    ((pmap (:thing 'param)  (:op-kind 'mod))
+    ((pmap (:op-kind 'mod)  (:thing 'param))
      (evil-ts-obj-common-param-ext-func spec node evil-ts-obj-python-param-seps))))
 
 ;;;###autoload

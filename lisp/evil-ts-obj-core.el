@@ -25,6 +25,10 @@
 (require 'evil-ts-obj-conf)
 (require 'evil-ts-obj-util)
 
+
+(defvar-local evil-ts-obj--last-text-obj-spec nil)
+(defvar-local evil-ts-obj--last-text-obj-range nil)
+
 (defun evil-ts-obj--root-at (pos)
   "Return root node at the given `POS'."
   (or (when-let ((parser
@@ -204,16 +208,25 @@ and the first that matches against `NODE' is returned."
                (cdr nav-thing) nil))
     (_ (error "Unsupported thing %s" nav-thing))))
 
-(defun evil-ts-obj--make-spec (op-kind &optional thing text-obj command)
-  `(:thing ,thing
-    :text-obj ,text-obj
-    :op-kind ,op-kind
-    :command ,(or command
-                  evil-this-operator
-                  (and (bound-and-true-p avy-action)
-                       (not (eq avy-action #'identity))
-                       avy-action)
-                  this-command)))
+(defun evil-ts-obj--make-spec (&optional op-kind thing text-obj command)
+  "Create plist that describes current text object context.
+If `OP-KIND' is nil, set it to mod if `evil-visual-state-p'
+returns nil, otherwise set it to vis. `THING' can be nil it will
+be set later in `evil-ts-obj--apply-modifiers'. `TEXT-OBJ' can be
+nil if this is movement command. If `COMMAND' is nil the first
+non-nil from this list is chosen: `evil-this-operator',
+`avy-action', `this-command'."
+  (let ((op-kind (or op-kind
+                     (if (evil-visual-state-p) 'vis 'mod))))
+    `(:thing ,thing
+      :text-obj ,text-obj
+      :op-kind ,op-kind
+      :command ,(or command
+                    evil-this-operator
+                    (and (bound-and-true-p avy-action)
+                         (not (eq avy-action #'identity))
+                         avy-action)
+                    this-command))))
 
 (defun evil-ts-obj--default-range (node spec)
   "Return default text object range for a `NODE' based on `SPEC'."
@@ -222,7 +235,7 @@ and the first that matches against `NODE' is returned."
 
     ;; If we collecting text objects for previewing of candidates,
     ;; we do not need to extend each thing to its full upper/lower ranges.
-    (when (not (eq (plist-get spec :op-kind) 'cand))
+    (when (not (eq (plist-get spec :op-kind) 'select))
       ;; default handling of upper/lower text objects
       (pcase spec
         ((pmap (:text-obj 'upper))
@@ -255,15 +268,43 @@ modifier is found use `evil-ts-obj--default-range'."
       (evil-ts-obj--default-range node spec))))
 
 
-(defun evil-ts-obj--get-text-obj-range (pos thing spec &optional return-node)
+(defun evil-ts-obj--get-text-obj-range (pos thing spec)
   "Return a range for text object described via `SPEC'.
-Create text object using `THING' on position `POS'. If
-`RETURN-NODE' is t return treesit node as a last item of the
-list."
-  (when-let ((node (evil-ts-obj--thing-around pos thing)))
-    (append
-     (evil-ts-obj--apply-modifiers node thing spec)
-     (when return-node (list node)))))
+At first find `THING' that is around `POS' using
+`evil-ts-obj--thing-around'. If region is active and the last
+returned range is equal to the active region, expand that region.
+It is done by searching for a matching parent of the current
+thing. Otherwise apply range modifiers to the found thing and
+return range of a text-object."
+  (when-let ((node      (evil-ts-obj--thing-around pos thing)))
+
+    (let ((range
+           (if-let* (((eq (plist-get spec :op-kind) 'vis))
+                     ((eq (plist-get evil-ts-obj--last-text-obj-spec :op-kind) 'vis))
+                     ((eq (plist-get spec :text-obj)
+                          (plist-get evil-ts-obj--last-text-obj-spec :text-obj)))
+                     (start (region-beginning))
+                     (end (1+ (region-end)))
+                     (cur-range (list start end))
+                     ((equal cur-range evil-ts-obj--last-text-obj-range)))
+               ;; Repeat of the same text object in the visual state.
+               ;; Extend to the parent thing.
+               (progn
+                 (while (and cur-range
+                             (<= start (car cur-range))
+                             (<= (1- (cadr cur-range)) end))
+                   (if-let ((parent-node (treesit-parent-until
+                                          node (lambda (n) (treesit-node-match-p n thing t)))))
+                       (setq node parent-node
+                             cur-range (evil-ts-obj--apply-modifiers parent-node thing spec))
+                     (setq cur-range nil)))
+                 cur-range)
+
+             (evil-ts-obj--apply-modifiers node thing spec))))
+
+      (setq evil-ts-obj--last-text-obj-spec spec
+            evil-ts-obj--last-text-obj-range (copy-sequence range))
+      range)))
 
 
 ;; * Movement
@@ -275,8 +316,8 @@ to nav, so all nav modifiers affect it (see
 `evil-ts-obj-conf-thing-modifiers'). If point is already at the
 beginning, move to the beginning of the parent thing."
   (when-let* ((spec (evil-ts-obj--make-spec 'nav))
-              (range (evil-ts-obj--get-text-obj-range (point) thing spec t))
-              (node (car (last range))))
+              (node (evil-ts-obj--thing-around (point) thing))
+              (range (evil-ts-obj--apply-modifiers node thing spec)))
     (while (and range
                 (<= (point) (car range)))
       ;; jump to beginning of a parent.
@@ -295,9 +336,9 @@ End position is calculated based on spec with op-kind set to
 nav, so all nav modifiers affect it (see
 `evil-ts-obj-conf-thing-modifiers'). If point is already at the
 end, move to the end of the parent thing."
-  (when-let ((spec (evil-ts-obj--make-spec 'nav))
-             (range (evil-ts-obj--get-text-obj-range (point) thing spec t))
-             (node (car (last range))))
+  (when-let* ((spec (evil-ts-obj--make-spec 'nav))
+              (node (evil-ts-obj--thing-around (point) thing))
+              (range (evil-ts-obj--apply-modifiers node thing spec)))
     (while (and range
                 (<= (1- (cadr range)) (point)))
       (if-let (parent-node (treesit-parent-until

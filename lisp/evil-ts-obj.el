@@ -120,26 +120,29 @@
 
 
 
+(defun evil-ts-obj--finalize-text-obj-range (spec range)
+  (pcase spec
+    ((pmap (:thing 'compound) (:text-obj 'outer))
+     (pcase-let ((`(,first-pos ,last-pos) range))
+       (when (and
+              last-pos
+              (eq (char-before last-pos) ?\n))
+         (setq last-pos (1- last-pos)))
+       (list first-pos last-pos)))
+    (_ range)))
+
 (defmacro evil-ts-obj-define-text-obj (thing text-obj)
   (declare (indent defun))
   (let ((name (intern (format "evil-ts-obj-%s-%s" thing text-obj))))
     `(evil-define-text-object ,name (count &optional _beg _end _type)
        ,(format "Select a %s %s object." thing text-obj)
-       (evil-ts-obj--get-text-obj-range (point) ',thing
-                                     (evil-ts-obj--make-spec 'mod ',thing ',text-obj)))))
+       (let ((spec (evil-ts-obj--make-spec nil ',thing ',text-obj)))
+         (evil-ts-obj--finalize-text-obj-range
+          spec
+          (evil-ts-obj--get-text-obj-range (point) ',thing spec))))))
 
-(defun evil-ts-obj--finalize-compound (range)
-  (pcase-let ((`(,first-pos ,last-pos) range))
-    (when (eq (char-before last-pos) ?\n)
-      (setq last-pos (1- last-pos)))
-    (list first-pos last-pos)))
 
-(evil-define-text-object evil-ts-obj-compound-outer (count &optional _beg _end _type)
-  "Select a compound object."
-  (evil-ts-obj--finalize-compound
-   (evil-ts-obj--get-text-obj-range (point) 'compound
-                                 (evil-ts-obj--make-spec 'mod 'compound 'outer))))
-
+(evil-ts-obj-define-text-obj compound outer)
 (evil-ts-obj-define-text-obj compound inner)
 (evil-ts-obj-define-text-obj compound upper)
 (evil-ts-obj-define-text-obj compound lower)

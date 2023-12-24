@@ -132,7 +132,9 @@ Compound is represented by a `NODE'."
 
 
 (defun evil-ts-obj-bash-ext-func (spec node)
-  "Main extension function for bash. TODO spec"
+  "Main extension function for bash.
+See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
+and `NODE'."
 
   (pcase spec
     ((pmap (:thing 'compound) (:text-obj 'inner))

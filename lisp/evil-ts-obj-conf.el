@@ -22,7 +22,34 @@
 
 (defvar-local evil-ts-obj-conf-thing-modifiers nil
   "Plist that holds an extension function for each language in the buffer.
-A function should accept two arguments: SPEC and NODE.")
+A function returns a range (a list of two integers) of a text
+object or nil. If nil is returned than default range is
+calculated (see `evil-ts-obj--default-range'). The function
+should accept two arguments: SPEC and NODE.
+
+SPEC is a plist that contains a context for a current text
+object. The possible fields are :thing, :op-kind, :text-obj and
+:command. :thing should contain the current thing that is
+represented by the treesit NODE. :text-obj may contain current
+text object (inner/outer etc.). It also may be nil if text object
+is not needed for the command. For example, movement commands
+work on the level of things for now, therefore they do not
+specify text objects in SPEC plist. :op-kind is a type of a
+current operation with the text object. :op-kind can be one of
+the following symbols:
+
+* mod - any modification operation like evil-delete.
+
+* vis - visual selection of text objects.
+
+* select - selecting a text object for preview (e.g. when
+collecting avy candidates).
+
+* nav - any movement command like evil-ts-obj-next-thing.
+
+:command contains that current command that will operate on
+returned range. Also see `evil-ts-obj--make-spec' and
+`evil-ts-obj--apply-modifiers'.")
 
 (defvar-local evil-ts-obj-conf-nav-things nil
   "This plist defines default things for movement for each language.
@@ -83,9 +110,7 @@ evil-ts-obj-<lang>-all-seps-regex if it is bound."
             (dolist (thing '(statement param))
               (when-let* ((sym-other (intern (format "evil-ts-obj-%s-%s-seps" lang thing)))
                          ((boundp sym-other))
-                         (val (symbol-value sym-other))
-                         (val (or (and (listp val) val)
-                                  (list val))))
+                         (val (ensure-list (symbol-value sym-other))))
                 (setq all-seps (append all-seps val))))
             (set all-sym (evil-ts-obj-conf--make-nodes-regex all-seps)))))
 

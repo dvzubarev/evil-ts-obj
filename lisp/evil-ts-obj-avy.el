@@ -164,7 +164,7 @@ evil operator.")
 
 (defun evil-ts-obj-avy--get-candidates-current-window (thing)
   (let ((window (selected-window))
-        (spec (evil-ts-obj--make-spec 'cand
+        (spec (evil-ts-obj--make-spec 'select
                                       thing
                                       evil-ts-obj-avy--current-text-obj))
         range
