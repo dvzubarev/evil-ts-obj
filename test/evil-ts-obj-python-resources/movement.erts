@@ -211,7 +211,7 @@ def func(a=1, #a1
 Name: next sibling t13
 
 =-=
-if |( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
+if (| v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
     pass
 =-=
 if ( v := d.get(k) ) is not None and |(isinstance(v, int) or v) and v > 3:
@@ -226,6 +226,16 @@ if ( v := d.get(k) ) is not None and |(isinstance(v, int) or v) and v > 3:
 =-=
 if ( v := d.get(k) ) is not None and (isinstance(v, int) or v) and |v > 3:
     pass
+=-=-=
+
+Name: next sibling t15
+
+=-=
+if |( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
+    pass
+=-=
+if ( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
+    |pass
 =-=-=
 
 
