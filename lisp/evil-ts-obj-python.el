@@ -53,7 +53,13 @@
     "named_expression"
     "assert_statement"
     "delete_statement"
-    "raise_statement")
+    "raise_statement"
+    "call"
+    "conditional_expression"
+    "list_comprehension"
+    "for_in_clause"
+    "if_clause"
+    "dictionary_comprehension")
   "Nodes that designate simple statement in python."
   :type '(repeat string)
   :group 'evil-ts-obj
