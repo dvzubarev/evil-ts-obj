@@ -230,7 +230,7 @@ Name: Delete param outer t4
 def func(a, ab='83|, 8',):
     pass
 =-=
-def func(a, |):
+def func(a,|):
     pass
 =-=-=
 
@@ -287,7 +287,7 @@ Name: Delete param outer t9-1
 =-=
 list(range(1, len(result)-1, 3,  | ) )
 =-=
-list(range(1, len(result)-1, |) )
+list(range(1, len(result)-1,|) )
 =-=-=
 
 Name: Delete param outer t10
@@ -297,7 +297,7 @@ Maybe delete space before point?
 =-=
 list(range(1, len(result)-1, 3|,  ) )
 =-=
-list(range(1, len(result)-1, |) )
+list(range(1, len(result)-1,|) )
 =-=-=
 
 Name: Delete param outer t11
@@ -410,6 +410,21 @@ def func(par|
 =-=
 def func(|
         ):
+    pass
+=-=-=
+
+Name: Delete param outer t22
+
+=-=
+def func(
+    par1,
+    |par2,
+):
+    pass
+=-=
+def func(
+    par1,|
+):
     pass
 =-=-=
 

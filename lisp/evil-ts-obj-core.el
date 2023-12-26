@@ -651,23 +651,29 @@ found."
                 (evil-ts-obj--generic-find-sep-and-sibling node node-kind-func
                                                            (apply-partially node-fetcher 'next))))
 
-    (if next-sibling
-        (setq end-pos (treesit-node-start next-sibling))
-      (when (and extend-to-term next-term)
-        (setq end-pos (treesit-node-start next-term))))
+    (cond (next-sibling
+           (setq end-pos (treesit-node-start next-sibling)))
+          ((and extend-to-term next-term)
+           (setq end-pos (treesit-node-start next-term)))
+          (next-sep
+           (setq end-pos (treesit-node-end next-sep))))
 
     (unless next-sibling
       ;; this is the last thing in a sequence
-      ;; can we include previous separator?
-      (when-let* (((null next-sep))
-                  (prev-list
+      ;; determine how to extend to the previous separator
+      (pcase-let ((`(,prev-sibling ,prev-sep ,prev-term)
                    (evil-ts-obj--generic-find-sep-and-sibling node node-kind-func
-                                                              (apply-partially node-fetcher 'prev)))
-                  (prev-sibling (car prev-list)))
-
-        ;; there was not trailing separator,
-        ;; so we can assume that the previous one should be included
-        (setq start-pos (treesit-node-end prev-sibling))))
+                                                              (apply-partially node-fetcher 'prev))))
+        (cond ((and (null next-sep) prev-sibling)
+               ;; There was not trailing separator.
+               ;; So we can assume that the previous one should be included.
+               (setq start-pos (treesit-node-end prev-sibling)))
+              ((and extend-to-term prev-term)
+               (setq start-pos (treesit-node-end prev-term)))
+              ((and next-sep prev-sep)
+               ;; There was trailing separator.
+               ;; Extend to the end of the previous separator.
+               (setq start-pos (treesit-node-end prev-sep))))))
     (list start-pos end-pos)))
 
 (defun evil-ts-obj--get-sibling-simple (dir node)
