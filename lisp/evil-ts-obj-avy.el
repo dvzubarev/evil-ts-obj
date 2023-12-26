@@ -62,7 +62,7 @@ evil operator.")
 
 
 
-(defun evil-ts-obj-avy-action-goto (pt)
+(defun evil-ts-obj-avy-action-goto (_pt)
   (when-let* ((node evil-ts-obj-avy--selected-node)
               (spec evil-ts-obj-avy--current-spec)
               (range (evil-ts-obj--apply-modifiers node (plist-get spec :thing) spec)))
@@ -76,7 +76,7 @@ evil operator.")
 
     (evil-ts-obj--apply-modifiers node (plist-get spec :thing) spec)))
 
-(defun evil-ts-obj-avy-action-delete-thing (pt)
+(defun evil-ts-obj-avy-action-delete-thing (_pt)
   (when-let ((range (evil-ts-obj-avy--get-range-for-avy-action)))
     (delete-region (car range) (cadr range)))
   (select-window
@@ -84,7 +84,7 @@ evil operator.")
     (ring-ref avy-ring 0)))
   t)
 
-(defun evil-ts-obj-avy-action-yank-thing (pt)
+(defun evil-ts-obj-avy-action-yank-thing (_pt)
   (when-let ((range (evil-ts-obj-avy--get-range-for-avy-action)))
     (copy-region-as-kill (car range) (cadr range)))
   (select-window
@@ -94,7 +94,7 @@ evil operator.")
 
 
 
-(defun evil-ts-obj-avy--action-paste (pt &optional after delete-region)
+(defun evil-ts-obj-avy--action-paste (&optional after delete-region)
   (when-let ((range (evil-ts-obj-avy--get-range-for-avy-action))
              (start (car range))
              (end (cadr range)))
@@ -120,17 +120,17 @@ evil operator.")
       (skip-chars-forward " \t")))
   t)
 
-(defun evil-ts-obj-avy-action-paste-after (pt)
-  (evil-ts-obj-avy--action-paste pt t))
+(defun evil-ts-obj-avy-action-paste-after (_pt)
+  (evil-ts-obj-avy--action-paste t))
 
-(defun evil-ts-obj-avy-action-paste-before (pt)
-  (evil-ts-obj-avy--action-paste pt))
+(defun evil-ts-obj-avy-action-paste-before (_pt)
+  (evil-ts-obj-avy--action-paste))
 
-(defun evil-ts-obj-avy-action-teleport-after (pt)
-  (evil-ts-obj-avy--action-paste pt t t))
+(defun evil-ts-obj-avy-action-teleport-after (_pt)
+  (evil-ts-obj-avy--action-paste t t))
 
-(defun evil-ts-obj-avy-action-teleport-before (pt)
-  (evil-ts-obj-avy--action-paste pt nil t))
+(defun evil-ts-obj-avy-action-teleport-before (_pt)
+  (evil-ts-obj-avy--action-paste nil t))
 
 ;; see https://github.com/abo-abo/avy/pull/371
 (defun avy--visible-p (s)
