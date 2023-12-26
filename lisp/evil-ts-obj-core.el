@@ -214,23 +214,25 @@ and the first that matches against `NODE' is returned."
 
 (defun evil-ts-obj--make-spec (&optional op-kind thing text-obj command)
   "Create plist that describes current text object context.
-If `OP-KIND' is nil, set it to mod if `evil-visual-state-p'
-returns nil, otherwise set it to vis. `THING' can be nil it will
+If `OP-KIND' is nil, it is set to mod. `THING' can be nil it will
 be set later in `evil-ts-obj--apply-modifiers'. `TEXT-OBJ' can be
 nil if this is movement command. If `COMMAND' is nil the first
 non-nil from this list is chosen: `evil-this-operator',
-`avy-action', `this-command'."
-  (let ((op-kind (or op-kind
-                     (if (evil-visual-state-p) 'vis 'mod))))
-    `(:thing ,thing
-      :text-obj ,text-obj
-      :op-kind ,op-kind
-      :command ,(or command
-                    evil-this-operator
-                    (and (bound-and-true-p avy-action)
-                         (not (eq avy-action #'identity))
-                         avy-action)
-                    this-command))))
+`avy-action', `this-command'. If `evil-visual-state-p' returns t,
+then keyword :visual is put to spec with the value t."
+  (let* ((op-kind (or op-kind 'mod))
+         (spec `(:thing ,thing
+                 :text-obj ,text-obj
+                 :op-kind ,op-kind
+                 :command ,(or command
+                               evil-this-operator
+                               (and (bound-and-true-p avy-action)
+                                    (not (eq avy-action #'identity))
+                                    avy-action)
+                               this-command))))
+    (if (evil-visual-state-p)
+        (plist-put spec :visual t)
+      spec)))
 
 (defun evil-ts-obj--default-range (node spec)
   "Return default text object range for a `NODE' based on `SPEC'."
@@ -239,7 +241,7 @@ non-nil from this list is chosen: `evil-this-operator',
 
     ;; If we collecting text objects for previewing of candidates,
     ;; we do not need to extend each thing to its full upper/lower ranges.
-    (when (not (eq (plist-get spec :op-kind) 'select))
+    (when (not (eq (plist-get spec :op-kind) 'nav))
       ;; default handling of upper/lower text objects
       (pcase spec
         ((pmap (:text-obj 'upper))
@@ -283,8 +285,8 @@ return range of a text-object."
   (when-let ((node      (evil-ts-obj--thing-around pos thing)))
 
     (let ((range
-           (if-let* (((eq (plist-get spec :op-kind) 'vis))
-                     ((eq (plist-get evil-ts-obj--last-text-obj-spec :op-kind) 'vis))
+           (if-let* (((plist-get spec :visual))
+                     ((plist-get evil-ts-obj--last-text-obj-spec :visual))
                      ((eq (plist-get spec :text-obj)
                           (plist-get evil-ts-obj--last-text-obj-spec :text-obj)))
                      (start (region-beginning))

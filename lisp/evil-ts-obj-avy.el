@@ -190,14 +190,13 @@ evil operator.")
 (defun evil-ts-obj-avy-on-thing (thing text-obj &optional action)
   (let* ((avy-dispatch-alist evil-ts-obj-avy-dispatch-alist)
          (avy-action (or action avy-action-oneshot #'evil-ts-obj-avy-action-goto))
-         (op-kind (cond
-                   ((or evil-this-operator
-                        (not (memq avy-action '(evil-ts-obj-avy-action-goto identity))))
-                    'mod)
-                   ((evil-visual-state-p) 'vis)
-                   (t 'nav)))
+         (op-kind (if (or evil-this-operator
+                          (evil-visual-state-p)
+                          (not (memq avy-action '(evil-ts-obj-avy-action-goto identity))))
+                      'mod
+                    'nav))
          (evil-ts-obj-avy--current-spec (evil-ts-obj--make-spec op-kind thing text-obj))
-         (evil-ts-obj-avy--current-select-spec (evil-ts-obj--make-spec 'select thing text-obj)))
+         (evil-ts-obj-avy--current-select-spec (evil-ts-obj--make-spec 'nav thing text-obj)))
 
     (when-let ((candidates (evil-ts-obj-avy--collect-candidates thing)))
       (avy-process candidates))))

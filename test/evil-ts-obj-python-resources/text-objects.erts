@@ -723,12 +723,28 @@ Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
     (evil-visual-char)
+    (call-interactively #'evil-ts-obj-param-outer)
+    (call-interactively #'delete-region))
+
+Name: visual on outer objects t1
+
+see next test for an explanation about extra space.
+=-=
+call(par1, |par2, par3)
+=-=
+call(par1, | par3)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-visual-char)
     (call-interactively #'evil-ts-obj-statement-inner)
     (evil-ts-obj-end-of-thing)
     (call-interactively #'delete-region))
 
-evil does not select the whole word pass
-It is not reproducible when calling command interactively, only in tests.
+Evil does not select the whole word pass, when running in tests.
+It is not reproducible when calling command interactively.
 See also https://github.com/emacs-evil/evil/issues/1852
 
 Name: extend visual by movement t1
