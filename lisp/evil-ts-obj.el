@@ -29,21 +29,6 @@
 (require 'evil-ts-obj-nix)
 (require 'evil-ts-obj-yaml)
 
-(defgroup evil-ts-obj nil
-  "Provide evil text-objects using tree-sitter."
-  :group 'tools)
-
-
-(defcustom evil-ts-obj-navigation-keys-prefix
-  '((beginning-of . "(")
-    (end-of . ")")
-    (previous . "[")
-    (next . "]")
-    (previous-largest . "{")
-    (next-largest . "}"))
-  "Default bindings for movement commands."
-  :type 'alist
-  :group 'evil-ts-obj)
 
 ;; * interactive functions
 ;; ** Movement
@@ -208,9 +193,9 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (defvar evil-ts-obj-upper-text-objects-map (make-sparse-keymap "Upper text objects"))
 (defvar evil-ts-obj-lower-text-objects-map (make-sparse-keymap "Lower text objects"))
 
-(evil-ts-obj-setup-all-text-objects compound "e")
-(evil-ts-obj-setup-all-text-objects statement "s")
-(evil-ts-obj-setup-all-text-objects param "a")
+(evil-ts-obj-setup-all-text-objects compound evil-ts-obj-compound-text-obj-key)
+(evil-ts-obj-setup-all-text-objects statement evil-ts-obj-statement-text-obj-key)
+(evil-ts-obj-setup-all-text-objects param evil-ts-obj-param-text-obj-key)
 
 
 (defvar evil-ts-obj-goto-beginning-of-map (make-sparse-keymap "Goto beginning of"))
@@ -220,9 +205,9 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (defvar evil-ts-obj-goto-next-largest-map (make-sparse-keymap))
 (defvar evil-ts-obj-goto-previous-largest-map (make-sparse-keymap))
 
-(evil-ts-obj-setup-all-movement compound "e")
-(evil-ts-obj-setup-all-movement statement "s")
-(evil-ts-obj-setup-all-movement param "a")
+(evil-ts-obj-setup-all-movement compound evil-ts-obj-compound-text-obj-key)
+(evil-ts-obj-setup-all-movement statement evil-ts-obj-statement-text-obj-key)
+(evil-ts-obj-setup-all-movement param evil-ts-obj-param-text-obj-key)
 
 
 (defun evil-ts-obj--maybe-create-parser (lang)

@@ -261,9 +261,9 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (defvar evil-ts-obj-avy-upper-text-objects-map (make-sparse-keymap "Avy upper text objects"))
 (defvar evil-ts-obj-avy-lower-text-objects-map (make-sparse-keymap "Avy lower text objects"))
 
-(evil-ts-obj-avy-setup-all-text-objects compound "e")
-(evil-ts-obj-avy-setup-all-text-objects statement "s")
-(evil-ts-obj-avy-setup-all-text-objects param "a")
+(evil-ts-obj-avy-setup-all-text-objects compound evil-ts-obj-compound-text-obj-key)
+(evil-ts-obj-avy-setup-all-text-objects statement evil-ts-obj-statement-text-obj-key)
+(evil-ts-obj-avy-setup-all-text-objects param evil-ts-obj-param-text-obj-key)
 
 (defun evil-ts-obj-avy-compound-outer-paste-after ()
   (interactive)

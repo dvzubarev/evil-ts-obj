@@ -19,6 +19,39 @@
 ;;
 ;;; Code:
 
+;; * Customs
+(defgroup evil-ts-obj nil
+  "Provide evil text-objects using tree-sitter."
+  :group 'tools)
+
+(defcustom evil-ts-obj-compound-text-obj-key "e"
+  "Default key binding for compound text objects."
+  :type 'string
+  :group 'evil-ts-obj)
+
+(defcustom evil-ts-obj-statement-text-obj-key "s"
+  "Default key binding for statement text objects."
+  :type 'string
+  :group 'evil-ts-obj)
+
+(defcustom evil-ts-obj-param-text-obj-key "a"
+  "Default key binding for param text objects."
+  :type 'string
+  :group 'evil-ts-obj)
+
+(defcustom evil-ts-obj-navigation-keys-prefix
+  '((beginning-of . "(")
+    (end-of . ")")
+    (previous . "[")
+    (next . "]")
+    (previous-largest . "{")
+    (next-largest . "}"))
+  "Default bindings for movement commands."
+  :type 'alist
+  :group 'evil-ts-obj)
+
+
+;; * Variables
 
 (defvar-local evil-ts-obj-conf-thing-modifiers nil
   "Plist that holds an extension function for each language in the buffer.
@@ -66,6 +99,7 @@ special behavior when two things are separated and the point is
 on a separator. We prefer the previous thing in this case. Should
 be set for each language in appropriate file.")
 
+;; * Helper functions
 
 (defun evil-ts-obj-conf--make-nodes-regex (nodes)
   "Create regex from NODES."
