@@ -4,8 +4,6 @@
 ;;
 ;; Author: Denis Zubarev <dvzubarev@yandex.ru>
 ;; Maintainer: Denis Zubarev <dvzubarev@yandex.ru>
-;; Created: ноября 12, 2023
-;; Modified: ноября 12, 2023
 ;; Version: 0.0.1
 ;; Keywords: convenience tools
 ;; Homepage: https://github.com/dvzubarev/evil-ts-obj-python

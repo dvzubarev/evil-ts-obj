@@ -145,7 +145,7 @@ Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
     (evil-ts-obj-avy-tests-with-avy-input "eb"
-      (evil-ts-obj-avy-statement-outer-paste-after)))
+      (evil-ts-obj-avy-statement-inner-paste-after)))
 
 Name: paste expression t1
 

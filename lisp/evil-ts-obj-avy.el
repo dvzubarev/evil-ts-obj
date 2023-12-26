@@ -41,8 +41,8 @@
   :group 'evil-ts-obj)
 
 
-(defvar evil-ts-obj-avy--current-thing nil)
-(defvar evil-ts-obj-avy--current-text-obj nil)
+(defvar evil-ts-obj-avy--current-select-spec nil)
+(defvar evil-ts-obj-avy--current-spec nil)
 (defvar evil-ts-obj-avy--selected-node nil)
 (defvar evil-ts-obj-avy--current-range nil
   "Last goto range.
@@ -50,7 +50,7 @@ Used for avy text objects. This range will be returned to the
 evil operator.")
 
 (defvar evil-ts-obj-avy--current-marker nil
-  "Goto this marker when evil operator is done.")
+  "Go to this marker when evil operator is done.")
 (defvar evil-ts-obj-avy--dont-jump-back-ops '(evil-change))
 (defvar evil-ts-obj-avy--activate-motion-range-advice nil)
 
@@ -60,23 +60,24 @@ evil operator.")
 
 (add-function :before avy-pre-action #'evil-ts-obj-avy--set-selected-node)
 
-(defun evil-ts-obj-avy--get-range (pos op-kind)
-  (let* ((node evil-ts-obj-avy--selected-node)
-         (thing evil-ts-obj-avy--current-thing)
-         (text-obj evil-ts-obj-avy--current-text-obj)
-         (spec (evil-ts-obj--make-spec op-kind thing text-obj)))
-    (evil-ts-obj--apply-modifiers node thing spec)))
+
 
 (defun evil-ts-obj-avy-action-goto (pt)
-  (when-let ((range (evil-ts-obj-avy--get-range
-                     pt
-                     (if evil-this-operator 'mod 'nav))))
+  (when-let* ((node evil-ts-obj-avy--selected-node)
+              (spec evil-ts-obj-avy--current-spec)
+              (range (evil-ts-obj--apply-modifiers node (plist-get spec :thing) spec)))
     (setq evil-ts-obj-avy--current-range range)
     (goto-char (car range)))
   t)
 
+(defun evil-ts-obj-avy--get-range-for-avy-action ()
+  (let* ((node evil-ts-obj-avy--selected-node)
+         (spec (plist-put evil-ts-obj-avy--current-spec :op-kind 'mod)))
+
+    (evil-ts-obj--apply-modifiers node (plist-get spec :thing) spec)))
+
 (defun evil-ts-obj-avy-action-delete-thing (pt)
-  (when-let ((range (evil-ts-obj-avy--get-range pt 'mod)))
+  (when-let ((range (evil-ts-obj-avy--get-range-for-avy-action)))
     (delete-region (car range) (cadr range)))
   (select-window
    (cdr
@@ -84,7 +85,7 @@ evil operator.")
   t)
 
 (defun evil-ts-obj-avy-action-yank-thing (pt)
-  (when-let ((range (evil-ts-obj-avy--get-range pt 'mod)))
+  (when-let ((range (evil-ts-obj-avy--get-range-for-avy-action)))
     (copy-region-as-kill (car range) (cadr range)))
   (select-window
    (cdr
@@ -94,7 +95,7 @@ evil operator.")
 
 
 (defun evil-ts-obj-avy--action-paste (pt &optional after delete-region)
-  (when-let ((range (evil-ts-obj-avy--get-range pt 'mod))
+  (when-let ((range (evil-ts-obj-avy--get-range-for-avy-action))
              (start (car range))
              (end (cadr range)))
 
@@ -164,9 +165,7 @@ evil operator.")
 
 (defun evil-ts-obj-avy--get-candidates-current-window (thing)
   (let ((window (selected-window))
-        (spec (evil-ts-obj--make-spec 'select
-                                      thing
-                                      evil-ts-obj-avy--current-text-obj))
+        (spec evil-ts-obj-avy--current-select-spec)
         range
         candidates)
     (pcase-dolist (`(,pos . ,end) (avy--find-visible-regions (window-start) (window-end)))
@@ -188,9 +187,18 @@ evil operator.")
                (evil-ts-obj-avy--get-candidates-current-window thing)))))
     candidates))
 
-(defun evil-ts-obj-avy-on-thing (thing &optional action)
-  (let ((avy-dispatch-alist evil-ts-obj-avy-dispatch-alist)
-        (avy-action (or action avy-action-oneshot #'evil-ts-obj-avy-action-goto)))
+(defun evil-ts-obj-avy-on-thing (thing text-obj &optional action)
+  (let* ((avy-dispatch-alist evil-ts-obj-avy-dispatch-alist)
+         (avy-action (or action avy-action-oneshot #'evil-ts-obj-avy-action-goto))
+         (op-kind (cond
+                   ((or evil-this-operator
+                        (not (memq avy-action '(evil-ts-obj-avy-action-goto identity))))
+                    'mod)
+                   ((evil-visual-state-p) 'vis)
+                   (t 'nav)))
+         (evil-ts-obj-avy--current-spec (evil-ts-obj--make-spec op-kind thing text-obj))
+         (evil-ts-obj-avy--current-select-spec (evil-ts-obj--make-spec 'select thing text-obj)))
+
     (when-let ((candidates (evil-ts-obj-avy--collect-candidates thing)))
       (avy-process candidates))))
 
@@ -232,10 +240,8 @@ text objects in in other windows."
            (add-hook 'post-command-hook #'evil-ts-obj-avy--post-op-reset 10)))
 
        (setq evil-ts-obj-avy--current-range nil)
-       (avy-with avy-compound-inner
-         (let ((evil-ts-obj-avy--current-thing ',thing)
-               (evil-ts-obj-avy--current-text-obj ',text-obj))
-           (evil-ts-obj-avy-on-thing ',thing)))
+       (avy-with ,name
+         (evil-ts-obj-avy-on-thing ',thing ',text-obj))
        (if evil-ts-obj-avy--current-range
            evil-ts-obj-avy--current-range
          ;; Return an empty range so evil-motion-range doesn't try to guess
@@ -270,11 +276,20 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (let ((avy-action-oneshot #'evil-ts-obj-avy-action-paste-after))
     (evil-ts-obj-avy-compound-outer-text-obj nil)))
 
+(defun evil-ts-obj-avy-compound-outer-teleport-after ()
+  (interactive)
+  (let ((avy-action-oneshot #'evil-ts-obj-avy-action-teleport-after))
+    (evil-ts-obj-avy-compound-outer-text-obj nil)))
 
-(defun evil-ts-obj-avy-statement-outer-paste-after ()
+(defun evil-ts-obj-avy-statement-inner-paste-after ()
   (interactive)
   (let ((avy-action-oneshot #'evil-ts-obj-avy-action-paste-after))
-    (evil-ts-obj-avy-statement-outer-text-obj nil)))
+    (evil-ts-obj-avy-statement-inner-text-obj nil)))
+
+(defun evil-ts-obj-avy-statement-inner-teleport-after ()
+  (interactive)
+  (let ((avy-action-oneshot #'evil-ts-obj-avy-action-teleport-after))
+    (evil-ts-obj-avy-statement-inner-text-obj nil)))
 
 (defun evil-ts-obj-avy-param-inner-paste-after ()
   (interactive)
