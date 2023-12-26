@@ -85,9 +85,10 @@ returns t, when spec is created. Also see
 
 (defvar-local evil-ts-obj-conf-nav-things nil
   "This plist defines default things for movement for each language.
-It can be single thing, e.g. compound or a list of things:
-(or param compound thing). When list is provided navigating
-command will search for the first thing from this list.")
+It can be single thing, e.g. compound or a list of things: \(or
+param compound thing\). When list is provided navigating command
+will search for the each thing from this list until matching
+thing is found.")
 
 (defvar-local evil-ts-obj-conf-sep-regexps nil
   "Plist that holds separator regexps for each language in the buffer.

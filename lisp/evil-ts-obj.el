@@ -34,7 +34,7 @@
 ;; ** Movement
 
 (evil-define-motion evil-ts-obj-next-largest-thing (count)
-  "Jump to the next largest thing."
+  "Jump to the next largest thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
   :jump nil
   (let ((thing (evil-ts-obj--get-nav-thing)))
@@ -42,7 +42,7 @@
       (evil-ts-obj--goto-next-largest-thing thing))))
 
 (evil-define-motion evil-ts-obj-same-next-largest-thing (count)
-  "Jump to the same next largest thing."
+  "Jump to the same next largest thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
   :jump nil
   (let ((thing (evil-ts-obj--get-nav-thing t)))
@@ -50,7 +50,7 @@
       (evil-ts-obj--goto-next-largest-thing thing))))
 
 (evil-define-motion evil-ts-obj-previous-largest-thing (count)
-  "Jump to the previous largest thing."
+  "Jump to the previous largest thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
   :jump nil
   (let ((thing (evil-ts-obj--get-nav-thing)))
@@ -58,7 +58,7 @@
       (evil-ts-obj--goto-prev-largest-thing thing))))
 
 (evil-define-motion evil-ts-obj-same-previous-largest-thing (count)
-  "Jump to the same previous largest thing."
+  "Jump to the same previous largest thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
   :jump nil
   (let ((thing (evil-ts-obj--get-nav-thing t)))
@@ -67,7 +67,7 @@
 
 
 (evil-define-motion evil-ts-obj-beginning-of-thing (count)
-  "Jump to the beginning of the current thing."
+  "Jump to the beginning of the current thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
   :jump t
   (let ((thing (evil-ts-obj--get-nav-thing)))
@@ -75,7 +75,7 @@
       (evil-ts-obj--goto-begin-of-thing thing))))
 
 (evil-define-motion evil-ts-obj-end-of-thing (count)
-  "Jump to the end of the current thing."
+  "Jump to the end of the current thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
   :jump t
   (let ((thing (evil-ts-obj--get-nav-thing)))
@@ -83,7 +83,7 @@
       (evil-ts-obj--goto-end-of-thing thing))))
 
 (evil-define-motion evil-ts-obj-next-thing (count)
-  "Jump to the next thing."
+  "Jump to the next thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
   :jump nil
   (let ((thing (evil-ts-obj--get-nav-thing)))
@@ -91,7 +91,7 @@
       (evil-ts-obj--goto-next-thing thing))))
 
 (evil-define-motion evil-ts-obj-same-next-thing (count)
-  "Jump to the same next thing."
+  "Jump to the same next thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
   :jump nil
   (let ((thing (evil-ts-obj--get-nav-thing t)))
@@ -99,7 +99,7 @@
       (evil-ts-obj--goto-next-thing thing))))
 
 (evil-define-motion evil-ts-obj-previous-thing (count)
-  "Jump to the previous thing."
+  "Jump to the previous thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
   :jump nil
   (let ((thing (evil-ts-obj--get-nav-thing)))
@@ -107,7 +107,7 @@
       (evil-ts-obj--goto-prev-thing thing))))
 
 (evil-define-motion evil-ts-obj-same-previous-thing (count)
-  "Jump to the same previous thing."
+  "Jump to the same previous thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
   :jump nil
   (let ((thing (evil-ts-obj--get-nav-thing t)))
