@@ -547,7 +547,7 @@ If `CURRENT' is t, detect current thing at point and return this thing."
   (let* ((spec (evil-ts-obj--make-spec 'nav))
          (init-pos (point))
          (enclosing-node (evil-ts-obj--thing-around init-pos thing t))
-         (cursor enclosing-node)
+         (cursor (or enclosing-node (evil-ts-obj--node-at-or-around init-pos)))
          range)
 
     ;; search backwardly inside current thing

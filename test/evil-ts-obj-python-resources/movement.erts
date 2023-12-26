@@ -689,6 +689,44 @@ if True:
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-previous-compound))
+
+Name: previous compound t1
+
+=-=
+def main():
+    pass
+
+t = |call()
+=-=
+|def main():
+    pass
+
+t = call()
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-next-compound))
+
+Name: next compound t1
+
+=-=
+t = |call()
+
+def main():
+    pass
+=-=
+t = call()
+
+|def main():
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
     (evil-ts-obj-beginning-of-thing))
 
 Name: begin of thing t1
