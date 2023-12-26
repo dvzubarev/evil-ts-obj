@@ -313,7 +313,7 @@ return range of a text-object."
 
 ;; * Movement
 
-(defun evil-ts-obj--begin-of-thing (thing)
+(defun evil-ts-obj--goto-begin-of-thing (thing)
   "Determine `THING' at point and move point to the beginning of it.
 Beginning position is calculated based on spec with op-kind set
 to nav, so all nav modifiers affect it (see
@@ -334,7 +334,7 @@ beginning, move to the beginning of the parent thing."
     (when range
       (goto-char (car range)))))
 
-(defun evil-ts-obj--end-of-thing (thing)
+(defun evil-ts-obj--goto-end-of-thing (thing)
   "Determine `THING' at point and move point to the end of it.
 End position is calculated based on spec with op-kind set to
 nav, so all nav modifiers affect it (see

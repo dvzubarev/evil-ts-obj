@@ -76,6 +76,7 @@ the first line of TEXT."
           (delete-region (point-min) (point)))
         (buffer-substring-no-properties (point-min) (point-max))))))
 
+;;;###autoload
 (defun evil-ts-obj-util--calc-first-line-indent (beg end)
   "Return number of chars before the first line when `BEG' `END'
 span multiple lines."
@@ -89,10 +90,12 @@ span multiple lines."
 ;; * Misc utils
 
 ;; inspired by the code from map.el
+;;;###autoload
 (defmacro evil-ts-obj-util--pcase-plist-get (key map)
   "A macro to make MAP the last argument to `map-elt'."
   `(plist-get ,map ,key))
 
+;;;###autoload
 (pcase-defmacro pmap (&rest args)
   "Liki a map pattern, but only for plists."
   `(and (pred plistp)

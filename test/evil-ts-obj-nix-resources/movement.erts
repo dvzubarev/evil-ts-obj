@@ -40,7 +40,7 @@ Name: next sibling thing t2
 Code:
   (lambda ()
     (evil-ts-obj-nix-tests-setup)
-    (evil-ts-obj--begin-of-thing 'statement))
+    (evil-ts-obj--goto-begin-of-thing 'statement))
 
 Name: beginnig of thing t1
 
