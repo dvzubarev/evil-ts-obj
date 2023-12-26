@@ -147,7 +147,7 @@
 
 (defmacro evil-ts-obj-setup-all-movement (thing key)
   "Define all movement commands for a `THING'.
-Also bind KEY to defined commands in all movement keymaps."
+Also bind `KEY' to defined commands in all appropriate keymaps."
   `(progn
      ,@(let (result)
          (dolist (move  '("beginning-of"
@@ -186,52 +186,31 @@ Also bind KEY to defined commands in all movement keymaps."
           spec
           (evil-ts-obj--get-text-obj-range (point) ',thing spec))))))
 
+(defmacro evil-ts-obj-setup-all-text-objects (thing key)
+  "Define all text objects for a `THING'.
+Also bind `KEY' to defined text objects in all appropriate keymaps."
+  `(progn
+     ,@(let (result)
+         (dolist (to '(outer inner upper lower))
+           (let ((map-name (intern (format "evil-ts-obj-%s-text-objects-map" to)))
+                 (command (intern (format "evil-ts-obj-%s-%s" thing to))))
+             (push `(evil-ts-obj-define-text-obj ,thing ,to) result)
+             (push `(keymap-set ,map-name (kbd ,key) #',command) result)))
+         (nreverse result))))
 
-(evil-ts-obj-define-text-obj compound outer)
-(evil-ts-obj-define-text-obj compound inner)
-(evil-ts-obj-define-text-obj compound upper)
-(evil-ts-obj-define-text-obj compound lower)
-
-
-(evil-ts-obj-define-text-obj statement outer)
-(evil-ts-obj-define-text-obj statement inner)
-(evil-ts-obj-define-text-obj statement upper)
-(evil-ts-obj-define-text-obj statement lower)
-
-
-(evil-ts-obj-define-text-obj param outer)
-(evil-ts-obj-define-text-obj param inner)
-(evil-ts-obj-define-text-obj param upper)
-(evil-ts-obj-define-text-obj param lower)
 
 
 
 ;;* default keybindings and minor mode
 
-(defvar evil-ts-obj-inner-text-objects-map
-  (let ((map (make-sparse-keymap "Inner text objects")))
-    (define-key map (kbd "e") #'evil-ts-obj-compound-inner)
-    (define-key map (kbd "a") #'evil-ts-obj-param-inner)
-    (define-key map (kbd "s") #'evil-ts-obj-statement-inner)
-    map))
-(defvar evil-ts-obj-outer-text-objects-map
-  (let ((map (make-sparse-keymap "Outer text objects")))
-    (define-key map (kbd "e") #'evil-ts-obj-compound-outer)
-    (define-key map (kbd "a") #'evil-ts-obj-param-outer)
-    (define-key map (kbd "s") #'evil-ts-obj-statement-outer)
-    map))
-(defvar evil-ts-obj-upper-text-objects-map
-  (let ((map (make-sparse-keymap "Upper text objects")))
-    (define-key map (kbd "e") #'evil-ts-obj-compound-upper)
-    (define-key map (kbd "a") #'evil-ts-obj-param-upper)
-    (define-key map (kbd "s") #'evil-ts-obj-statement-upper)
-    map))
-(defvar evil-ts-obj-lower-text-objects-map
-  (let ((map (make-sparse-keymap "Lower text objects")))
-    (define-key map (kbd "e") #'evil-ts-obj-compound-lower)
-    (define-key map (kbd "a") #'evil-ts-obj-param-lower)
-    (define-key map (kbd "s") #'evil-ts-obj-statement-lower)
-    map))
+(defvar evil-ts-obj-inner-text-objects-map (make-sparse-keymap "Inner text objects"))
+(defvar evil-ts-obj-outer-text-objects-map (make-sparse-keymap "Outer text objects"))
+(defvar evil-ts-obj-upper-text-objects-map (make-sparse-keymap "Upper text objects"))
+(defvar evil-ts-obj-lower-text-objects-map (make-sparse-keymap "Lower text objects"))
+
+(evil-ts-obj-setup-all-text-objects compound "e")
+(evil-ts-obj-setup-all-text-objects statement "s")
+(evil-ts-obj-setup-all-text-objects param "a")
 
 
 (defvar evil-ts-obj-goto-beginning-of-map (make-sparse-keymap "Goto beginning of"))
@@ -240,7 +219,6 @@ Also bind KEY to defined commands in all movement keymaps."
 (defvar evil-ts-obj-goto-previous-map (make-sparse-keymap))
 (defvar evil-ts-obj-goto-next-largest-map (make-sparse-keymap))
 (defvar evil-ts-obj-goto-previous-largest-map (make-sparse-keymap))
-
 
 (evil-ts-obj-setup-all-movement compound "e")
 (evil-ts-obj-setup-all-movement statement "s")

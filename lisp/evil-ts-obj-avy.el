@@ -242,30 +242,39 @@ text objects in in other windows."
          (let ((p (point)))
            (list p p 'exclusive))))))
 
-(evil-ts-obj-avy-define-text-obj compound outer)
-(evil-ts-obj-avy-define-text-obj compound inner)
-(evil-ts-obj-avy-define-text-obj compound upper)
-(evil-ts-obj-avy-define-text-obj compound lower)
+(defmacro evil-ts-obj-avy-setup-all-text-objects (thing key)
+  "Define all text objects for a `THING'.
+Also bind `KEY' to defined text objects in all appropriate keymaps."
+  `(progn
+     ,@(let (result)
+         (dolist (to '(outer inner upper lower))
+           (let ((map-name (intern (format "evil-ts-obj-avy-%s-text-objects-map" to)))
+                 (command (intern (format "evil-ts-obj-avy-%s-%s-text-obj" thing to))))
+             (push `(evil-ts-obj-avy-define-text-obj ,thing ,to) result)
+             (push `(keymap-set ,map-name (kbd ,key) #',command) result)))
+         (nreverse result))))
+
+
+
+(defvar evil-ts-obj-avy-inner-text-objects-map (make-sparse-keymap "Avy inner text objects"))
+(defvar evil-ts-obj-avy-outer-text-objects-map (make-sparse-keymap "Avy outer text objects"))
+(defvar evil-ts-obj-avy-upper-text-objects-map (make-sparse-keymap "Avy upper text objects"))
+(defvar evil-ts-obj-avy-lower-text-objects-map (make-sparse-keymap "Avy lower text objects"))
+
+(evil-ts-obj-avy-setup-all-text-objects compound "e")
+(evil-ts-obj-avy-setup-all-text-objects statement "s")
+(evil-ts-obj-avy-setup-all-text-objects param "a")
 
 (defun evil-ts-obj-avy-compound-outer-paste-after ()
   (interactive)
   (let ((avy-action-oneshot #'evil-ts-obj-avy-action-paste-after))
     (evil-ts-obj-avy-compound-outer-text-obj nil)))
 
-(evil-ts-obj-avy-define-text-obj statement outer)
-(evil-ts-obj-avy-define-text-obj statement inner)
-(evil-ts-obj-avy-define-text-obj statement upper)
-(evil-ts-obj-avy-define-text-obj statement lower)
 
 (defun evil-ts-obj-avy-statement-outer-paste-after ()
   (interactive)
   (let ((avy-action-oneshot #'evil-ts-obj-avy-action-paste-after))
     (evil-ts-obj-avy-statement-outer-text-obj nil)))
-
-(evil-ts-obj-avy-define-text-obj param outer)
-(evil-ts-obj-avy-define-text-obj param inner)
-(evil-ts-obj-avy-define-text-obj param upper)
-(evil-ts-obj-avy-define-text-obj param lower)
 
 (defun evil-ts-obj-avy-param-inner-paste-after ()
   (interactive)
@@ -273,7 +282,16 @@ text objects in in other windows."
     (evil-ts-obj-avy-param-inner-text-obj nil)))
 
 
-;;;###autoload
+(defun evil-ts-obj-avy--bind-text-objects ()
+  (evil-define-key '(normal operator visual) 'evil-ts-obj-mode
+    (kbd (concat evil-ts-obj-avy-key-prefix " i")) evil-ts-obj-avy-inner-text-objects-map
+    (kbd (concat evil-ts-obj-avy-key-prefix " a")) evil-ts-obj-avy-outer-text-objects-map
+    (kbd (concat evil-ts-obj-avy-key-prefix " u")) evil-ts-obj-avy-upper-text-objects-map
+    (kbd (concat evil-ts-obj-avy-key-prefix " o")) evil-ts-obj-avy-lower-text-objects-map))
+
+
+;; * Misc commands
+
 (defun evil-ts-obj-avy-jump-by-query (query &optional action)
   (interactive)
   (setq avy-action (or action #'avy-action-goto))
@@ -286,40 +304,6 @@ text objects in in other windows."
       ;; filter them
       (seq-filter (lambda (pair) (and (>= (car pair) (window-start))))
                   (treesit-query-range root query (window-start) (window-end)))))))
-
-(defvar evil-ts-obj-avy-inner-text-objects-map
-  (let ((map (make-sparse-keymap "Inner text objects")))
-    (define-key map (kbd "e") #'evil-ts-obj-avy-compound-inner-text-obj)
-    (define-key map (kbd "a") #'evil-ts-obj-avy-param-inner-text-obj)
-    (define-key map (kbd "s") #'evil-ts-obj-avy-statement-inner-text-obj)
-    map))
-(defvar evil-ts-obj-avy-outer-text-objects-map
-  (let ((map (make-sparse-keymap "Outer text objects")))
-    (define-key map (kbd "e") #'evil-ts-obj-avy-compound-outer-text-obj)
-    (define-key map (kbd "a") #'evil-ts-obj-avy-param-outer-text-obj)
-    (define-key map (kbd "s") #'evil-ts-obj-avy-statement-outer-text-obj)
-    map))
-(defvar evil-ts-obj-avy-upper-text-objects-map
-  (let ((map (make-sparse-keymap "Upper text objects")))
-    (define-key map (kbd "e") #'evil-ts-obj-avy-compound-upper-text-obj)
-    (define-key map (kbd "a") #'evil-ts-obj-avy-param-upper-text-obj)
-    (define-key map (kbd "s") #'evil-ts-obj-avy-statement-upper-text-obj)
-    map))
-(defvar evil-ts-obj-avy-lower-text-objects-map
-  (let ((map (make-sparse-keymap "Lower text objects")))
-    (define-key map (kbd "e") #'evil-ts-obj-avy-compound-lower-text-obj)
-    (define-key map (kbd "a") #'evil-ts-obj-avy-param-lower-text-obj)
-    (define-key map (kbd "s") #'evil-ts-obj-avy-statement-lower-text-obj)
-    map))
-
-
-(defun evil-ts-obj-avy--bind-text-objects ()
-  (evil-define-key '(normal operator visual) 'evil-ts-obj-mode
-    (kbd (concat evil-ts-obj-avy-key-prefix " i")) evil-ts-obj-avy-inner-text-objects-map
-    (kbd (concat evil-ts-obj-avy-key-prefix " a")) evil-ts-obj-avy-outer-text-objects-map
-    (kbd (concat evil-ts-obj-avy-key-prefix " u")) evil-ts-obj-avy-upper-text-objects-map
-    (kbd (concat evil-ts-obj-avy-key-prefix " o")) evil-ts-obj-avy-lower-text-objects-map))
-
 
 
 (provide 'evil-ts-obj-avy)
