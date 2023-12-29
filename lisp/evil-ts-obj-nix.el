@@ -81,6 +81,8 @@ Return t if `NODE' is named and it is matching against
                     (parent-type (treesit-node-type parent)))
           (or (and (equal parent-type "function_expression")
                    (equal (treesit-node-field-name node) "universal"))
+              (and (equal parent-type "apply_expression")
+                   (equal (treesit-node-field-name node) "argument"))
               (string-match-p evil-ts-obj-nix-param-parent-regex parent-type))))))
 
 (defcustom evil-ts-obj-nix-things

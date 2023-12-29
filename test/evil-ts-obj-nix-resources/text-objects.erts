@@ -134,3 +134,11 @@ pyfinal|: pyprev: {};
 =-=
 pyprev: {};
 =-=-=
+
+Name: Delete param outer t8
+
+=-=
+import nixpkgs {|system = "x86_64-linux";}
+=-=
+import nixpkgs|
+=-=-=

@@ -27,7 +27,7 @@ Name: next sibling thing t2
 
 =-=
 {
-  t = import |nixpkgs {system = "x86_64-linux";};
+  t = impor|t nixpkgs {system = "x86_64-linux";};
   t2 = import nixpkgs {system = "x86_64-linux";};
 }
 =-=
@@ -63,7 +63,7 @@ Name: end of thing t1
 
 =-=
 {
-  t = import |nixpkgs {system = "x86_64-linux";};
+  t = impor|t nixpkgs {system = "x86_64-linux";};
   t2 = import nixpkgs {system = "x86_64-linux";};
 }
 =-=
