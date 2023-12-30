@@ -67,7 +67,9 @@
 
 
 (evil-define-motion evil-ts-obj-beginning-of-thing (count)
-  "Jump to the beginning of the current thing from `evil-ts-obj-conf-nav-things'."
+  "Jump to the beginning of the current thing from `evil-ts-obj-conf-nav-things'.
+When the point is already at the beginning, move to the beginning
+of the parent thing."
   :type inclusive
   :jump t
   (let ((thing (evil-ts-obj--get-nav-thing)))
@@ -75,7 +77,9 @@
       (evil-ts-obj--goto-begin-of-thing thing))))
 
 (evil-define-motion evil-ts-obj-end-of-thing (count)
-  "Jump to the end of the current thing from `evil-ts-obj-conf-nav-things'."
+  "Jump to the end of the current thing from `evil-ts-obj-conf-nav-things'.
+When the point is already at the end, move to the end of the
+parent thing."
   :type inclusive
   :jump t
   (let ((thing (evil-ts-obj--get-nav-thing)))

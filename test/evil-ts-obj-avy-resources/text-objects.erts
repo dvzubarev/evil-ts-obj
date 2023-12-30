@@ -82,7 +82,7 @@ Name: delete avy param outer text object t1
 def temp(var, temp=(1,2)):
     |pass
 =-=
-def temp(var|):
+def temp(var):
     pass
 =-=-=
 

@@ -26,18 +26,15 @@
 
 (defcustom evil-ts-obj-compound-text-obj-key "e"
   "Default key binding for compound text objects."
-  :type 'string
-  :group 'evil-ts-obj)
+  :type 'string)
 
 (defcustom evil-ts-obj-statement-text-obj-key "s"
   "Default key binding for statement text objects."
-  :type 'string
-  :group 'evil-ts-obj)
+  :type 'string)
 
 (defcustom evil-ts-obj-param-text-obj-key "a"
   "Default key binding for param text objects."
-  :type 'string
-  :group 'evil-ts-obj)
+  :type 'string)
 
 (defcustom evil-ts-obj-navigation-keys-prefix
   '((beginning-of . "(")
@@ -47,8 +44,7 @@
     (previous-largest . "{")
     (next-largest . "}"))
   "Default bindings for movement commands."
-  :type 'alist
-  :group 'evil-ts-obj)
+  :type 'alist)
 
 
 ;; * Variables
