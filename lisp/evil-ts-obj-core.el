@@ -906,7 +906,7 @@ information about `NODE' and `SEP-REGEX'."
 
 
 ;; * extentision functions
-(defun evil-ts-obj-common-statement-ext-func (spec node sep-regex &optional get-sibling-func)
+(defun evil-ts-obj-common-statement-ext (spec node sep-regex &optional get-sibling-func)
   "Common statetement extension function."
   (pcase spec
     ((pmap (:text-obj 'outer))
@@ -929,7 +929,7 @@ information about `NODE' and `SEP-REGEX'."
                          sep-regex)
       (or get-sibling-func #'evil-ts-obj--get-sibling-simple)))))
 
-(defun evil-ts-obj-common-param-ext-func (spec node &optional sep-regex universal)
+(defun evil-ts-obj-common-param-ext (spec node &optional sep-regex universal)
   (pcase spec
     ((pmap (:text-obj 'outer))
      (if (or universal

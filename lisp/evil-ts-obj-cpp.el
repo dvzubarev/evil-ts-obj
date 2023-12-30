@@ -129,8 +129,8 @@ the template_declaration. Current thing is represented by `NODE'."
 
     (list start end)))
 
-(defun evil-ts-obj-cpp-ext-func (spec node)
-  "Main extension function for python.
+(defun evil-ts-obj-cpp-ext (spec node)
+  "Main extension function for cpp.
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
   (pcase spec
@@ -140,7 +140,14 @@ and `NODE'."
      (evil-ts-obj-cpp-extract-compound-inner node))
 
     ((pmap (:thing 'param)  (:op-kind 'mod))
-     (evil-ts-obj-common-param-ext-func spec node evil-ts-obj-cpp-param-seps-regex))))
+     (evil-ts-obj-common-param-ext spec node evil-ts-obj-cpp-param-seps-regex))))
+
+(defcustom evil-ts-obj-cpp-ext-func
+  #'evil-ts-obj-cpp-ext
+  "Extension function for cpp."
+  :type 'function
+  :group 'evil-ts-obj)
+
 
 ;;;###autoload
 (defun evil-ts-obj-cpp-setup-things ()
@@ -151,7 +158,7 @@ and `NODE'."
     evil-ts-obj-cpp-things)
 
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'cpp #'evil-ts-obj-cpp-ext-func)
+   'cpp evil-ts-obj-cpp-ext-func)
 
   (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'cpp
             evil-ts-obj-cpp-param-seps-regex)

@@ -163,7 +163,7 @@ Compound is represented by a `NODE'."
       sibling
     (evil-ts-obj--get-sibling-simple dir node)))
 
-(defun evil-ts-obj-python-ext-func (spec node)
+(defun evil-ts-obj-python-ext (spec node)
   "Main extension function for python.
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
@@ -179,13 +179,19 @@ and `NODE'."
       #'evil-ts-obj--get-sibling-simple))
 
     ((pmap (:op-kind 'mod) (:thing 'statement))
-     (evil-ts-obj-common-statement-ext-func
+     (evil-ts-obj-common-statement-ext
       spec node
       evil-ts-obj-python-statement-seps-regex
       #'evil-ts-obj-python-statement-get-sibling))
 
     ((pmap (:op-kind 'mod)  (:thing 'param))
-     (evil-ts-obj-common-param-ext-func spec node evil-ts-obj-python-param-seps))))
+     (evil-ts-obj-common-param-ext spec node evil-ts-obj-python-param-seps))))
+
+(defcustom evil-ts-obj-python-ext-func
+  #'evil-ts-obj-python-ext
+  "Extension function for python."
+  :type 'function
+  :group 'evil-ts-obj)
 
 ;;;###autoload
 (defun evil-ts-obj-python-setup-things ()
@@ -196,7 +202,7 @@ and `NODE'."
     evil-ts-obj-python-things)
 
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'python #'evil-ts-obj-python-ext-func)
+   'python evil-ts-obj-python-ext-func)
 
   (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'python evil-ts-obj-python-all-seps-regex)
 

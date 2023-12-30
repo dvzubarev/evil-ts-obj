@@ -112,7 +112,7 @@ Compound is represented by a `NODE'."
           (treesit-node-end binding-set-node))))
 
 
-(defun evil-ts-obj-nix-ext-func (spec node)
+(defun evil-ts-obj-nix-ext (spec node)
   "Main extension function for nix.
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
@@ -120,7 +120,13 @@ and `NODE'."
     ((pmap (:thing 'compound) (:text-obj 'inner))
      (evil-ts-obj-nix-extract-compound-inner node))
     ((pmap (:op-kind 'mod) (:thing 'param))
-     (evil-ts-obj-common-param-ext-func spec node evil-ts-obj-nix-param-seps-regex t))))
+     (evil-ts-obj-common-param-ext spec node evil-ts-obj-nix-param-seps-regex t))))
+
+(defcustom evil-ts-obj-nix-ext-func
+  #'evil-ts-obj-nix-ext
+  "Extension function for python."
+  :type 'function
+  :group 'evil-ts-obj)
 
 ;;;###autoload
 (defun evil-ts-obj-nix-setup-things ()
@@ -132,7 +138,7 @@ and `NODE'."
 
 
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'nix #'evil-ts-obj-nix-ext-func)
+   'nix evil-ts-obj-nix-ext-func)
 
   (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'nix
             evil-ts-obj-nix-param-seps-regex)

@@ -53,7 +53,7 @@
     (list (treesit-node-start child)
           (treesit-node-end child))))
 
-(defun evil-ts-obj-yaml-ext-func (spec node)
+(defun evil-ts-obj-yaml-ext (spec node)
   "Main extension function for yaml.
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
@@ -64,7 +64,13 @@ and `NODE'."
     ((pmap (:thing 'param) (:op-kind 'nav))
      (evil-ts-obj-yaml-param-mod node))
     ((pmap (:thing 'param) (:op-kind 'mod))
-     (evil-ts-obj-common-param-ext-func spec node))))
+     (evil-ts-obj-common-param-ext spec node))))
+
+(defcustom evil-ts-obj-yaml-ext-func
+  #'evil-ts-obj-yaml-ext
+  "Extension function for yaml."
+  :type 'function
+  :group 'evil-ts-obj)
 
 ;;;###autoload
 (defun evil-ts-obj-yaml-setup-things ()
@@ -75,7 +81,7 @@ and `NODE'."
     evil-ts-obj-yaml-things)
 
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'yaml #'evil-ts-obj-yaml-ext-func)
+   'yaml evil-ts-obj-yaml-ext-func)
 
   (cl-callf plist-put evil-ts-obj-conf-nav-things
     'yaml '(or param compound)))

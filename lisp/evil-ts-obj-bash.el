@@ -131,7 +131,7 @@ Compound is represented by a `NODE'."
     'sibling))
 
 
-(defun evil-ts-obj-bash-ext-func (spec node)
+(defun evil-ts-obj-bash-ext (spec node)
   "Main extension function for bash.
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
@@ -141,7 +141,7 @@ and `NODE'."
      (evil-ts-obj-bash-extract-compound-inner node))
 
     ((pmap (:op-kind 'mod) (:thing 'statement))
-     (evil-ts-obj-common-statement-ext-func
+     (evil-ts-obj-common-statement-ext
       spec node
       evil-ts-obj-bash-statement-seps-regex
       #'evil-ts-obj-bash-statement-get-sibling))
@@ -154,7 +154,13 @@ and `NODE'."
       t))
 
     ((pmap (:op-kind 'mod) (:thing 'param))
-     (evil-ts-obj-common-param-ext-func spec node))))
+     (evil-ts-obj-common-param-ext spec node))))
+
+(defcustom evil-ts-obj-bash-ext-func
+  #'evil-ts-obj-bash-ext
+  "Extension function for bash."
+  :type 'function
+  :group 'evil-ts-obj)
 
 
 ;;;###autoload
@@ -165,7 +171,7 @@ and `NODE'."
     evil-ts-obj-bash-things)
 
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'bash #'evil-ts-obj-bash-ext-func)
+   'bash evil-ts-obj-bash-ext-func)
 
   (cl-callf plist-put evil-ts-obj-conf-sep-regexps
     'bash (evil-ts-obj-conf--make-nodes-regex
