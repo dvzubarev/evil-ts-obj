@@ -149,7 +149,8 @@ evil operator.")
              cursor
              (lambda (n) (treesit-node-match-p n thing t))))
       (when (and cursor
-                 (< (treesit-node-start cursor) end))
+                 (< (treesit-node-start cursor) end)
+                 (>= (treesit-node-start cursor) start))
         (iter-yield cursor)))
 
     ;; Since treesit-search-forward returns leafs first, we stopped on the first
@@ -159,6 +160,7 @@ evil operator.")
                 (<= start (treesit-node-start cursor)))
 
       (when (and (< (treesit-node-start cursor) end)
+                 (>= (treesit-node-start cursor) start )
                  (treesit-node-match-p cursor thing t))
         (iter-yield cursor)))))
 
@@ -169,11 +171,14 @@ evil operator.")
         range
         candidates)
     (pcase-dolist (`(,pos . ,end) (avy--find-visible-regions (window-start) (window-end)))
-      (iter-do (node (evil-ts-obj-avy--iter-things thing pos end))
-        (setq range (evil-ts-obj--apply-modifiers node thing spec))
-        (push (cons (append range (list node))
-               window)
-              candidates)))
+      ;; see https://lists.gnu.org/archive/html/bug-gnu-emacs/2023-12/msg01385.html
+      (save-restriction
+        (widen)
+        (iter-do (node (evil-ts-obj-avy--iter-things thing pos end))
+          (setq range (evil-ts-obj--apply-modifiers node thing spec))
+          (push (cons (append range (list node))
+                      window)
+                candidates))))
     candidates))
 
 (defun evil-ts-obj-avy--collect-candidates (thing)
