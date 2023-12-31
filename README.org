@@ -122,7 +122,7 @@ The implemented modifiers are:
 
 ** Text objects
 
-See examples in the [[doc/things-demo.org][file]].
+See examples in the [[docs/things-demo.org][file]].
 
 Combination of modifiers with things produces set of text objects, that you can use with any evil operator (e.g. =yie=, =doa=).
 - (*outer*, *compound*) - thing without changes
@@ -217,7 +217,7 @@ Avy allows you to jump to any thing that is currently visible on the screen (try
 Moreover you can apply any evil operator to the remote thing (e.g. =dzae=).
 It also works across multiple windows.
 
-See examples in the [[doc/avy-demo.org][file]].
+See examples in the [[docs/avy-demo.org][file]].
 
 *** Custom avy actions
 You can press a special key before selecting avy candidates,
@@ -233,7 +233,7 @@ Those actions are implemented in this package:
 | delete          | Delete selected thing                                                                                                  | x   |
 | yank            | Yank selected thing                                                                                                    | y   |
 
-See examples in the [[doc/avy-demo.org][file]].
+See examples in the [[docs/avy-demo.org][file]].
 
 For someone who finds it inconvenient to press action key before selection,
 there exist standalone functions for starting paste action.
