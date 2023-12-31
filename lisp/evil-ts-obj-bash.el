@@ -137,23 +137,23 @@ See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
 
   (pcase spec
-    ((pmap (:thing 'compound) (:text-obj 'inner))
+    ((pmap (:thing 'compound) (:mod 'inner))
      (evil-ts-obj-bash-extract-compound-inner node))
 
-    ((pmap (:op-kind 'mod) (:thing 'statement))
+    ((pmap (:act 'op) (:thing 'statement))
      (evil-ts-obj-common-statement-ext
       spec node
       evil-ts-obj-bash-statement-seps-regex
       #'evil-ts-obj-bash-statement-get-sibling))
 
-    ((pmap (:op-kind 'mod) (:thing 'param) (:text-obj 'upper))
+    ((pmap (:act 'op) (:thing 'param) (:mod 'upper))
      (evil-ts-obj-generic-thing-upper
       node
       #'evil-ts-obj-bash-param-sibling-kind
       #'evil-ts-obj--get-sibling-simple
       t))
 
-    ((pmap (:op-kind 'mod) (:thing 'param))
+    ((pmap (:act 'op) (:thing 'param))
      (evil-ts-obj-common-param-ext spec node))))
 
 (defcustom evil-ts-obj-bash-ext-func

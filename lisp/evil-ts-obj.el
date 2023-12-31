@@ -156,7 +156,7 @@ Also bind `KEY' to defined commands in all appropriate keymaps."
 
 (defun evil-ts-obj--finalize-text-obj-range (spec range)
   (pcase spec
-    ((pmap (:thing 'compound) (:text-obj 'outer))
+    ((pmap (:thing 'compound) (:mod 'outer))
      (pcase-let ((`(,first-pos ,last-pos) range))
        (when (and
               last-pos
@@ -165,12 +165,12 @@ Also bind `KEY' to defined commands in all appropriate keymaps."
        (list first-pos last-pos)))
     (_ range)))
 
-(defmacro evil-ts-obj-define-text-obj (thing text-obj)
+(defmacro evil-ts-obj-define-text-obj (thing mod)
   (declare (indent defun))
-  (let ((name (intern (format "evil-ts-obj-%s-%s" thing text-obj))))
+  (let ((name (intern (format "evil-ts-obj-%s-%s" thing mod))))
     `(evil-define-text-object ,name (count &optional _beg _end _type)
-       ,(format "Select a %s %s object." thing text-obj)
-       (let ((spec (evil-ts-obj--make-spec nil ',thing ',text-obj)))
+       ,(format "Select a %s %s text object." thing mod)
+       (let ((spec (evil-ts-obj--make-spec nil ',thing ',mod)))
          (evil-ts-obj--finalize-text-obj-range
           spec
           (evil-ts-obj--get-text-obj-range (point) ',thing spec))))))
@@ -180,10 +180,10 @@ Also bind `KEY' to defined commands in all appropriate keymaps."
 Also bind `KEY' to defined text objects in all appropriate keymaps."
   `(progn
      ,@(let (result)
-         (dolist (to '(outer inner upper lower))
-           (let ((map-name (intern (format "evil-ts-obj-%s-text-objects-map" to)))
-                 (command (intern (format "evil-ts-obj-%s-%s" thing to))))
-             (push `(evil-ts-obj-define-text-obj ,thing ,to) result)
+         (dolist (mod '(outer inner upper lower))
+           (let ((map-name (intern (format "evil-ts-obj-%s-text-objects-map" mod)))
+                 (command (intern (format "evil-ts-obj-%s-%s" thing mod))))
+             (push `(evil-ts-obj-define-text-obj ,thing ,mod) result)
              (push `(keymap-set ,map-name (kbd ,key) #',command) result)))
          (nreverse result))))
 
@@ -197,9 +197,9 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (defvar evil-ts-obj-upper-text-objects-map (make-sparse-keymap "Upper text objects"))
 (defvar evil-ts-obj-lower-text-objects-map (make-sparse-keymap "Lower text objects"))
 
-(evil-ts-obj-setup-all-text-objects compound evil-ts-obj-compound-text-obj-key)
-(evil-ts-obj-setup-all-text-objects statement evil-ts-obj-statement-text-obj-key)
-(evil-ts-obj-setup-all-text-objects param evil-ts-obj-param-text-obj-key)
+(evil-ts-obj-setup-all-text-objects compound evil-ts-obj-compound-thing-key)
+(evil-ts-obj-setup-all-text-objects statement evil-ts-obj-statement-thing-key)
+(evil-ts-obj-setup-all-text-objects param evil-ts-obj-param-thing-key)
 
 
 (defvar evil-ts-obj-goto-beginning-of-map (make-sparse-keymap "Goto beginning of"))
@@ -209,9 +209,9 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (defvar evil-ts-obj-goto-next-largest-map (make-sparse-keymap))
 (defvar evil-ts-obj-goto-previous-largest-map (make-sparse-keymap))
 
-(evil-ts-obj-setup-all-movement compound evil-ts-obj-compound-text-obj-key)
-(evil-ts-obj-setup-all-movement statement evil-ts-obj-statement-text-obj-key)
-(evil-ts-obj-setup-all-movement param evil-ts-obj-param-text-obj-key)
+(evil-ts-obj-setup-all-movement compound evil-ts-obj-compound-thing-key)
+(evil-ts-obj-setup-all-movement statement evil-ts-obj-statement-thing-key)
+(evil-ts-obj-setup-all-movement param evil-ts-obj-param-thing-key)
 
 
 (defun evil-ts-obj--maybe-create-parser (lang)

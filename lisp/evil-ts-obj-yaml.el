@@ -59,11 +59,11 @@ See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
 
   (pcase spec
-    ((pmap (:thing 'param) (:text-obj 'inner))
+    ((pmap (:thing 'param) (:mod 'inner))
      (evil-ts-obj-yaml-param-mod node))
-    ((pmap (:thing 'param) (:op-kind 'nav))
+    ((pmap (:thing 'param) (:act 'nav))
      (evil-ts-obj-yaml-param-mod node))
-    ((pmap (:thing 'param) (:op-kind 'mod))
+    ((pmap (:thing 'param) (:act 'op))
      (evil-ts-obj-common-param-ext spec node))))
 
 (defcustom evil-ts-obj-yaml-ext-func

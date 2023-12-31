@@ -213,18 +213,18 @@ and the first that matches against `NODE' is returned."
                (cdr nav-thing) nil))
     (_ (error "Unsupported thing %s" nav-thing))))
 
-(defun evil-ts-obj--make-spec (&optional op-kind thing text-obj command)
-  "Create plist that describes current text object context.
-If `OP-KIND' is nil, it is set to mod. `THING' can be nil it will
-be set later in `evil-ts-obj--apply-modifiers'. `TEXT-OBJ' can be
+(defun evil-ts-obj--make-spec (&optional action thing mod command)
+  "Create plist that describes the current text object.
+If `ACTION' is nil, it is set to op. `THING' can be nil it will
+be set later in `evil-ts-obj--apply-modifiers'. `MOD' can be
 nil if this is movement command. If `COMMAND' is nil the first
 non-nil from this list is chosen: `evil-this-operator',
 `avy-action', `this-command'. If `evil-visual-state-p' returns t,
 then keyword :visual is put to spec with the value t."
-  (let* ((op-kind (or op-kind 'mod))
+  (let* ((action (or action 'op))
          (spec `(:thing ,thing
-                 :text-obj ,text-obj
-                 :op-kind ,op-kind
+                 :mod ,mod
+                 :act ,action
                  :command ,(or command
                                evil-this-operator
                                (and (bound-and-true-p avy-action)
@@ -242,15 +242,15 @@ then keyword :visual is put to spec with the value t."
 
     ;; If we collecting text objects for previewing of candidates,
     ;; we do not need to extend each thing to its full upper/lower ranges.
-    (when (not (eq (plist-get spec :op-kind) 'nav))
+    (when (not (eq (plist-get spec :act) 'nav))
       ;; default handling of upper/lower text objects
       (pcase spec
-        ((pmap (:text-obj 'upper))
+        ((pmap (:mod 'upper))
          (let ((final-sibling node))
            (while (setq node (treesit-node-prev-sibling node t))
              (setq final-sibling node))
            (setq start (treesit-node-start final-sibling))))
-        ((pmap (:text-obj 'lower))
+        ((pmap (:mod 'lower))
          (let ((final-sibling node))
            (while (setq node (treesit-node-next-sibling node t))
              (setq final-sibling node))
@@ -288,8 +288,8 @@ return range of a text-object."
     (let ((range
            (if-let* (((plist-get spec :visual))
                      ((plist-get evil-ts-obj--last-text-obj-spec :visual))
-                     ((eq (plist-get spec :text-obj)
-                          (plist-get evil-ts-obj--last-text-obj-spec :text-obj)))
+                     ((eq (plist-get spec :mod)
+                          (plist-get evil-ts-obj--last-text-obj-spec :mod)))
                      (start (region-beginning))
                      (end (1+ (region-end)))
                      (cur-range (list start end))
@@ -318,7 +318,7 @@ return range of a text-object."
 
 (defun evil-ts-obj--goto-begin-of-thing (thing)
   "Determine `THING' at point and move point to the beginning of it.
-Beginning position is calculated based on spec with op-kind set
+Beginning position is calculated based on spec with :act set
 to nav, so all nav modifiers affect it (see
 `evil-ts-obj-conf-thing-modifiers'). If point is already at the
 beginning, move to the beginning of the parent thing."
@@ -339,7 +339,7 @@ beginning, move to the beginning of the parent thing."
 
 (defun evil-ts-obj--goto-end-of-thing (thing)
   "Determine `THING' at point and move point to the end of it.
-End position is calculated based on spec with op-kind set to
+End position is calculated based on spec with :act set to
 nav, so all nav modifiers affect it (see
 `evil-ts-obj-conf-thing-modifiers'). If point is already at the
 end, move to the end of the parent thing."
@@ -909,20 +909,20 @@ information about `NODE' and `SEP-REGEX'."
 (defun evil-ts-obj-common-statement-ext (spec node sep-regex &optional get-sibling-func)
   "Common statetement extension function."
   (pcase spec
-    ((pmap (:text-obj 'outer))
+    ((pmap (:mod 'outer))
      (evil-ts-obj-generic-thing-with-sep-outer
       node
       (apply-partially #'evil-ts-obj--get-node-kind-strict
                        sep-regex)
       (or get-sibling-func #'evil-ts-obj--get-sibling-simple)))
 
-    ((pmap (:text-obj 'upper))
+    ((pmap (:mod 'upper))
      (evil-ts-obj-generic-thing-upper
       node
       (apply-partially #'evil-ts-obj--get-node-kind sep-regex)
       (or get-sibling-func #'evil-ts-obj--get-sibling-simple)))
 
-    ((pmap (:text-obj 'lower))
+    ((pmap (:mod 'lower))
      (evil-ts-obj-generic-thing-lower
       node
       (apply-partially #'evil-ts-obj--get-node-kind
@@ -931,14 +931,14 @@ information about `NODE' and `SEP-REGEX'."
 
 (defun evil-ts-obj-common-param-ext (spec node &optional sep-regex universal)
   (pcase spec
-    ((pmap (:text-obj 'outer))
+    ((pmap (:mod 'outer))
      (if (or universal
              (null sep-regex))
          (evil-ts-obj-param-outer-universal-mod node sep-regex)
        (evil-ts-obj-param-outer-mod node sep-regex)))
-    ((pmap (:text-obj 'upper))
+    ((pmap (:mod 'upper))
      (evil-ts-obj-param-upper-mod node sep-regex))
-    ((pmap (:text-obj 'lower))
+    ((pmap (:mod 'lower))
      (evil-ts-obj-param-lower-mod node sep-regex))))
 
 (provide 'evil-ts-obj-core)

@@ -24,15 +24,15 @@
   "Provide evil text-objects using tree-sitter."
   :group 'tools)
 
-(defcustom evil-ts-obj-compound-text-obj-key "e"
+(defcustom evil-ts-obj-compound-thing-key "e"
   "Default key binding for compound text objects."
   :type 'string)
 
-(defcustom evil-ts-obj-statement-text-obj-key "s"
+(defcustom evil-ts-obj-statement-thing-key "s"
   "Default key binding for statement text objects."
   :type 'string)
 
-(defcustom evil-ts-obj-param-text-obj-key "a"
+(defcustom evil-ts-obj-param-thing-key "a"
   "Default key binding for param text objects."
   :type 'string)
 
@@ -57,17 +57,17 @@ calculated (see `evil-ts-obj--default-range'). The function
 should accept two arguments: SPEC and NODE.
 
 SPEC is a plist that contains a context for a current text
-object. The possible fields are :thing, :op-kind, :text-obj,
+object. The possible fields are :thing, :mod, :act,
 :command and :visual. :thing should contain the current thing that is
-represented by the treesit NODE. :text-obj may contain current
-text object (inner/outer etc.). It also may be nil if text object
-is not needed for the command. For example, movement commands
+represented by the treesit NODE. :mod may contain the current
+modifier (inner/outer etc.). It also may be nil if modifiers
+are not needed by the command. For example, movement commands
 work on the level of things for now, therefore they do not
-specify text objects in SPEC plist. :op-kind is a type of a
-current operation with the text object. :op-kind can be one of
+specify modifiers in SPEC plist. :act is a type of a
+current operation with the text object. :act can be one of
 the following symbols:
 
-* mod - any evil operator or other modification operations like
+* op - any evil operator or other modification operations like
   avy actions.
 
 * nav - any movement command like evil-ts-obj-next-thing. Also it

@@ -110,9 +110,9 @@ Compound is represented by a `NODE'."
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
   (pcase spec
-    ((pmap (:thing 'compound) (:text-obj 'inner))
+    ((pmap (:thing 'compound) (:mod 'inner))
      (evil-ts-obj-python-extract-compound-inner node))
-    ((pmap (:op-kind 'mod)  (:thing 'param))
+    ((pmap (:act 'op) (:thing 'param))
      (evil-ts-obj-common-param-ext spec node evil-ts-obj-python-param-seps))))
 
 (defcustom evil-ts-obj-python-ext-func

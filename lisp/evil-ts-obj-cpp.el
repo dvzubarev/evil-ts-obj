@@ -134,12 +134,12 @@ the template_declaration. Current thing is represented by `NODE'."
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
   (pcase spec
-    ((pmap (:thing 'compound) (:text-obj 'outer) (:op-kind 'mod))
+    ((pmap (:thing 'compound) (:mod 'outer) (:act 'op))
      (evil-ts-obj-cpp-compound-outer-ext node))
-    ((pmap (:thing 'compound) (:text-obj 'inner))
+    ((pmap (:thing 'compound) (:mod 'inner))
      (evil-ts-obj-cpp-extract-compound-inner node))
 
-    ((pmap (:thing 'param)  (:op-kind 'mod))
+    ((pmap (:thing 'param)  (:act 'op))
      (evil-ts-obj-common-param-ext spec node evil-ts-obj-cpp-param-seps-regex))))
 
 (defcustom evil-ts-obj-cpp-ext-func

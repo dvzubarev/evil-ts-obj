@@ -72,7 +72,7 @@ evil operator.")
 
 (defun evil-ts-obj-avy--get-range-for-avy-action ()
   (let* ((node evil-ts-obj-avy--selected-node)
-         (spec (plist-put evil-ts-obj-avy--current-spec :op-kind 'mod)))
+         (spec (plist-put evil-ts-obj-avy--current-spec :act 'op)))
 
     (evil-ts-obj--apply-modifiers node (plist-get spec :thing) spec)))
 
@@ -192,16 +192,16 @@ evil operator.")
                (evil-ts-obj-avy--get-candidates-current-window thing)))))
     candidates))
 
-(defun evil-ts-obj-avy-on-thing (thing text-obj &optional action)
+(defun evil-ts-obj-avy-on-thing (thing mod &optional action)
   (let* ((avy-dispatch-alist evil-ts-obj-avy-dispatch-alist)
          (avy-action (or action avy-action-oneshot #'evil-ts-obj-avy-action-goto))
-         (op-kind (if (or evil-this-operator
+         (obj-act (if (or evil-this-operator
                           (evil-visual-state-p)
                           (not (memq avy-action '(evil-ts-obj-avy-action-goto identity))))
-                      'mod
+                      'op
                     'nav))
-         (evil-ts-obj-avy--current-spec (evil-ts-obj--make-spec op-kind thing text-obj))
-         (evil-ts-obj-avy--current-select-spec (evil-ts-obj--make-spec 'nav thing text-obj)))
+         (evil-ts-obj-avy--current-spec (evil-ts-obj--make-spec obj-act thing mod))
+         (evil-ts-obj-avy--current-select-spec (evil-ts-obj--make-spec 'nav thing mod)))
 
     (when-let ((candidates (evil-ts-obj-avy--collect-candidates thing)))
       (avy-process candidates))))
@@ -230,9 +230,9 @@ text objects in in other windows."
 
 (advice-add 'evil-motion-range :after #'evil-ts-obj-avy--evil-motion-advice)
 
-(defmacro evil-ts-obj-avy-define-text-obj (thing text-obj)
+(defmacro evil-ts-obj-avy-define-text-obj (thing mod)
   (declare (indent defun))
-  (let ((name (intern (format "evil-ts-obj-avy-%s-%s-text-obj" thing text-obj))))
+  (let ((name (intern (format "evil-ts-obj-avy-%s-%s-text-obj" thing mod))))
     `(evil-define-text-object ,name (count &optional _beg _end _type)
        (when evil-this-operator
          (setq evil-ts-obj-avy--activate-motion-range-advice t
@@ -245,7 +245,7 @@ text objects in in other windows."
 
        (setq evil-ts-obj-avy--current-range nil)
        (avy-with ,name
-         (evil-ts-obj-avy-on-thing ',thing ',text-obj))
+         (evil-ts-obj-avy-on-thing ',thing ',mod))
        (if evil-ts-obj-avy--current-range
            evil-ts-obj-avy--current-range
          ;; Return an empty range so evil-motion-range doesn't try to guess
@@ -257,10 +257,10 @@ text objects in in other windows."
 Also bind `KEY' to defined text objects in all appropriate keymaps."
   `(progn
      ,@(let (result)
-         (dolist (to '(outer inner upper lower))
-           (let ((map-name (intern (format "evil-ts-obj-avy-%s-text-objects-map" to)))
-                 (command (intern (format "evil-ts-obj-avy-%s-%s-text-obj" thing to))))
-             (push `(evil-ts-obj-avy-define-text-obj ,thing ,to) result)
+         (dolist (mod '(outer inner upper lower))
+           (let ((map-name (intern (format "evil-ts-obj-avy-%s-text-objects-map" mod)))
+                 (command (intern (format "evil-ts-obj-avy-%s-%s-text-obj" thing mod))))
+             (push `(evil-ts-obj-avy-define-text-obj ,thing ,mod) result)
              (push `(keymap-set ,map-name (kbd ,key) #',command) result)))
          (nreverse result))))
 
@@ -271,29 +271,29 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (defvar evil-ts-obj-avy-upper-text-objects-map (make-sparse-keymap "Avy upper text objects"))
 (defvar evil-ts-obj-avy-lower-text-objects-map (make-sparse-keymap "Avy lower text objects"))
 
-(evil-ts-obj-avy-setup-all-text-objects compound evil-ts-obj-compound-text-obj-key)
-(evil-ts-obj-avy-setup-all-text-objects statement evil-ts-obj-statement-text-obj-key)
-(evil-ts-obj-avy-setup-all-text-objects param evil-ts-obj-param-text-obj-key)
+(evil-ts-obj-avy-setup-all-text-objects compound evil-ts-obj-compound-thing-key)
+(evil-ts-obj-avy-setup-all-text-objects statement evil-ts-obj-statement-thing-key)
+(evil-ts-obj-avy-setup-all-text-objects param evil-ts-obj-param-thing-key)
 
 (defmacro evil-ts-obj-avy-define-all-paste-cmds (thing key)
   "Define paste-after and teleport-after commands for a `THING'.
 Also bind `KEY' to defined text objects in all appropriate keymaps."
   `(progn
      ,@(let (result)
-         (dolist (to '(outer inner upper lower))
-           (let ((paste-map-name (intern (format "evil-ts-obj-avy-%s-paste-map" to)))
-                 (move-map-name (intern (format "evil-ts-obj-avy-%s-teleport-map" to)))
-                 (avy-cmd (intern (format "evil-ts-obj-avy-%s-%s-text-obj" thing to)))
-                 (paste-command (intern (format "evil-ts-obj-avy-%s-%s-paste-after" thing to)))
-                 (move-command (intern (format "evil-ts-obj-avy-%s-%s-teleport-after" thing to))))
+         (dolist (mod '(outer inner upper lower))
+           (let ((paste-map-name (intern (format "evil-ts-obj-avy-%s-paste-map" mod)))
+                 (move-map-name (intern (format "evil-ts-obj-avy-%s-teleport-map" mod)))
+                 (avy-cmd (intern (format "evil-ts-obj-avy-%s-%s-text-obj" thing mod)))
+                 (paste-command (intern (format "evil-ts-obj-avy-%s-%s-paste-after" thing mod)))
+                 (move-command (intern (format "evil-ts-obj-avy-%s-%s-teleport-after" thing mod))))
              (push `(defun ,paste-command ()
-                      ,(format "Paste remote %s %s thing behind the point." to thing)
+                      ,(format "Paste remote %s %s thing behind the point." mod thing)
                       (interactive)
                       (let ((avy-action-oneshot #'evil-ts-obj-avy-action-paste-after))
                         (,avy-cmd)))
                    result)
              (push `(defun ,move-command ()
-                      ,(format "Teleport remote %s %s thing behind the point." to thing)
+                      ,(format "Teleport remote %s %s thing behind the point." mod thing)
                       (interactive)
                       (let ((avy-action-oneshot #'evil-ts-obj-avy-action-teleport-after))
                         (,avy-cmd)))
@@ -312,9 +312,9 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (defvar evil-ts-obj-avy-upper-teleport-map (make-sparse-keymap "Avy upper teleport cmds"))
 (defvar evil-ts-obj-avy-lower-teleport-map (make-sparse-keymap "Avy lower teleport cmds"))
 
-(evil-ts-obj-avy-define-all-paste-cmds compound evil-ts-obj-compound-text-obj-key)
-(evil-ts-obj-avy-define-all-paste-cmds statement evil-ts-obj-statement-text-obj-key)
-(evil-ts-obj-avy-define-all-paste-cmds param evil-ts-obj-param-text-obj-key)
+(evil-ts-obj-avy-define-all-paste-cmds compound evil-ts-obj-compound-thing-key)
+(evil-ts-obj-avy-define-all-paste-cmds statement evil-ts-obj-statement-thing-key)
+(evil-ts-obj-avy-define-all-paste-cmds param evil-ts-obj-param-thing-key)
 
 
 (defun evil-ts-obj-avy--bind-text-objects ()
