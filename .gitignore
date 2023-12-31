@@ -1,3 +1,5 @@
 # Added automatically by ‘eldev init’.
 /.eldev
 /Eldev-local
+/lisp/.eldev/
+/lisp/evil-ts-obj-autoloads.el
