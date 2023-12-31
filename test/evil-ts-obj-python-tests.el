@@ -8,7 +8,7 @@
 ;; Modified: November 12, 2023
 ;; Version: 0.0.1
 ;; Keywords: tools convenience
-;; Homepage: https://github.com/dvzubarev/evil-treesit-objects
+;; Homepage: https://github.com/dvzubarev/evil-ts-obj
 ;; Package-Requires: ((emacs "30.0.50"))
 ;;
 ;; This file is not part of GNU Emacs.
