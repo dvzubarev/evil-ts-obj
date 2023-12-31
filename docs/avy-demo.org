@@ -1,0 +1,124 @@
+#+title: Avy in action
+* Parameter outer
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>dzaa</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def temp(var, temp=(1,2)):
+    |pass
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def temp(var):
+    |pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>czaa</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def temp(var, temp=(1,2)):
+    |pass
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def temp(var|):
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+* Paste/teleport actions
+Those actions try to adapt indentation of the inserted thing to the indentation of the current point.
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>zaem</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+if True:
+    if False:
+        pass
+
+def tempf():
+    while True:
+        |
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def tempf():
+    while True:
+        |if True:
+            if False:
+                pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>zaem</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def tempf():
+    i = 3
+    while True:
+        if i > 3:
+            break
+    i = 0
+
+|
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def tempf():
+    i = 3
+
+    i = 0
+
+|while True:
+    if i > 3:
+        break
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML

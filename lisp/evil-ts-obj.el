@@ -15,7 +15,7 @@
 ;;
 ;;; Commentary:
 ;;
-;;  Provides evil text-objects using tree-sitter
+;;  Opinionated set of text objects and movement commands for evil.
 ;;
 ;;; Code:
 

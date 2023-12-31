@@ -1,0 +1,320 @@
+#+title: treesit text objects and movement for evil
+
+
+
+This package is in the development stage and it requires latest builds of Emacs 30.0.50,
+since it is based on the thing machinery implemented in the the latest Emacs version.
+
+The goal of this package is not to create text objects for every possible code structure.
+Instead, the package provides universal text objects that can be used on code structures of the same type.
+For example, there are no distinct text objects for loops and conditionals,
+but there is one that you can use on any compound structures like functions, loops, conditionals etc.
+Of course, one can add its own text objects, see customization section.
+When it comes to movement, this package does not try to extend or enrich the existing movement commands.
+It provides opinionated set of movement commands that I find useful in day to day work.
+
+Key features:
+- Concise UX - a few text objects to operate and movement commands, but yet quite powerful
+- Support of remote text objects using avy
+- Expand region by repeating selection of the same text object
+- Easy customization of existing language settings
+
+* Installation
+** Emacs and tree-sitter installation
+Firstly, install tree-sitter library.
+You have to use fairly recent version that is not released yet (specifically the version after 6d1904c221d15d2fcbe0b590ff0a3f96c692429f).
+#+begin_src bash
+git clone https://github.com/tree-sitter/tree-sitter.git
+cd tree-sitter
+git checkout 660481dbf71413eba5a928b0b0ab8da50c1109e0
+make
+sudo make install
+sudo ldconfig
+#+end_src
+
+Install Emacs 30.0.50 from sources.
+#+begin_src bash
+git clone --no-tags --single-branch --filter=blob:none  https://github.com/mirrors/emacs.git emacs-30
+cd emacs-30
+git checkout 530315287254da2e6b0767ad343fa55f79be8536
+./configure --with-tree-sitter --add-flags-to-your-liking
+make
+sudo make install
+#+end_src
+
+More information about installing tree-sitter library and Emacs from sources see in this [[https://www.masteringemacs.org/article/how-to-get-started-tree-sitter#building-emacs-with-tree-sitter-support][post]].
+** Package installation
+An example using straight package manager:
+#+begin_src emacs-lisp
+(use-package evil-ts-obj
+  :straight (evil-ts-obj :type git :host github :repo "dvzubarev/evil-ts-obj")
+  :config
+  (add-hook 'python-ts-mode-hook #'evil-ts-obj-mode))
+#+end_src
+
+If you don't use straight, you have to clone repository, generate autoloads and optionally compile the project.
+One way to do it is to use [[https://github.com/emacs-eldev/eldev#installation][Eldev]].
+#+begin_src bash
+git clone https://github.com/dvzubarev/evil-ts-obj
+cd evil-ts-obj
+eldev build
+eldev compile
+#+end_src
+After that you can load this package with =use-package=.
+#+begin_src emacs-lisp
+(use-package evil-ts-obj
+  :load-path "/path/to/evil-ts-obj/evil-ts-obj/lisp"
+  :init
+  (load "/path/to/evil-ts-obj/lisp/evil-ts-obj-autoloads.el")
+  :defer t
+  :config
+  (add-hook 'python-ts-mode-hook #'evil-ts-obj-mode))
+#+end_src
+
+You also have to compile grammars for languages that you want to use this library with.
+You can use third-party packages like [[https://github.com/renzmann/treesit-auto][treesit-auto]] or install grammars [[https://www.masteringemacs.org/article/how-to-get-started-tree-sitter#installing-the-language-grammars][manually]].
+
+*** Package dependencies
+- evil
+- avy
+- better-jumper (optional)
+- eldev (for development)
+
+* Supported languages
+If you want to enable this package for any supported language,
+add =evil-ts-obj-mode= to its hook.
+#+begin_src emacs-lisp
+(add-hook 'python-ts-mode-hook #'evil-ts-obj-mode)
+(add-hook 'nix-mode-hook #'evil-ts-obj-mode)
+#+end_src
+
+- python
+- bash
+- c++
+- nix
+- yaml
+
+
+* Usage
+
+** Defined things
+
+There are a number of things defined in this library:
+| Thing     | Description                                                                                                         | Key |
+|-----------+---------------------------------------------------------------------------------------------------------------------+-----|
+| compound  | Code structures that may enclose @@html:<br>@@ multiple statements/expressions (function, loops, conditionals etc.) | e   |
+| statement | Simple statements/expressions, boolean conditions, etc.                                                             | s   |
+| parameter | Parameters/arguments of a function, items of a list/mapping/tuples                                                  | a   |
+
+For more information about treesit things see description of =treesit-thing-settings= variable.
+
+** Thing modifiers
+Modifiers are used to alter the bounds of a thing, for example, by including next separator or a whitespace.
+Modifiers behavior depend on the specific thing.
+The implemented modifiers are:
+
+| Modifier | Description                                                   | Key |
+|----------+---------------------------------------------------------------+-----|
+| outer    | May extend thing bounds to the next or previous sibling       | a   |
+| inner    | May shrink thing bounds                                       | i   |
+| upper    | Select a thing under point and also all its previous siblings | u   |
+| lower    | Select a thing under point and also all its next siblings     | o   |
+
+** Text objects
+
+See examples in the [[doc/things-demo.org][file]].
+
+Combination of modifiers with things produces set of text objects, that you can use with any evil operator (e.g. =yie=, =doa=).
+- (*outer*, *compound*) - thing without changes
+- (*inner*, *compound*) - selects only nested statements
+- (*outer*, *statement*) - bounds may be extended to the next sibling, if known
+  separator is adjacent to the current thing.
+  If the current thing is the last statement and there is know separator before it,
+  bounds are extended to the previous sibling.
+- (*inner*, *statement*) - thing without changes.
+- (*outer*, *param*) - bounds are extended to the next sibling or to the closing parenthesis.
+   If this is the last parameter, bounds are extended to the previous sibling or to the opening parenthesis.
+- (*inner*, *param*) - thing without changes.
+- (*upper*, *_*) - right bound is extended as if for *outer* modifier, left bound is determined by the furthest previous sibling
+- (*lower*, *_*) - left bound is extended as if it is last thing according to *outer* rules,
+   right bound is determined by the furthest next sibling
+The described behavior may differ from language to language.
+It is just common conventions that one should try to follow, when creating settings for a language.
+
+
+** Movement
+Currently movement commands are using only things as is, without applying modifiers listed above.
+Commands, listed belowe, use a group of things, defined in the =evil-ts-obj-conf-nav-things= variable.
+This variable is set for every language and for most languages it equals to =(or param statement compound)=.
+It means, the commands move point to the nearest thing from this list,
+firstly searching for parameters, then statements and so on.
+
+| Command                     | Description                                                                                                                                      | Key   |
+|-----------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------+-------|
+| beginning-of                | Move to the beginning of the current thing. @@html:<br>@@ When the point is already at the beginning, move to the beginning of the parent thing. | M-a   |
+| end-of                      | Move to the end of the current thing. @@html:<br>@@ When the point is already at the end, move to the end of the parent thing.                   | M-e   |
+| next-thing                  | Move to the next thing                                                                                                                           | M-f   |
+| previous-thing              | Move to the previous thing                                                                                                                       | M-b   |
+| same-next-thing             | Detect current thing at point and @@html:<br>@@ move to the next thing of the same type                                                          | C-M-f |
+| same-previous-thing         | Detect current thing at point and @@html:<br>@@ move to the previous thing of the same type                                                      | C-M-b |
+| next-largest-thing          | Move to the next thing that starts after the end of the current thing                                                                            | M-n   |
+| previous-largest-thing      | Move to the previous thing that ends before the start of the current thing                                                                       | M-p   |
+| same-next-largest-thing     | Detect current thing at point and @@html:<br>@@ perform next-largest-thing on this thing                                                         | C-M-n |
+| same-previous-largest-thing | Detect current thing at point and @@html:<br>@@ perform previous-largest-thing on this thing                                                     | C-M-p |
+
+There are also movement commands for each thing.
+They are bound to its own prefixes.
+
+| Command                | Prefix key |
+|------------------------+------------|
+| beginning-of           | (          |
+| end-of                 | )          |
+| next-thing             | ]          |
+| previous-thing         | [          |
+| next-largest-thing     | }          |
+| previous-largest-thing | {          |
+** Evil operators
+*** Replace operator
+TODO
+*** Swap operator
+TODO
+
+** Selecting overlapping things
+
+The common case is when multiple things start at the same position.
+It can lead to ambiguity, especially if the things are of the same type,
+or one uses movement commands that selecting next/previous things based on the current thing at point.
+For example:
+
+#+begin_src yaml
+- item1
+- item2
+#+end_src
+The first hyphen symbol is the beginning of the list (compound thing) and a list item (param thing).
+
+#+begin_src python
+if v is not None and v != 0:
+#+end_src
+Here the first =v= is the start of the two statement things: whole condition and the first condition (=v is not None=).
+
+When there are multiple overlapping things, the current thing at point depends on the point position.
+If the position is at the start of multiple things or before any thing (on the same line),
+the largest thing is selected, which starts at or after the position.
+If the position is after any thing (on the same line), the largest thing is selected, which ends before the position.
+If the position is inside of any thing, then the smallest enclosing thing is returned.
+** Expand region
+When using evil visual selection you can expand current selection, when using the same text object multiple times.
+For example, pressing =vaeae= will select the whole function.
+#+begin_src python
+def func():
+    while True:
+        |pass
+#+end_src
+
+** Avy integration
+By default, avy prefix keybinding is =z=.
+Avy allows you to jump to any thing that is currently visible on the screen (try =zie=).
+Moreover you can apply any evil operator to the remote thing (e.g. =dzae=).
+It also works across multiple windows.
+
+See examples in the [[doc/avy-demo.org][file]].
+
+*** Custom avy actions
+You can press a special key before selecting avy candidates,
+to perform some predefined action on it.
+Those actions are implemented in this package:
+
+|                 | Description                                                                                                            | Key |
+|-----------------+------------------------------------------------------------------------------------------------------------------------+-----|
+| paste-after     | Paste selected thing behind the point. @@html:<br>@@ Special care is taken to adapt indentation of the inserted thing. | p   |
+| paste-before    | Paste selected thing before the cursor position.                                                                       | P   |
+| teleport-after  | Cut selected thing and paste it behind the point.                                                                      | m   |
+| teleport-before | Cut selected thing and paste it before the cursor position.                                                            | M   |
+| delete          | Delete selected thing                                                                                                  | x   |
+| yank            | Yank selected thing                                                                                                    | y   |
+
+See examples in the [[doc/avy-demo.org][file]].
+
+For someone who finds it inconvenient to press action key before selection,
+there exist standalone functions for starting paste action.
+Check =evil-ts-obj-avy-compound-outer-paste-after=, =evil-ts-obj-avy-compound-outer-teleport-after= commands
+and also corresponding keymaps: =evil-ts-obj-avy-inner-paste-map=, =evil-ts-obj-avy-outer-paste-map=.
+
+
+* Customization
+
+** Changing various keybindings
+#+begin_src emacs-lisp
+(use-package! evil-ts-obj
+  :init
+
+  (setq evil-ts-obj-navigation-keys-prefix
+        '((beginning-of . nil)
+          (end-of . nil)
+          (previous . "(")
+          (next . ")")
+          (previous-largest . "{")
+          (next-largest . "}")))
+
+  (setq evil-ts-obj-avy-key-prefix "C-j")
+
+  (setq evil-ts-obj-compound-thing-key "d")
+  :config
+
+  (evil-define-key 'normal 'evil-ts-obj-mode
+    (kbd "M-a") nil
+    (kbd "C-M-a") #'evil-ts-obj-beginning-of-thing))
+#+end_src
+
+** Add things and text objects
+For example, you want to add its own thing for a function in python.
+
+Basic configuration:
+#+begin_src emacs-lisp
+(use-package! evil-ts-obj
+  :config
+
+  (add-to-list 'evil-ts-obj-python-things '(func "function_definition"))
+
+  (evil-ts-obj-define-text-obj func outer)
+  (keymap-set evil-ts-obj-outer-text-objects-map "F" #'evil-ts-obj-func-outer)
+  ;to setup everything at once
+  ;(evil-ts-obj-setup-all-text-objects func "F")
+
+  ;; bind all movement commands to key f
+  (evil-ts-obj-setup-all-movement func "f")
+
+  ;optional modifiers of a new thing
+  (setq evil-ts-obj-python-ext-func #'my-python-ext))
+
+(defun my-python-ext (spec node)
+  (pcase spec
+    ;; create inner text object
+    ((pmap (:thing 'func) (:mod 'inner))
+     (evil-ts-obj-python-extract-compound-inner node))
+    ;jump on the function name for every movement command
+    ((pmap (:thing 'func) (:act 'nav))
+     (when-let ((name-node (treesit-node-child-by-field-name node "name")))
+       (list (treesit-node-start name-node)
+             (treesit-node-end node))))
+    (_
+     (evil-ts-obj-python-ext spec node))))
+#+end_src
+
+* Add a new language
+See basic [[examples/evil-ts-obj-basic-python.el][example]] for python or [[lisp/evil-ts-obj-yaml.el][yaml]] settings to get started.
+Check out other setting files that are in a repository for a little bit more advanced configurations.
+
+* Development
+For running tests you have to install [[https://github.com/emacs-eldev/eldev][Eldev]].
+When running tests one should pass the path to the directory containing grammars for all testing languages.
+#+begin_src bash
+eldev -S '(setq treesit-extra-load-path (list "/path/to/tree-sitter/grammars"))' test
+#+end_src
+
+* Alternatives and Inspirations
+There are packages that are more mature and support more languages:
+- [[https://github.com/mickeynp/combobulate][combobulate]] has many feature. Make sure to check it out!
+- [[https://github.com/meain/evil-textobj-tree-sitter][evil-textobj-tree-sitter]] supports many more languages and works with the older Emacs versions.
+
+Remote text objects were inspired by the great packages [[https://github.com/noctuid/targets.el][targets.el]], [[https://github.com/noctuid/things.el][things.el]].

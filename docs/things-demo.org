@@ -1,0 +1,376 @@
+#+title: Things in action
+** Compound outer
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>dae</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+if True:
+    pass
+else:
+    |exit()
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+if True:
+    pass
+|
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Compound inner
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>die</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def func():
+    while |True:
+        pass
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def func():
+    while True:
+        |
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+** Statement inner
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>dis</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+var = call|(arg1,
+           kw1=[],
+           kw2='a, b')
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+var = |
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>dis</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+var| = call(arg1,
+           kw1=[],
+           kw2='a, b')
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+|
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Statement outer
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>das</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+if a is not None| and a == 3:
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+if |a == 3:
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>das</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src bash
+echo he ;| echo llo
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src bash
+echo he|
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+** Statement lower
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>dos</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+for var1, var2 in call():
+    var1 +=1
+    |var2 *= var1
+    return
+    #+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+for var1, var2 in call():
+    var1 +=1
+    |
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Statement upper
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>dus</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+if a is not None and |isinstance(a, int) and a == 3:
+    pass
+    #+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+if |a == 3:
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Parameter inner
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>dia</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+var = call(arg1,
+           kw1=[],
+           |kw2='a, b')
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+var = call(arg1,
+           kw1=[],
+           |)
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>dia</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+for |var1, var2 in call():
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+for |, var2 in call():
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Parameter outer
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>daa</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+var = call(arg1,
+           kw1=[],
+           |kw2='a, b')
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+var = call(arg1,
+           kw1=[]|)
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>daa</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+for |var1, var2 in call():
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+for |var2 in call():
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>daa</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+var = call(
+    arg1,
+    kw1=[],
+  |  kw2='a, b',
+)
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+var = call(
+    arg1,
+    kw1=[],|
+)
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Parameter upper
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>dua</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+var = call(arg1,
+           kw1=[]|,
+           kw2='a, b')
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+var = call(|kw2='a, b')
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
