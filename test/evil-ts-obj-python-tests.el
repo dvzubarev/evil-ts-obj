@@ -42,6 +42,10 @@
   (skip-unless (treesit-ready-p 'python))
   (ert-test-erts-file (ert-resource-file "movement.erts")))
 
+(ert-deftest evil-ts-obj-python-edit-test ()
+  (skip-unless (treesit-ready-p 'python))
+  (ert-test-erts-file (ert-resource-file "edit.erts")))
+
 (defmacro evil-ts-obj-with-py-temp-buffer (contents &rest body)
   "Create a `python-ts-mode' enabled temp buffer with CONTENTS.
 BODY is code to be executed within the temp buffer.  Point is

@@ -283,7 +283,7 @@ returned range is equal to the active region, expand that region.
 It is done by searching for a matching parent of the current
 thing. Otherwise apply range modifiers to the found thing and
 return range of a text-object."
-  (when-let ((node      (evil-ts-obj--thing-around pos thing)))
+  (when-let ((node (evil-ts-obj--thing-around pos thing)))
 
     (let ((range
            (if-let* (((plist-get spec :visual))
