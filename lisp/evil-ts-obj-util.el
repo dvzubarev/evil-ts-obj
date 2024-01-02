@@ -76,6 +76,15 @@ the first line of TEXT."
           (delete-region (point-min) (point)))
         (buffer-substring-no-properties (point-min) (point-max))))))
 
+(defun evil-ts-obj-util--extract-text (start end)
+  "Extract text between START and END with first line indented."
+  (let* ((text (buffer-substring-no-properties start end))
+         (first-line-indent (evil-ts-obj-util--calc-first-line-indent start end))
+         (prepared-text text))
+    (when first-line-indent
+      (setq prepared-text (concat (make-string first-line-indent 32) text)))
+    prepared-text))
+
 ;;;###autoload
 (defun evil-ts-obj-util--calc-first-line-indent (beg end)
   "Return number of chars before the first line when `BEG' `END'

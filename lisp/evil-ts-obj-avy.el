@@ -99,12 +99,7 @@ evil operator.")
              (start (car range))
              (end (cadr range)))
 
-    (let* ((text (buffer-substring-no-properties start end))
-           (first-line-indent (evil-ts-obj-util--calc-first-line-indent start end))
-           (prepared-text text))
-      (when first-line-indent
-        (setq prepared-text (concat (make-string first-line-indent 32) text)))
-
+    (let* ((text (evil-ts-obj-util--extract-text start end)))
       (when delete-region
         (delete-region start end))
 
@@ -116,7 +111,7 @@ evil operator.")
         (when (and after
                    (not (eolp)))
           (forward-char))
-        (insert (evil-ts-obj-util--indent-text-according-to-point-pos prepared-text)))
+        (insert (evil-ts-obj-util--indent-text-according-to-point-pos text)))
       (skip-chars-forward " \t")))
   t)
 

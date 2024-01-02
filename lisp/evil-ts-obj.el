@@ -21,6 +21,7 @@
 
 (require 'evil-ts-obj-core)
 (require 'evil-ts-obj-avy)
+(require 'evil-ts-obj-edit)
 
 (require 'evil-ts-obj-python)
 (require 'evil-ts-obj-bash)
@@ -188,6 +189,15 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
          (nreverse result))))
 
 
+;; ** Operators
+
+
+(evil-define-operator evil-ts-obj-replace (beg end type)
+  "Replace one region with the another one."
+  :move-point nil
+  :repeat t
+  (interactive "<R>")
+  (evil-ts-obj-edit-replace-operator beg end))
 
 
 ;;* default keybindings and minor mode

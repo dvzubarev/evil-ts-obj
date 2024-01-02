@@ -1,0 +1,163 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-replace (evil-ts-obj-statement-inner))
+    (evil-ts-obj-same-next-thing)
+    (apply #'evil-ts-obj-replace (evil-ts-obj-statement-inner)))
+
+Name: Replace next statement t1
+
+=-=
+def main():
+    |v=3
+    return call(v=v,
+                cv = 13)
+=-=
+def main():
+    v=3
+    |v=3
+=-=-=
+
+
+Name: Replace next statement t2
+
+=-=
+def main():
+    |v=[1,
+       2]
+    return call(v=v,
+                cv = 13)
+=-=
+def main():
+    v=[1,
+       2]
+    |v=[1,
+       2]
+=-=-=
+
+Name: Replace next statement t3
+
+=-=
+def main():
+    |v=[1,
+       2]
+
+call(v=v,
+     cv = 13)
+=-=
+def main():
+    v=[1,
+       2]
+
+|v=[1,
+   2]
+=-=-=
+
+Name: Replace next statement t4
+
+=-=
+def main():
+    |v=[1,
+       2]
+
+def func():
+    for v in c:
+        call(v=v,
+             cv = 13)
+=-=
+def main():
+    v=[1,
+       2]
+
+def func():
+    for v in c:
+        |v=[1,
+           2]
+=-=-=
+
+Name: Replace next statement t5
+
+=-=
+def main():
+    |v=3
+=-=
+def main():
+    |v=3
+=-=-=
+
+Name: Replace next statement t6
+
+=-=
+if |(a == 3 or (b and 3 < t)):
+=-=
+if (|(a == 3 or (b and 3 < t)) or (b and 3 < t)):
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-replace (evil-ts-obj-statement-inner))
+    (evil-ts-obj-beginning-of-thing)
+    (apply #'evil-ts-obj-replace (evil-ts-obj-statement-inner)))
+
+Name: Replace parent statement t1
+
+=-=
+if (|a == 3 or (b and 3 < t)):
+=-=
+if |a == 3:
+=-=-=
+
+Name: Replace parent statement t2
+
+=-=
+if (a == 3 or (b and |3 < t)):
+=-=
+if (a == 3 or |3 < t):
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-replace (evil-ts-obj-param-upper))
+    (evil-ts-obj-same-next-thing)
+    (apply #'evil-ts-obj-replace (evil-ts-obj-param-outer)))
+
+Name: Replace upper t1
+
+=-=
+def temp(var, |s='1,'):
+    pass
+def main(t):
+=-=
+def temp(var, s='1,'):
+    pass
+def main(|var, s='1,'):
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-replace (evil-ts-obj-statement-inner))
+    (evil-ts-obj-same-next-thing)
+    (evil-ts-obj-edit-cancel)
+    (apply #'evil-ts-obj-replace (evil-ts-obj-statement-inner))
+    (evil-ts-obj-same-next-thing)
+    (apply #'evil-ts-obj-replace (evil-ts-obj-statement-inner)))
+
+Name: Replace cancel test t1
+
+=-=
+def main():
+    |v=3
+    v *= 8
+    return call(v=v,
+                cv = 13)
+=-=
+def main():
+    v=3
+    v *= 8
+    v *= 8
+=-=-=
