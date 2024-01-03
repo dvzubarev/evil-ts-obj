@@ -19,6 +19,11 @@
 ;;
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl-lib))
+
+(require 'evil-ts-obj-util)
+
 ;; * Customs
 (defgroup evil-ts-obj nil
   "Provide evil text-objects using tree-sitter."
@@ -94,6 +99,81 @@ siblings to the node that represent a thing. Also there is
 special behavior when two things are separated and the point is
 on a separator. We prefer the previous thing in this case. Should
 be set for each language in appropriate file.")
+
+(defvar-local evil-ts-obj-conf-raise-rules-func nil
+  "This variable holds function that returns raise rules for each language.
+This function is invoked by `evil-ts-obj-edit--raise-operator'
+and `evil-ts-obj-edit--raise-dwim' to determine what things they
+should operate on. The function should accept RANGE-TYPE and
+optionally TEXT-SPEC. RANGE-TYPE can be either text or place. If
+RANGE-TYPE is text then function should return objects, text of
+which will be used in raise operator. If RANGE-TYPE is place then
+function should return the objects that should be replaced by the
+selected text. In both cases it should return alist, for example
+\\='((statement . inner) (compound . outer)). See
+`evil-ts-obj-conf-default-raise-rules' as an example of this
+function implementation.")
+
+;; * Default functions
+;; ** Edit rules
+
+(defun evil-ts-obj-conf-simple-raise-rules (range-type &optional text-spec)
+  "Return default raise rules for configuration languages like YAML.
+See `evil-ts-obj-conf-raise-rules-func' for description of
+RANGE-TYPE and TEXT-SPEC."
+  ;; '((param . inner)
+  ;;   (compound . outer))
+  (pcase range-type
+    ('text
+     '((param . inner)
+       (compound . outer)))
+    ('place
+     (pcase text-spec
+       ((pmap (:thing 'compound))
+        '((param . inner)
+          (compound . outer)))
+       ((pmap (:thing 'param))
+        '((param . all)
+          (compound . outer)))))))
+
+(defun evil-ts-obj-conf-default-raise-rules (range-type &optional text-spec)
+  "Return default raise rules.
+See `evil-ts-obj-conf-raise-rules-func' for description of
+RANGE-TYPE and TEXT-SPEC."
+  (pcase range-type
+    ('text
+     '((param . inner)
+       (statement . inner)
+       (compound . outer)))
+    ('place
+     (pcase text-spec
+       ((pmap (:thing (or 'compound 'statement)))
+        '((compound . outer)
+          (statement . inner)))
+       ((pmap (:thing 'param))
+        '((statement . inner)
+          (param . all)))))))
+
+
+
+;; ** init functions
+(defun evil-ts-obj-conf-init-default (lang)
+  "Set default values for language LANG."
+
+  (cl-callf plist-put evil-ts-obj-conf-raise-rules-func
+    lang #'evil-ts-obj-conf-default-raise-rules)
+
+  (cl-callf plist-put evil-ts-obj-conf-nav-things
+    lang '(or param statement compound)))
+
+(defun evil-ts-obj-conf-init-simple (lang)
+  "Set default values for configuration language LANG (YAML, JSON, etc.)."
+
+  (cl-callf plist-put evil-ts-obj-conf-raise-rules-func
+    lang #'evil-ts-obj-conf-simple-raise-rules)
+
+  (cl-callf plist-put evil-ts-obj-conf-nav-things
+    lang '(or param compound)))
 
 ;; * Helper functions
 

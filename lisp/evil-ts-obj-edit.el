@@ -34,6 +34,8 @@ operator type and the range that was selected during the first
 invocation of the operator.")
 (defvar evil-ts-obj-edit--overlays nil)
 
+(defun evil-ts-obj-edit--thing-from-rules (rules-alist)
+  (append '(or) (mapcar #'car rules-alist)))
 
 (defun evil-ts-obj-edit--replace (range target-range)
   "Replace text in TARGET-RANGE with then content within RANGE.
@@ -96,10 +98,43 @@ RANGE should be a cons of markers."
                      second-markers)
           (evil-ts-obj-edit--cleanup second-markers))))))
 
-(defun evil-ts-obj-edit-replace-operator (start end)
+(defun evil-ts-obj-edit--replace-operator (start end)
   (evil-ts-obj-edit--save-range-or-call-op 'replace start end #'evil-ts-obj-edit--replace))
 
 
+(defun evil-ts-obj-edit--raise-operator (start end)
+  "Replace parent thing with the text from START END range.
+Parent thing is determined by the cdr of `evil-ts-obj-conf-raise-rules'.
+Actual raise is implemented via replace operator."
+
+  ;; put current range to evil-ts-obj-edit--saved-range
+  ;; as if it is the first call to replace operator
+  (evil-ts-obj-edit--save-range-or-call-op 'raise start end #'evil-ts-obj-edit--replace)
+  (unwind-protect
+      (when-let* ((lang (treesit-language-at (point)))
+                  (raise-rules-func (plist-get evil-ts-obj-conf-raise-rules-func lang))
+                  (last-spec evil-ts-obj--last-text-obj-spec)
+                  (last-range evil-ts-obj--last-text-obj-range)
+                  (rules-alist (funcall raise-rules-func 'place last-spec))
+                  (parent-thing (evil-ts-obj-edit--thing-from-rules rules-alist))
+                  (spec (evil-ts-obj--make-spec rules-alist 'op))
+                  (range (evil-ts-obj--get-text-obj-range (point)
+                                                          parent-thing spec
+                                                          last-range)))
+        (evil-ts-obj-edit--save-range-or-call-op 'raise (car range) (cadr range)
+                                                 #'evil-ts-obj-edit--replace))
+    (evil-ts-obj-edit--cleanup)))
+
+(defun evil-ts-obj-edit--raise-dwim ()
+  (unwind-protect
+      (when-let* ((lang (treesit-language-at (point)))
+                  (raise-rules-func (plist-get evil-ts-obj-conf-raise-rules-func lang))
+                  (rules-alist (funcall raise-rules-func 'text ))
+                  (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
+                  (spec (evil-ts-obj--make-spec rules-alist 'op))
+                  (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
+        (evil-ts-obj-edit--raise-operator (car range) (cadr range)))
+    (evil-ts-obj-edit--cleanup)))
 
 (provide 'evil-ts-obj-edit)
 ;;; evil-ts-obj-edit.el ends here

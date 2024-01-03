@@ -39,6 +39,9 @@
   (skip-unless (treesit-ready-p 'yaml))
   (ert-test-erts-file (ert-resource-file "movement.erts")))
 
+(ert-deftest evil-ts-obj-yaml-edit-test ()
+  (skip-unless (treesit-ready-p 'yaml))
+  (ert-test-erts-file (ert-resource-file "edit.erts")))
 
 (provide 'evil-ts-obj-yaml-tests)
 ;;; evil-ts-obj-yaml-tests.el ends here

@@ -161,3 +161,168 @@ def main():
     v *= 8
     v *= 8
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-raise (evil-ts-obj-statement-inner)))
+
+Name: Raise statement test t1
+
+=-=
+    for i in range(3, 10):
+        |a = 3
+=-=
+    |a = 3
+=-=-=
+
+Name: Raise statement test t2
+
+=-=
+if (val := |d.get('k')) is not None:
+    pass
+=-=
+if (|d.get('k')) is not None:
+    pass
+=-=-=
+
+Name: Raise statement test t3
+
+=-=
+if (|d.get('k')) is not None:
+    pass
+=-=
+if |d.get('k'):
+    pass
+=-=-=
+
+Name: Raise statement test t4
+
+=-=
+if |d.get('k'):
+    pass
+=-=
+|d.get('k')
+=-=-=
+
+Name: Raise statement test t5
+
+=-=
+if |call() and True:
+    pass
+=-=
+|call() and True
+=-=-=
+
+Name: Raise statement test t6
+
+=-=
+if c|all() and True:
+    pass
+=-=
+if |call():
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-raise (evil-ts-obj-statement-outer)))
+
+Name: Raise statement test t1
+
+=-=
+if b and |b >3:
+    pass
+=-=
+if |and b >3:
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-raise (evil-ts-obj-statement-lower)))
+
+Name: Raise statement lower t1
+
+=-=
+def main():
+    for stream_key, records in resp:
+        test = resp
+        |batch = Batch()
+        client = bytes(stream_key[8:])
+
+    return 2 * a
+=-=
+def main():
+    |batch = Batch()
+    client = bytes(stream_key[8:])
+
+    return 2 * a
+=-=-=
+
+Name: Raise statement lower t2
+
+=-=
+def |main():
+    for stream_key, records in resp:
+        test = resp
+        batch = Batch()
+        client = bytes(stream_key[8:])
+
+    return 2 * a
+=-=
+|test = resp
+batch = Batch()
+client = bytes(stream_key[8:])
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-raise (evil-ts-obj-param-inner)))
+
+Name: Raise param inner t1
+
+=-=
+var = call(arg1,
+           |kw1=[],
+           kw2='a, b')
+=-=
+var = call(|kw1=[])
+=-=-=
+
+Name: Raise param inner t2
+
+=-=
+var = call(|arg1,
+           kw1=[],
+           kw2='a, b')
+=-=
+var = call(|arg1)
+=-=-=
+
+Name: Raise param inner t3
+
+=-=
+return func(k, func(n1, n|2), *args, **kwargs)
+=-=
+return func(k, func(|n2), *args, **kwargs)
+=-=-=
+
+Name: Raise param inner t4
+
+=-=
+return func(k, func(|n2), *args, **kwargs)
+=-=
+return func(k, |n2, *args, **kwargs)
+=-=-=
+
+Name: Raise param inner t5
+
+=-=
+return func(k, |n2, *args, **kwargs)
+=-=
+return func(|n2)
+=-=-=

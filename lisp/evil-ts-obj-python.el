@@ -197,6 +197,8 @@ and `NODE'."
 (defun evil-ts-obj-python-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
+  (evil-ts-obj-conf-init-default 'python)
+
   (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'python treesit-thing-settings)
     evil-ts-obj-python-things)
@@ -204,10 +206,7 @@ and `NODE'."
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
    'python evil-ts-obj-python-ext-func)
 
-  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'python evil-ts-obj-python-all-seps-regex)
-
-  (cl-callf plist-put evil-ts-obj-conf-nav-things
-    'python '(or param statement compound)))
+  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'python evil-ts-obj-python-all-seps-regex))
 
 
 

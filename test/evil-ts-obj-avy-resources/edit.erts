@@ -1,0 +1,50 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (evil-ts-obj-avy-tests-with-avy-input "ea"
+        (setq-local evil-this-operator t)
+        (apply #'evil-ts-obj-raise (evil-ts-obj-avy-statement-lower-text-obj))))
+
+Name: Raise statement lower t1
+
+=-=
+def |main():
+    for stream_key, records in resp:
+        test = resp
+        batch = Batch()
+        client = bytes(stream_key[8:])
+
+    return 2 * a
+=-=
+def main():
+    batch = Batch()
+    client = bytes(stream_key[8:])
+
+    return 2 * a
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (evil-ts-obj-avy-tests-with-avy-input "eb"
+        (setq-local evil-this-operator t)
+        (apply #'evil-ts-obj-raise (evil-ts-obj-avy-param-inner-text-obj))))
+
+Name: Raise param inner t1
+
+=-=
+return func(k, func(n2), *args, **kwargs)
+=-=
+return func(k, n2, *args, **kwargs)
+=-=-=
+
+Name: Raise param inner t2
+
+=-=
+return func(k, n2, *args, **kwargs)
+=-=
+return func(k)
+=-=-=

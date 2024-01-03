@@ -153,6 +153,8 @@ and `NODE'."
 (defun evil-ts-obj-cpp-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
+  (evil-ts-obj-conf-init-default 'cpp)
+
   (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'cpp treesit-thing-settings)
     evil-ts-obj-cpp-things)
@@ -161,10 +163,7 @@ and `NODE'."
    'cpp evil-ts-obj-cpp-ext-func)
 
   (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'cpp
-            evil-ts-obj-cpp-param-seps-regex)
-
-  (cl-callf plist-put evil-ts-obj-conf-nav-things
-    'cpp '(or param statement compound)))
+            evil-ts-obj-cpp-param-seps-regex))
 
 (provide 'evil-ts-obj-cpp)
 ;;; evil-ts-obj-cpp.el ends here

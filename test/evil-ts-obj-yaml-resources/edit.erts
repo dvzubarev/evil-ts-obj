@@ -1,0 +1,81 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-edit-raise-dwim)
+    (evil-ts-obj-edit-raise-dwim))
+
+Name: raise dwim t1
+
+=-=
+---
+partridges:
+  count: 1
+  |location: "a pear tree"
+  ecount: 1
+=-=
+---
+partridges:
+  |location: "a pear tree"
+=-=-=
+
+Name: raise dwim t2
+
+=-=
+---
+partridges:
+  |location: "a pear tree"
+=-=
+---
+|location: "a pear tree"
+=-=-=
+
+Name: raise dwim t3
+
+=-=
+---
+calling-birds: four
+turtle-doves: two
+partridges:
+  |count: 1
+  location: "a pear tree"
+a: t
+=-=
+---
+calling-birds: four
+turtle-doves: two
+|count: 1
+location: "a pear tree"
+a: t
+=-=-=
+
+Name: raise dwim t4
+
+=-=
+---
+- a: t
+  bb:
+    |- temp2
+    - temp1
+=-=
+---
+- a: t
+  |- temp2
+  - temp1
+=-=-=
+
+Name: raise dwim t5
+
+=-=
+---
+- a: t
+  bb:
+    - |temp2
+    - temp1
+=-=
+---
+- a: t
+  bb:
+    |- temp2
+=-=-=

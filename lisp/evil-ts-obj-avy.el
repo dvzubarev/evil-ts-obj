@@ -44,10 +44,6 @@
 (defvar evil-ts-obj-avy--current-select-spec nil)
 (defvar evil-ts-obj-avy--current-spec nil)
 (defvar evil-ts-obj-avy--selected-node nil)
-(defvar evil-ts-obj-avy--current-range nil
-  "Last goto range.
-Used for avy text objects. This range will be returned to the
-evil operator.")
 
 (defvar evil-ts-obj-avy--current-marker nil
   "Go to this marker when evil operator is done.")
@@ -66,7 +62,6 @@ evil operator.")
   (when-let* ((node evil-ts-obj-avy--selected-node)
               (spec evil-ts-obj-avy--current-spec)
               (range (evil-ts-obj--apply-modifiers node (plist-get spec :thing) spec)))
-    (setq evil-ts-obj-avy--current-range range)
     (goto-char (car range)))
   t)
 
@@ -195,8 +190,8 @@ evil operator.")
                           (not (memq avy-action '(evil-ts-obj-avy-action-goto identity))))
                       'op
                     'nav))
-         (evil-ts-obj-avy--current-spec (evil-ts-obj--make-spec obj-act thing mod))
-         (evil-ts-obj-avy--current-select-spec (evil-ts-obj--make-spec 'nav thing mod)))
+         (evil-ts-obj-avy--current-spec (evil-ts-obj--make-spec thing obj-act mod))
+         (evil-ts-obj-avy--current-select-spec (evil-ts-obj--make-spec thing 'nav mod)))
 
     (when-let ((candidates (evil-ts-obj-avy--collect-candidates thing)))
       (avy-process candidates))))
@@ -238,11 +233,10 @@ text objects in in other windows."
            (setq evil-ts-obj-avy--current-marker (copy-marker (point)))
            (add-hook 'post-command-hook #'evil-ts-obj-avy--post-op-reset 10)))
 
-       (setq evil-ts-obj-avy--current-range nil)
        (avy-with ,name
          (evil-ts-obj-avy-on-thing ',thing ',mod))
-       (if evil-ts-obj-avy--current-range
-           evil-ts-obj-avy--current-range
+       (if evil-ts-obj--last-text-obj-range
+           evil-ts-obj--last-text-obj-range
          ;; Return an empty range so evil-motion-range doesn't try to guess
          (let ((p (point)))
            (list p p 'exclusive))))))

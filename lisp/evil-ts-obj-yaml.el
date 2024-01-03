@@ -59,7 +59,8 @@ See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
 
   (pcase spec
-    ((pmap (:thing 'param) (:mod 'inner))
+    ((pmap (:thing 'param) (:mod 'inner)
+           (:command (pred (not (eq 'evil-ts-obj-edit-raise-dwim)))))
      (evil-ts-obj-yaml-param-mod node))
     ((pmap (:thing 'param) (:act 'nav))
      (evil-ts-obj-yaml-param-mod node))
@@ -76,15 +77,14 @@ and `NODE'."
 (defun evil-ts-obj-yaml-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
+  (evil-ts-obj-conf-init-simple 'yaml)
+
   (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'yaml treesit-thing-settings)
     evil-ts-obj-yaml-things)
 
   (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'yaml evil-ts-obj-yaml-ext-func)
-
-  (cl-callf plist-put evil-ts-obj-conf-nav-things
-    'yaml '(or param compound)))
+    'yaml evil-ts-obj-yaml-ext-func))
 
 
 
