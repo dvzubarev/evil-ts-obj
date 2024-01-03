@@ -213,27 +213,48 @@ and the first that matches against `NODE' is returned."
                (cdr nav-thing) nil))
     (_ (error "Unsupported thing %s" nav-thing))))
 
-(defun evil-ts-obj--make-spec (&optional action thing mod command)
+(defun evil-ts-obj--make-spec (thing &optional action mod command)
   "Create plist that describes the current text object.
-If `ACTION' is nil, it is set to op. `THING' can be nil it will
-be set later in `evil-ts-obj--apply-modifiers'. `MOD' can be
-nil if this is movement command. If `COMMAND' is nil the first
-non-nil from this list is chosen: `evil-this-operator',
-`avy-action', `this-command'. If `evil-visual-state-p' returns t,
-then keyword :visual is put to spec with the value t."
+`THING' may be symbol or alist. If it is symbol, it is just added
+to spec as is. If it is alist then multiple specs are created,
+for each element of `THING' alist. Alist should contain
+pairs (thing . mod). If `ACTION' is nil, it is set to op. `MOD'
+may be nil if ACTION is nav or it is specified in
+THINGs alist. If `COMMAND' is nil the first non-nil from this
+list is chosen: `evil-this-operator', `avy-action',
+`this-command'. If `evil-visual-state-p' returns t, then keyword
+:visual is put to spec with the value t."
   (let* ((action (or action 'op))
+         (cmd (or command
+                  evil-this-operator
+                  (and (bound-and-true-p avy-action)
+                       (not (eq avy-action #'identity))
+                       avy-action)
+                  this-command))
          (spec `(:thing ,thing
                  :mod ,mod
                  :act ,action
-                 :command ,(or command
-                               evil-this-operator
-                               (and (bound-and-true-p avy-action)
-                                    (not (eq avy-action #'identity))
-                                    avy-action)
-                               this-command))))
-    (if (evil-visual-state-p)
-        (plist-put spec :visual t)
-      spec)))
+                 :command ,cmd
+                 :visual ,(evil-visual-state-p))))
+    (if (not (listp thing))
+        spec
+      (mapcar (pcase-lambda (`(,thing . ,mod))
+                (let ((spec-copy (copy-sequence spec)))
+                  (cl-callf plist-put spec-copy :thing thing)
+                  (cl-callf plist-put spec-copy :mod mod)
+                  (cons thing spec-copy)))
+              thing))))
+
+(defun  evil-ts-obj--make-nav-spec (thing &optional command)
+  "Create spec for navigation action.
+THING may be symbol or list. If it is list it is expected in the
+form (or thing1 thing2 ...). COMMAND is the same as for
+`evil-ts-obj--make-spec'."
+  (if (not (listp thing))
+      (evil-ts-obj--make-spec thing 'nav nil command)
+    (evil-ts-obj--make-spec (mapcar (lambda (th) (cons th nil)) (cdr thing))
+                            'nav
+                            nil command)))
 
 (defun evil-ts-obj--default-range (node spec)
   "Return default text object range for a `NODE' based on `SPEC'."
@@ -242,75 +263,95 @@ then keyword :visual is put to spec with the value t."
 
     ;; If we collecting text objects for previewing of candidates,
     ;; we do not need to extend each thing to its full upper/lower ranges.
-    (when (not (eq (plist-get spec :act) 'nav))
+    (when-let (((not (eq (plist-get spec :act) 'nav)))
+               (parent (treesit-node-parent node)))
       ;; default handling of upper/lower text objects
+
       (pcase spec
         ((pmap (:mod 'upper))
-         (let ((final-sibling node))
-           (while (setq node (treesit-node-prev-sibling node t))
-             (setq final-sibling node))
+         (let ((final-sibling (treesit-node-child parent 0 t)))
            (setq start (treesit-node-start final-sibling))))
         ((pmap (:mod 'lower))
-         (let ((final-sibling node))
-           (while (setq node (treesit-node-next-sibling node t))
-             (setq final-sibling node))
-           (setq end (treesit-node-end final-sibling))))))
+         (let ((final-sibling (treesit-node-child parent -1 t)))
+           (setq end (treesit-node-end final-sibling))))
+        ((pmap (:mod 'all))
+         (let ((first-node (treesit-node-child parent 0 t))
+               (last-node (treesit-node-child parent -1 t)))
+           (setq start (treesit-node-start first-node)
+                 end (treesit-node-end last-node))))))
     (list start end)))
 
 (defun evil-ts-obj--apply-modifiers (node thing spec)
   "Apply modifiers for creating a text object from the `THING'.
-`THING' that is represented by `NODE' is transformed to range
-via transformation function from
-`evil-ts-obj-conf-thing-modifiers'. `POS' is used to determine
-current language. Modifier is chosen based on `SPEC'. If no
-modifier is found use `evil-ts-obj--default-range'."
+THING may be a symbol or a list of multiple things. If thing is a
+list then one thing that represents the NODE is kept. In case if
+THING is symbol, SPEC is a plist that contains all context for
+the current operation, otherwise it is alist that maps thing to a
+spec. `THING' is transformed to range via transformation function
+from `evil-ts-obj-conf-thing-modifiers'. NODE and SPEC are passed
+to modifiers. If no modifier is found or modifier returns nil
+fallback to `evil-ts-obj--default-range'."
   (when node
-    (if-let* ((pos (treesit-node-start node))
-              (modifier (plist-get evil-ts-obj-conf-thing-modifiers
-                                   (treesit-language-at pos)))
-              (current-thing (evil-ts-obj--current-thing node thing))
-              (spec (plist-put spec :thing current-thing))
-              (range (funcall modifier spec node)))
-        range
-      (evil-ts-obj--default-range node spec))))
-
-
-(defun evil-ts-obj--get-text-obj-range (pos thing spec)
-  "Return a range for text object described via `SPEC'.
-At first find `THING' that is around `POS' using
-`evil-ts-obj--thing-around'. If region is active and the last
-returned range is equal to the active region, expand that region.
-It is done by searching for a matching parent of the current
-thing. Otherwise apply range modifiers to the found thing and
-return range of a text-object."
-  (when-let ((node (evil-ts-obj--thing-around pos thing)))
-
-    (let ((range
-           (if-let* (((plist-get spec :visual))
-                     ((plist-get evil-ts-obj--last-text-obj-spec :visual))
-                     ((eq (plist-get spec :mod)
-                          (plist-get evil-ts-obj--last-text-obj-spec :mod)))
-                     (start (region-beginning))
-                     (end (1+ (region-end)))
-                     (cur-range (list start end))
-                     ((equal cur-range evil-ts-obj--last-text-obj-range)))
-               ;; Repeat of the same text object in the visual state.
-               ;; Extend to the parent thing.
-               (progn
-                 (while (and cur-range
-                             (<= start (car cur-range))
-                             (<= (1- (cadr cur-range)) end))
-                   (if-let ((parent-node (treesit-parent-until
-                                          node (lambda (n) (treesit-node-match-p n thing t)))))
-                       (setq node parent-node
-                             cur-range (evil-ts-obj--apply-modifiers parent-node thing spec))
-                     (setq cur-range nil)))
-                 cur-range)
-
-             (evil-ts-obj--apply-modifiers node thing spec))))
-
-      (setq evil-ts-obj--last-text-obj-spec spec
+    (let* ((current-thing (evil-ts-obj--current-thing node thing))
+           (current-spec (if (listp thing)
+                             (alist-get current-thing spec)
+                           spec))
+           (range
+            (if-let* ((pos (treesit-node-start node))
+                      (modifier (plist-get evil-ts-obj-conf-thing-modifiers
+                                           (treesit-language-at pos)))
+                      (r (funcall modifier current-spec node)))
+                r
+              (evil-ts-obj--default-range node current-spec))))
+      (setq evil-ts-obj--last-text-obj-spec current-spec
             evil-ts-obj--last-text-obj-range (copy-sequence range))
+      range)))
+
+
+(defun evil-ts-obj--expand-active-region? (thing spec)
+  (when-let* (((not (listp thing)))       ;multiple things are not supported
+              ((plist-get spec :visual))
+              ((plist-get evil-ts-obj--last-text-obj-spec :visual))
+              ((eq (plist-get spec :mod)
+                   (plist-get evil-ts-obj--last-text-obj-spec :mod)))
+              (start (region-beginning))
+              (end (1+ (region-end)))
+              (cur-range (list start end))
+              ((equal cur-range evil-ts-obj--last-text-obj-range)))
+    ;; Selected the same text object in the visual state.
+    cur-range))
+
+(defun evil-ts-obj--get-text-obj-range (pos-or-node thing spec &optional extend-over-range)
+  "Return a range for text object described via `SPEC'.
+More information about `SPEC' and `THING' is in
+`evil-ts-obj--apply-modifiers' documentation. If `POS-OR-NODE' is
+not treesit-node, then it is considered to be position in the
+buffer. In that case, find `THING' that is around this position
+using `evil-ts-obj--thing-around'. If `EXTEND-OVER-RANGE' is not
+nil or region is active and the last returned range is equal to
+the active region, expand that region. It is done by searching
+for a matching parent of the current thing. Otherwise apply range
+modifiers to the found thing and return range of a text-object."
+
+  (when-let ((node (if (treesit-node-p pos-or-node)
+                       pos-or-node
+                     (evil-ts-obj--thing-around pos-or-node thing)))
+             (range (evil-ts-obj--apply-modifiers node thing spec)))
+
+    (if-let* ((bounds (or extend-over-range
+                          (evil-ts-obj--expand-active-region? thing spec)))
+              (bound-start (car bounds))
+              (bound-end (cadr bounds))
+              (cur-range range))
+        ;; Extend to the parent thing.
+        (progn
+          (while (and cur-range
+                      (<= bound-start (car cur-range))
+                      (<= (cadr cur-range) bound-end))
+            (setq node (treesit-parent-until
+                        node (lambda (n) (treesit-node-match-p n thing t)))
+                  cur-range (evil-ts-obj--apply-modifiers node thing spec)))
+          cur-range)
       range)))
 
 
@@ -322,7 +363,7 @@ Beginning position is calculated based on spec with :act set
 to nav, so all nav modifiers affect it (see
 `evil-ts-obj-conf-thing-modifiers'). If point is already at the
 beginning, move to the beginning of the parent thing."
-  (when-let* ((spec (evil-ts-obj--make-spec 'nav))
+  (when-let* ((spec (evil-ts-obj--make-nav-spec thing))
               (node (evil-ts-obj--thing-around (point) thing))
               (range (evil-ts-obj--apply-modifiers node thing spec)))
     (while (and range
@@ -343,7 +384,7 @@ End position is calculated based on spec with :act set to
 nav, so all nav modifiers affect it (see
 `evil-ts-obj-conf-thing-modifiers'). If point is already at the
 end, move to the end of the parent thing."
-  (when-let* ((spec (evil-ts-obj--make-spec 'nav))
+  (when-let* ((spec (evil-ts-obj--make-nav-spec thing))
               (node (evil-ts-obj--thing-around (point) thing))
               (range (evil-ts-obj--apply-modifiers node thing spec)))
     (while (and range
@@ -426,7 +467,7 @@ range according to provided `SPEC'."
 At first, determine current THING at point. After that move to
 the next largest `THING' that starts after the current thing
 ends."
-  (let* ((spec (evil-ts-obj--make-spec 'nav))
+  (let* ((spec (evil-ts-obj--make-nav-spec thing))
          (init-pos (point))
          (init-enclosing-node (evil-ts-obj--thing-around init-pos thing t))
          next
@@ -446,7 +487,7 @@ ends."
 At first, determine current THING at point. After that move to
 the `THING' that ends before the current thing starts. If no such
 a THING exists jump to a parent THING."
-  (let* ((spec (evil-ts-obj--make-spec 'nav))
+  (let* ((spec (evil-ts-obj--make-nav-spec thing))
          (init-pos (point))
          (init-enclosing-node (evil-ts-obj--thing-around init-pos thing))
          (parent init-enclosing-node)
@@ -534,7 +575,7 @@ If `CURRENT' is t, detect current thing at point and return this thing."
     child))
 
 (defun evil-ts-obj--goto-next-thing (thing)
-  (let* ((spec (evil-ts-obj--make-spec 'nav))
+  (let* ((spec (evil-ts-obj--make-nav-spec thing))
          (init-pos (point))
          (init-enclosing-node (evil-ts-obj--thing-around init-pos thing t))
          range)
@@ -547,7 +588,7 @@ If `CURRENT' is t, detect current thing at point and return this thing."
       (goto-char (car range)))))
 
 (defun evil-ts-obj--goto-prev-thing (thing)
-  (let* ((spec (evil-ts-obj--make-spec 'nav))
+  (let* ((spec (evil-ts-obj--make-nav-spec thing))
          (init-pos (point))
          (enclosing-node (evil-ts-obj--thing-around init-pos thing t))
          (cursor (or enclosing-node (evil-ts-obj--node-at-or-around init-pos)))

@@ -50,6 +50,10 @@
   (skip-unless (treesit-ready-p 'python))
   (ert-test-erts-file (ert-resource-file "actions.erts")))
 
+(ert-deftest evil-ts-obj-avy-edit-test ()
+  (skip-unless (treesit-ready-p 'python))
+  (ert-test-erts-file (ert-resource-file "edit.erts")))
+
 
 (provide 'evil-ts-obj-avy-tests)
 ;;; evil-ts-obj-avy-tests.el ends here

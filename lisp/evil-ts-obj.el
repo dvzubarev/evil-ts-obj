@@ -171,7 +171,7 @@ Also bind `KEY' to defined commands in all appropriate keymaps."
   (let ((name (intern (format "evil-ts-obj-%s-%s" thing mod))))
     `(evil-define-text-object ,name (count &optional _beg _end _type)
        ,(format "Select a %s %s text object." thing mod)
-       (let ((spec (evil-ts-obj--make-spec nil ',thing ',mod)))
+       (let ((spec (evil-ts-obj--make-spec ',thing 'op ',mod)))
          (evil-ts-obj--finalize-text-obj-range
           spec
           (evil-ts-obj--get-text-obj-range (point) ',thing spec))))))
@@ -197,7 +197,18 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   :move-point nil
   :repeat t
   (interactive "<R>")
-  (evil-ts-obj-edit-replace-operator beg end))
+  (evil-ts-obj-edit--replace-operator beg end))
+
+(evil-define-operator evil-ts-obj-raise (beg end type)
+  "Replace parent thing with the specified range."
+  :move-point nil
+  :repeat t
+  (interactive "<R>")
+  (evil-ts-obj-edit--raise-operator beg end))
+
+(evil-define-operator evil-ts-obj-edit-raise-dwim ()
+  (interactive)
+  (evil-ts-obj-edit--raise-dwim))
 
 
 ;;* default keybindings and minor mode

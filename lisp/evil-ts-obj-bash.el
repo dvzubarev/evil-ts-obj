@@ -166,6 +166,9 @@ and `NODE'."
 ;;;###autoload
 (defun evil-ts-obj-bash-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
+
+  (evil-ts-obj-conf-init-default 'bash)
+
   (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'bash treesit-thing-settings)
     evil-ts-obj-bash-things)
@@ -175,10 +178,7 @@ and `NODE'."
 
   (cl-callf plist-put evil-ts-obj-conf-sep-regexps
     'bash (evil-ts-obj-conf--make-nodes-regex
-           evil-ts-obj-bash-statement-seps))
-
-  (cl-callf plist-put evil-ts-obj-conf-nav-things
-    'bash '(or param statement compound)))
+           evil-ts-obj-bash-statement-seps)))
 
 
 

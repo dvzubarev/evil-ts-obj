@@ -132,6 +132,8 @@ and `NODE'."
 (defun evil-ts-obj-nix-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
+  (evil-ts-obj-conf-init-default 'nix)
+
   (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'nix treesit-thing-settings)
     evil-ts-obj-nix-things)
@@ -141,10 +143,7 @@ and `NODE'."
    'nix evil-ts-obj-nix-ext-func)
 
   (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'nix
-            evil-ts-obj-nix-param-seps-regex)
-
-  (cl-callf plist-put evil-ts-obj-conf-nav-things
-    'nix '(or param statement compound)))
+            evil-ts-obj-nix-param-seps-regex))
 
 
 
