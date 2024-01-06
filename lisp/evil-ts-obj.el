@@ -255,6 +255,7 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (define-minor-mode evil-ts-obj-mode
   "A minor mode with tree sitter keybinds."
   :group 'evil-ts-obj
+  :lighter ""
 
   (when evil-ts-obj-mode
     (let ((lang (evil-ts-obj--guess-lang-from-mode)))
