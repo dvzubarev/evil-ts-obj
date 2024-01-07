@@ -12,10 +12,12 @@ Name: Delete list  outer t1
 - a:
     - te|mp1
     - temp2
+- b
 =-=
 ---
 - a:
     |
+- b
 =-=-=
 
 

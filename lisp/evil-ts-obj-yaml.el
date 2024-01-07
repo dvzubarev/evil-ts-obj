@@ -14,9 +14,7 @@
 ;;
 ;;; Code:
 
-(require 'treesit)
-(require 'evil-ts-obj-conf)
-(require 'evil-ts-obj-core)
+(require 'evil-ts-obj-def)
 
 (defcustom evil-ts-obj-yaml-compound-nodes
   '("document"
@@ -77,7 +75,7 @@ and `NODE'."
 (defun evil-ts-obj-yaml-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
-  (evil-ts-obj-conf-init-simple 'yaml)
+  (evil-ts-obj-def-init-conf-lang 'yaml)
 
   (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'yaml treesit-thing-settings)

@@ -1,0 +1,25 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (evil-ts-obj-edit-raise-dwim))
+
+Name: Raise dwim t1
+
+=-=
+if [[ $v -eq 1 ]]; then
+    echo e; echo t
+elif [[ $v -eq 0 ]]; then
+    |echo t
+elif [[ $v -eq 0 ]]; then
+    echo t
+fi
+=-=
+if [[ $v -eq 1 ]]; then
+    echo e; echo t
+echo t
+elif [[ $v -eq 0 ]]; then
+    echo t
+fi
+=-=-=

@@ -155,26 +155,13 @@ Also bind `KEY' to defined commands in all appropriate keymaps."
 
 ;; ** Text objects
 
-(defun evil-ts-obj--finalize-text-obj-range (spec range)
-  (pcase spec
-    ((pmap (:thing 'compound) (:mod 'outer))
-     (pcase-let ((`(,first-pos ,last-pos) range))
-       (when (and
-              last-pos
-              (eq (char-before last-pos) ?\n))
-         (setq last-pos (1- last-pos)))
-       (list first-pos last-pos)))
-    (_ range)))
-
 (defmacro evil-ts-obj-define-text-obj (thing mod)
   (declare (indent defun))
   (let ((name (intern (format "evil-ts-obj-%s-%s" thing mod))))
     `(evil-define-text-object ,name (count &optional _beg _end _type)
        ,(format "Select a %s %s text object." thing mod)
        (let ((spec (evil-ts-obj--make-spec ',thing 'op ',mod)))
-         (evil-ts-obj--finalize-text-obj-range
-          spec
-          (evil-ts-obj--get-text-obj-range (point) ',thing spec))))))
+         (evil-ts-obj--get-text-obj-range (point) ',thing spec)))))
 
 (defmacro evil-ts-obj-setup-all-text-objects (thing key)
   "Define all text objects for a `THING'.

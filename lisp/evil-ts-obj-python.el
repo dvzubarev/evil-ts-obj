@@ -17,9 +17,7 @@
 ;;
 ;;; Code:
 
-(require 'treesit)
-(require 'evil-ts-obj-conf)
-(require 'evil-ts-obj-core)
+(require 'evil-ts-obj-def)
 
 
 (defcustom evil-ts-obj-python-compound-nodes
@@ -197,7 +195,7 @@ and `NODE'."
 (defun evil-ts-obj-python-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
-  (evil-ts-obj-conf-init-default 'python)
+  (evil-ts-obj-def-init-lang 'python)
 
   (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'python treesit-thing-settings)

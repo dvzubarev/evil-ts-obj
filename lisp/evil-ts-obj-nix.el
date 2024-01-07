@@ -14,9 +14,7 @@
 ;;
 ;;; Code:
 
-(require 'treesit)
-(require 'evil-ts-obj-conf)
-(require 'evil-ts-obj-core)
+(require 'evil-ts-obj-def)
 
 (defcustom evil-ts-obj-nix-compound-nodes
   '("attrset_expression"
@@ -132,7 +130,7 @@ and `NODE'."
 (defun evil-ts-obj-nix-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
-  (evil-ts-obj-conf-init-default 'nix)
+  (evil-ts-obj-def-init-lang 'nix)
 
   (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'nix treesit-thing-settings)

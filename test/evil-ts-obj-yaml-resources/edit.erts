@@ -26,9 +26,11 @@ Name: raise dwim t2
 ---
 partridges:
   |location: "a pear tree"
+t: t
 =-=
 ---
 |location: "a pear tree"
+t: t
 =-=-=
 
 Name: raise dwim t3
@@ -58,11 +60,13 @@ Name: raise dwim t4
   bb:
     |- temp2
     - temp1
+- c
 =-=
 ---
 - a: t
   |- temp2
   - temp1
+- c
 =-=-=
 
 Name: raise dwim t5

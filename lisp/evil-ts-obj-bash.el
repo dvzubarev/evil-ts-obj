@@ -16,9 +16,7 @@
 ;;
 ;;; Code:
 
-(require 'treesit)
-(require 'evil-ts-obj-conf)
-(require 'evil-ts-obj-core)
+(require 'evil-ts-obj-def)
 
 (defcustom evil-ts-obj-bash-compound-nodes
   '("function_definition"
@@ -167,7 +165,7 @@ and `NODE'."
 (defun evil-ts-obj-bash-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
-  (evil-ts-obj-conf-init-default 'bash)
+  (evil-ts-obj-def-init-lang 'bash)
 
   (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'bash treesit-thing-settings)

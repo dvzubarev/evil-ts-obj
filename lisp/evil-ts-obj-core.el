@@ -321,6 +321,21 @@ fallback to `evil-ts-obj--default-range'."
     ;; Selected the same text object in the visual state.
     cur-range))
 
+(defun evil-ts-obj--finalize-text-obj-range (spec range)
+  "Perform default finalizing operations on a RANGE.
+SPEC defines current RANGE. This function removes trailing new
+lines for compound outer text objects."
+  (pcase spec
+    ((pmap (:thing 'compound) (:mod 'outer))
+     (pcase-let ((`(,first-pos ,last-pos) range))
+       (when (and
+              last-pos
+              (eq (char-before last-pos) ?\n))
+         (setq last-pos (1- last-pos)))
+       (list first-pos last-pos)))
+    (_ range)))
+
+
 (defun evil-ts-obj--get-text-obj-range (pos-or-node thing spec &optional extend-over-range)
   "Return a range for text object described via `SPEC'.
 More information about `SPEC' and `THING' is in
@@ -338,21 +353,27 @@ modifiers to the found thing and return range of a text-object."
                      (evil-ts-obj--thing-around pos-or-node thing)))
              (range (evil-ts-obj--apply-modifiers node thing spec)))
 
-    (if-let* ((bounds (or extend-over-range
-                          (evil-ts-obj--expand-active-region? thing spec)))
-              (bound-start (car bounds))
-              (bound-end (cadr bounds))
-              (cur-range range))
-        ;; Extend to the parent thing.
-        (progn
-          (while (and cur-range
-                      (<= bound-start (car cur-range))
-                      (<= (cadr cur-range) bound-end))
-            (setq node (treesit-parent-until
-                        node (lambda (n) (treesit-node-match-p n thing t)))
-                  cur-range (evil-ts-obj--apply-modifiers node thing spec)))
-          cur-range)
-      range)))
+    (when-let* ((bounds (or extend-over-range
+                            (evil-ts-obj--expand-active-region? thing spec)))
+                (bound-start (car bounds))
+                (bound-end (cadr bounds))
+                (cur-range range))
+      ;; Extend to the parent thing.
+      (progn
+        (while (and cur-range
+                    (<= bound-start (car cur-range))
+                    (<= (cadr cur-range) bound-end))
+          (setq node (treesit-parent-until
+                      node (lambda (n) (treesit-node-match-p n thing t)))
+                cur-range (evil-ts-obj--apply-modifiers node thing spec)))
+        (setq range cur-range)))
+
+    (when-let* ((pos (if (integerp pos-or-node) pos-or-node (point)))
+                (lang (treesit-language-at pos))
+                (finalizer (plist-get evil-ts-obj-conf-range-finalizers lang))
+                (r range))
+      (setq range (funcall finalizer evil-ts-obj--last-text-obj-spec r)))
+    range))
 
 
 ;; * Movement

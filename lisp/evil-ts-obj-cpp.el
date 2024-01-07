@@ -17,9 +17,7 @@
 ;;; Code:
 
 
-(require 'treesit)
-(require 'evil-ts-obj-conf)
-(require 'evil-ts-obj-core)
+(require 'evil-ts-obj-def)
 
 (defcustom evil-ts-obj-cpp-compound-nodes
   '("struct_specifier"
@@ -153,7 +151,7 @@ and `NODE'."
 (defun evil-ts-obj-cpp-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
-  (evil-ts-obj-conf-init-default 'cpp)
+  (evil-ts-obj-def-init-lang 'cpp)
 
   (make-local-variable 'treesit-thing-settings)
   (cl-callf append (alist-get 'cpp treesit-thing-settings)

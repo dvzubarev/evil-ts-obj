@@ -19,10 +19,6 @@
 ;;
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl-lib))
-
-(require 'evil-ts-obj-util)
 
 ;; * Customs
 (defgroup evil-ts-obj nil
@@ -84,6 +80,12 @@ returned range. :visual is set to t if `evil-visual-state-p'
 returns t, when spec is created. Also see
 `evil-ts-obj--make-spec' and `evil-ts-obj--apply-modifiers'.")
 
+(defvar-local evil-ts-obj-conf-range-finalizers nil
+  "Finalizer function for each language.
+Finalizer function should adjust text-object in language
+indenpendent way. It accepts SPEC and RANGE parameters.
+`evil-ts-obj--finalize-text-obj-range' is used by default.")
+
 (defvar-local evil-ts-obj-conf-nav-things nil
   "This plist defines default things for movement for each language.
 It can be single thing, e.g. compound or a list of things: \(or
@@ -114,66 +116,7 @@ selected text. In both cases it should return alist, for example
 `evil-ts-obj-conf-default-raise-rules' as an example of this
 function implementation.")
 
-;; * Default functions
-;; ** Edit rules
 
-(defun evil-ts-obj-conf-simple-raise-rules (range-type &optional text-spec)
-  "Return default raise rules for configuration languages like YAML.
-See `evil-ts-obj-conf-raise-rules-func' for description of
-RANGE-TYPE and TEXT-SPEC."
-  ;; '((param . inner)
-  ;;   (compound . outer))
-  (pcase range-type
-    ('text
-     '((param . inner)
-       (compound . outer)))
-    ('place
-     (pcase text-spec
-       ((pmap (:thing 'compound))
-        '((param . inner)
-          (compound . outer)))
-       ((pmap (:thing 'param))
-        '((param . all)
-          (compound . outer)))))))
-
-(defun evil-ts-obj-conf-default-raise-rules (range-type &optional text-spec)
-  "Return default raise rules.
-See `evil-ts-obj-conf-raise-rules-func' for description of
-RANGE-TYPE and TEXT-SPEC."
-  (pcase range-type
-    ('text
-     '((param . inner)
-       (statement . inner)
-       (compound . outer)))
-    ('place
-     (pcase text-spec
-       ((pmap (:thing (or 'compound 'statement)))
-        '((compound . outer)
-          (statement . inner)))
-       ((pmap (:thing 'param))
-        '((statement . inner)
-          (param . all)))))))
-
-
-
-;; ** init functions
-(defun evil-ts-obj-conf-init-default (lang)
-  "Set default values for language LANG."
-
-  (cl-callf plist-put evil-ts-obj-conf-raise-rules-func
-    lang #'evil-ts-obj-conf-default-raise-rules)
-
-  (cl-callf plist-put evil-ts-obj-conf-nav-things
-    lang '(or param statement compound)))
-
-(defun evil-ts-obj-conf-init-simple (lang)
-  "Set default values for configuration language LANG (YAML, JSON, etc.)."
-
-  (cl-callf plist-put evil-ts-obj-conf-raise-rules-func
-    lang #'evil-ts-obj-conf-simple-raise-rules)
-
-  (cl-callf plist-put evil-ts-obj-conf-nav-things
-    lang '(or param compound)))
 
 ;; * Helper functions
 

@@ -2,7 +2,7 @@
 
 ;; Autodetermined by `eldev init'.
 
-
+(setf eldev-project-main-file "evil-ts-obj.el")
 (setf eldev-project-source-dirs "lisp")
 
 (eldev-use-package-archive 'melpa-unstable)
