@@ -236,7 +236,7 @@ text objects in in other windows."
        (avy-with ,name
          (evil-ts-obj-avy-on-thing ',thing ',mod))
        (if evil-ts-obj--last-text-obj-range
-           evil-ts-obj--last-text-obj-range
+           (copy-sequence evil-ts-obj--last-text-obj-range)
          ;; Return an empty range so evil-motion-range doesn't try to guess
          (let ((p (point)))
            (list p p 'exclusive))))))

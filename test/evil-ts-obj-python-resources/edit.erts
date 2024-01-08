@@ -326,3 +326,30 @@ return func(k, |n2, *args, **kwargs)
 =-=
 return func(|n2)
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-raise (evil-ts-obj-statement-lower))
+    (apply #'evil-shift-right (evil-ts-obj-last-range)))
+
+Name: Last range with raise t1
+
+=-=
+def main():
+    for t in range(3):
+        t = 3
+        break
+    else:
+        |t =1
+        bb = 3
+    return 2 * a
+=-=
+def main():
+    for t in range(3):
+        t = 3
+        break
+    |    t =1
+        bb = 3
+    return 2 * a
+=-=-=

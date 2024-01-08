@@ -175,6 +175,8 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
              (push `(keymap-set ,map-name (kbd ,key) #',command) result)))
          (nreverse result))))
 
+(evil-define-text-object evil-ts-obj-last-text-obj (count &optional _beg _end _type)
+  (evil-ts-obj-last-range))
 
 ;; ** Operators
 

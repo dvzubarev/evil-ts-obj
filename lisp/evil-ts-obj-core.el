@@ -1003,5 +1003,9 @@ information about `NODE' and `SEP-REGEX'."
     ((pmap (:mod 'lower))
      (evil-ts-obj-param-lower-mod node sep-regex))))
 
+(defun evil-ts-obj-last-range ()
+  "Return last used range."
+  (copy-sequence evil-ts-obj--last-text-obj-range))
+
 (provide 'evil-ts-obj-core)
 ;;; evil-ts-obj-core.el ends here

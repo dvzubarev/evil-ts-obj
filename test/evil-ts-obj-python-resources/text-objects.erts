@@ -823,3 +823,25 @@ def tempf():
 def tempf():
     |k
 =-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-visual-char)
+    (call-interactively #'evil-ts-obj-compound-outer)
+    (evil-exit-visual-state)
+    (apply #'evil-delete (evil-ts-obj-last-text-obj)))
+
+Name: extend visual text object t3
+
+=-=
+def tempf():
+    i = 0
+    while i < 3:
+        |break
+=-=
+def tempf():
+    i = 0
+    |
+=-=-=

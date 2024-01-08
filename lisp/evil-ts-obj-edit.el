@@ -48,9 +48,15 @@ RANGE should be a cons of markers."
     (pcase-let ((`(,start . ,end) target-range))
       (with-current-buffer (marker-buffer start)
         (delete-region start end)
+
         (save-excursion
-          (goto-char start)
-          (insert (evil-ts-obj-util--indent-text-according-to-point-pos text)))))))
+          (let ((init-pos (marker-position start)))
+            (goto-char start)
+            (insert (evil-ts-obj-util--indent-text-according-to-point-pos text))
+            ;; after insert, marker is pushed to the end of inserted text.
+            ;; We explicitly set this behavior when marker was created.
+            ;; Make last range to be useful, setting it to inserted text range.
+            (setq evil-ts-obj--last-text-obj-range (list init-pos (marker-position start)))))))))
 
 
 
