@@ -293,7 +293,6 @@ list(range(1, len(result)-1,|) )
 Name: Delete param outer t10
 
 Keep trailing comma
-Maybe delete space before point?
 =-=
 list(range(1, len(result)-1, 3|,  ) )
 =-=

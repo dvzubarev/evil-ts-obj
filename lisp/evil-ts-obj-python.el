@@ -152,11 +152,14 @@ Compound is represented by a `NODE'."
           (treesit-node-end block-node))))
 
 (defun evil-ts-obj-python-compound-sibling-kind (_cur-node _cur-kind node)
+  "Implementation of a kind-func for `evil-ts-obj-generic-thing-upper'."
   (unless (equal (treesit-node-type node) ":")
     'sibling))
 
 (defun evil-ts-obj-python-statement-get-sibling (dir node)
-
+  "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
+Return a next or previous sibling for `NODE' based on value of
+`DIR'."
   (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("boolean_operator") dir node)))
       sibling
     (evil-ts-obj--get-sibling-simple dir node)))
@@ -174,16 +177,7 @@ and `NODE'."
      (evil-ts-obj-generic-thing-upper
       node
       #'evil-ts-obj-python-compound-sibling-kind
-      #'evil-ts-obj--get-sibling-simple))
-
-    ((pmap (:act 'op) (:thing 'statement))
-     (evil-ts-obj-common-statement-ext
-      spec node
-      evil-ts-obj-python-statement-seps-regex
-      #'evil-ts-obj-python-statement-get-sibling))
-
-    ((pmap (:act 'op)  (:thing 'param))
-     (evil-ts-obj-common-param-ext spec node evil-ts-obj-python-param-seps))))
+      #'evil-ts-obj--get-sibling-simple))))
 
 (defcustom evil-ts-obj-python-ext-func
   #'evil-ts-obj-python-ext
@@ -195,16 +189,12 @@ and `NODE'."
 (defun evil-ts-obj-python-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
-  (evil-ts-obj-def-init-lang 'python)
-
-  (make-local-variable 'treesit-thing-settings)
-  (cl-callf append (alist-get 'python treesit-thing-settings)
-    evil-ts-obj-python-things)
-
-  (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'python evil-ts-obj-python-ext-func)
-
-  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'python evil-ts-obj-python-all-seps-regex))
+  (evil-ts-obj-def-init-lang 'python evil-ts-obj-python-things
+                             :ext-func evil-ts-obj-python-ext-func
+                             :seps-reg evil-ts-obj-python-all-seps-regex
+                             :stmnt-seps-reg evil-ts-obj-python-statement-seps-regex
+                             :stmnt-sibl-fetcher #'evil-ts-obj-python-statement-get-sibling
+                             :param-seps-reg evil-ts-obj-python-param-seps-regex))
 
 
 

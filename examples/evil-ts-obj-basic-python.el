@@ -109,9 +109,7 @@ See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:mod 'inner))
-     (evil-ts-obj-python-extract-compound-inner node))
-    ((pmap (:act 'op) (:thing 'param))
-     (evil-ts-obj-common-param-ext spec node evil-ts-obj-python-param-seps))))
+     (evil-ts-obj-python-extract-compound-inner node))))
 
 (defcustom evil-ts-obj-python-ext-func
   #'evil-ts-obj-python-ext
@@ -123,16 +121,10 @@ and `NODE'."
 (defun evil-ts-obj-python-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
-  (evil-ts-obj-def-init-lang 'python)
-
-  (make-local-variable 'treesit-thing-settings)
-  (cl-callf append (alist-get 'python treesit-thing-settings)
-    evil-ts-obj-python-things)
-
-  (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'python evil-ts-obj-python-ext-func)
-
-  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'python evil-ts-obj-python-param-seps))
+  (evil-ts-obj-def-init-lang 'python evil-ts-obj-python-things
+                             :ext-func evil-ts-obj-python-ext-func
+                             :seps-reg evil-ts-obj-python-param-seps
+                             :stmnt-add-sibl-rules nil))
 
 
 (provide 'evil-ts-obj-basic-python)

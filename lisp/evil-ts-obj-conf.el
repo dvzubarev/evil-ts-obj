@@ -19,8 +19,13 @@
 ;;
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl-lib))
 
-;; * Customs
+
+
+
+;;; Customs
 (defgroup evil-ts-obj nil
   "Provide evil text-objects using tree-sitter."
   :group 'tools)
@@ -48,7 +53,7 @@
   :type 'alist)
 
 
-;; * Variables
+;;; Variables
 
 (defvar-local evil-ts-obj-conf-thing-modifiers nil
   "Plist that holds an extension function for each language in the buffer.
@@ -93,6 +98,37 @@ param compound thing\). When list is provided navigating command
 will search for the each thing from this list until matching
 thing is found.")
 
+(defvar-local evil-ts-obj-conf-sibling-trav nil
+  "Plist that maps language to a plist that used for traversing things.
+Nested plists are mappings from thing symbol to corresponding
+traverse structures `evil-ts-obj-trav'.
+
+For example:
+\\=`(python
+  (param ,(evil-ts-obj-trav-create
+           :seps evil-ts-obj-python-param-seps-regex
+           :fetcher #\\='evil-ts-obj--get-sibling-simple
+           :kind-func (apply-partially #\\='evil-ts-obj--get-node-kind
+                                       evil-ts-obj-python-param-seps-regex))))
+
+`evil-ts-obj-trav-create' expects regexp as :seps keyword, to
+match separators that delimit sibling things.
+
+:fetcher is a function that accepts two arguments:
+direction (next or prev) and node. It should return the immediate
+sibling of the passed node. For example, see
+`evil-ts-obj--get-sibling-simple'.
+
+:kind-func is a function that accepts three arguments: current
+node, current node kind and target node. It should classify the
+passed target node and return its kind: sep, sibling, term or
+nil. sep - means that passed node is a recognized separator.
+sibling - denotes named node that is a sibling of the current
+node. term - signals that this node is a terminator of a sequence
+of things. When nil returned, act as if current-node is the last
+node in the sequence. See `evil-ts-obj--get-node-kind' or
+`evil-ts-obj--get-node-kind-strict'.")
+
 (defvar-local evil-ts-obj-conf-sep-regexps nil
   "Plist that holds separator regexps for each language in the buffer.
 Some outer text objects may extend to the nearest separator.
@@ -100,10 +136,10 @@ Special handling of separators is needed since they usually are
 siblings to the node that represent a thing. Also there is
 special behavior when two things are separated and the point is
 on a separator. We prefer the previous thing in this case. Should
-be set for each language in appropriate file.")
+be set for each language in the appropriate file.")
 
-(defvar-local evil-ts-obj-conf-raise-rules-func nil
-  "This variable holds function that returns raise rules for each language.
+(defvar-local evil-ts-obj-conf-raise-rules nil
+  "This is a plist that maps language to a function that returns raise rules.
 This function is invoked by `evil-ts-obj-edit--raise-operator'
 and `evil-ts-obj-edit--raise-dwim' to determine what things they
 should operate on. The function should accept RANGE-TYPE and
@@ -117,8 +153,7 @@ selected text. In both cases it should return alist, for example
 function implementation.")
 
 
-
-;; * Helper functions
+;;; Helper functions
 
 (defun evil-ts-obj-conf--make-nodes-regex (nodes)
   "Create regex from NODES."

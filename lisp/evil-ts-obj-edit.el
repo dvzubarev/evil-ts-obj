@@ -118,7 +118,7 @@ Actual raise is implemented via replace operator."
   (evil-ts-obj-edit--save-range-or-call-op 'raise start end #'evil-ts-obj-edit--replace)
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
-                  (raise-rules-func (plist-get evil-ts-obj-conf-raise-rules-func lang))
+                  (raise-rules-func (plist-get evil-ts-obj-conf-raise-rules lang))
                   (last-spec evil-ts-obj--last-text-obj-spec)
                   (last-range evil-ts-obj--last-text-obj-range)
                   (rules-alist (funcall raise-rules-func 'place last-spec))
@@ -134,7 +134,7 @@ Actual raise is implemented via replace operator."
 (defun evil-ts-obj-edit--raise-dwim ()
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
-                  (raise-rules-func (plist-get evil-ts-obj-conf-raise-rules-func lang))
+                  (raise-rules-func (plist-get evil-ts-obj-conf-raise-rules lang))
                   (rules-alist (funcall raise-rules-func 'text ))
                   (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
                   (spec (evil-ts-obj--make-spec rules-alist 'op))

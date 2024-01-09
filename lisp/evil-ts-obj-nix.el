@@ -116,9 +116,7 @@ See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:mod 'inner))
-     (evil-ts-obj-nix-extract-compound-inner node))
-    ((pmap (:act 'op) (:thing 'param))
-     (evil-ts-obj-common-param-ext spec node evil-ts-obj-nix-param-seps-regex t))))
+     (evil-ts-obj-nix-extract-compound-inner node))))
 
 (defcustom evil-ts-obj-nix-ext-func
   #'evil-ts-obj-nix-ext
@@ -130,18 +128,11 @@ and `NODE'."
 (defun evil-ts-obj-nix-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
-  (evil-ts-obj-def-init-lang 'nix)
-
-  (make-local-variable 'treesit-thing-settings)
-  (cl-callf append (alist-get 'nix treesit-thing-settings)
-    evil-ts-obj-nix-things)
-
-
-  (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'nix evil-ts-obj-nix-ext-func)
-
-  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'nix
-            evil-ts-obj-nix-param-seps-regex))
+  (evil-ts-obj-def-init-lang 'nix evil-ts-obj-nix-things
+                             :ext-func evil-ts-obj-nix-ext-func
+                             :seps-reg evil-ts-obj-nix-param-seps-regex
+                             :stmnt-add-sibl-rules nil
+                             :param-seps-reg evil-ts-obj-nix-param-seps-regex))
 
 
 

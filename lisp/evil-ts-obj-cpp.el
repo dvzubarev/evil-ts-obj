@@ -135,10 +135,7 @@ and `NODE'."
     ((pmap (:thing 'compound) (:mod 'outer) (:act 'op))
      (evil-ts-obj-cpp-compound-outer-ext node))
     ((pmap (:thing 'compound) (:mod 'inner))
-     (evil-ts-obj-cpp-extract-compound-inner node))
-
-    ((pmap (:thing 'param)  (:act 'op))
-     (evil-ts-obj-common-param-ext spec node evil-ts-obj-cpp-param-seps-regex))))
+     (evil-ts-obj-cpp-extract-compound-inner node))))
 
 (defcustom evil-ts-obj-cpp-ext-func
   #'evil-ts-obj-cpp-ext
@@ -150,18 +147,11 @@ and `NODE'."
 ;;;###autoload
 (defun evil-ts-obj-cpp-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
-
-  (evil-ts-obj-def-init-lang 'cpp)
-
-  (make-local-variable 'treesit-thing-settings)
-  (cl-callf append (alist-get 'cpp treesit-thing-settings)
-    evil-ts-obj-cpp-things)
-
-  (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'cpp evil-ts-obj-cpp-ext-func)
-
-  (cl-callf plist-put evil-ts-obj-conf-sep-regexps 'cpp
-            evil-ts-obj-cpp-param-seps-regex))
+  (evil-ts-obj-def-init-lang 'cpp evil-ts-obj-cpp-things
+                             :ext-func evil-ts-obj-cpp-ext-func
+                             :seps-reg evil-ts-obj-cpp-param-seps-regex
+                             :stmnt-add-sibl-rules nil
+                             :param-seps-reg evil-ts-obj-cpp-param-seps-regex))
 
 (provide 'evil-ts-obj-cpp)
 ;;; evil-ts-obj-cpp.el ends here

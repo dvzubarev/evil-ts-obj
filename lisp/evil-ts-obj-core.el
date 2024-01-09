@@ -36,6 +36,14 @@
         (treesit-parser-root-node parser))
       (treesit-buffer-root-node (treesit-language-at pos))))
 
+(defun evil-ts-obj--smallest-node-at (pos &optional named)
+  (let* ((root (evil-ts-obj--root-at pos))
+         (node  (treesit-node-on pos pos nil named)))
+    (when (not (treesit-node-eq node root))
+      node)))
+
+;;; Text objects Range functions
+
 (defun evil-ts-obj--text-bounds-at-pos (pos)
   (let ((syntax (char-to-string (char-syntax (char-after pos))))
         (start nil) (end nil))
@@ -144,11 +152,6 @@ node, if it exists. Return nil if no node can be found."
                   (setq node next-node))))
          node)))))
 
-(defun evil-ts-obj--smallest-node-at (pos &optional named)
-  (let* ((root (evil-ts-obj--root-at pos))
-         (node  (treesit-node-on pos pos nil named)))
-    (when (not (treesit-node-eq node root))
-      node)))
 
 (defun evil-ts-obj--thing-around (pos thing &optional dont-step-forward)
   "Return the node that represents thing, which encloses `POS' or is near it.
@@ -259,27 +262,51 @@ form (or thing1 thing2 ...). COMMAND is the same as for
 (defun evil-ts-obj--default-range (node spec)
   "Return default text object range for a `NODE' based on `SPEC'."
   (let ((start (treesit-node-start node))
-        (end (treesit-node-end node)))
+        (end (treesit-node-end node))
+        (thing (plist-get spec :thing))
+        (act (plist-get spec :act)))
 
-    ;; If we collecting text objects for previewing of candidates,
-    ;; we do not need to extend each thing to its full upper/lower ranges.
-    (when-let (((not (eq (plist-get spec :act) 'nav)))
-               (parent (treesit-node-parent node)))
-      ;; default handling of upper/lower text objects
-
-      (pcase spec
-        ((pmap (:mod 'upper))
-         (let ((final-sibling (treesit-node-child parent 0 t)))
-           (setq start (treesit-node-start final-sibling))))
-        ((pmap (:mod 'lower))
-         (let ((final-sibling (treesit-node-child parent -1 t)))
-           (setq end (treesit-node-end final-sibling))))
-        ((pmap (:mod 'all))
-         (let ((first-node (treesit-node-child parent 0 t))
-               (last-node (treesit-node-child parent -1 t)))
-           (setq start (treesit-node-start first-node)
-                 end (treesit-node-end last-node))))))
-    (list start end)))
+    (if (eq act 'nav)
+        ;; If we collecting text objects for movement or previewing of candidates,
+        ;; we do not modify thing bounds for now by default.
+        (list start end)
+      (if-let* ((lang (treesit-language-at (treesit-node-start node)))
+                (thing-trav (plist-get evil-ts-obj-conf-sibling-trav lang))
+                (trav (plist-get thing-trav thing))
+                (fetcher (evil-ts-obj-trav-fetcher trav))
+                (kind-func (evil-ts-obj-trav-kind-func trav))
+                (upper-lower-extend (if (eq thing 'param) t 'if-sep-found)))
+          ;; handle upper/lower using traverse functions
+          (pcase spec
+            ((pmap (:mod 'outer))
+             (evil-ts-obj-generic-thing-with-sep-outer node kind-func fetcher
+                                                       (not (eq thing 'param))
+                                                       (eq thing 'param)))
+            ((pmap (:mod 'upper))
+             (evil-ts-obj-generic-thing-upper node kind-func fetcher upper-lower-extend))
+            ((pmap (:mod 'lower))
+             (evil-ts-obj-generic-thing-lower node kind-func fetcher upper-lower-extend))
+            ((pmap (:mod 'all))
+             (list (car (evil-ts-obj-generic-thing-upper node kind-func fetcher nil))
+                   (cadr (evil-ts-obj-generic-thing-lower node kind-func fetcher nil))))
+            (_
+             (list start end)))
+        ;; default handling of upper/lower text objects
+        (let ((parent (treesit-node-parent node)))
+          (pcase spec
+            ((pmap (:mod 'upper))
+             (let ((final-sibling (treesit-node-child parent 0 t)))
+               (list (treesit-node-start final-sibling) end)))
+            ((pmap (:mod 'lower))
+             (let ((final-sibling (treesit-node-child parent -1 t)))
+               (list start (treesit-node-end final-sibling))))
+            ((pmap (:mod 'all))
+             (let ((first-node (treesit-node-child parent 0 t))
+                   (last-node (treesit-node-child parent -1 t)))
+               (list (treesit-node-start first-node)
+                     (treesit-node-end last-node))))
+            (_
+             (list start end))))))))
 
 (defun evil-ts-obj--apply-modifiers (node thing spec)
   "Apply modifiers for creating a text object from the `THING'.
@@ -323,8 +350,8 @@ fallback to `evil-ts-obj--default-range'."
 
 (defun evil-ts-obj--finalize-text-obj-range (spec range)
   "Perform default finalizing operations on a RANGE.
-SPEC defines current RANGE. This function removes trailing new
-lines for compound outer text objects."
+SPEC describes a context for the current RANGE. This function
+removes trailing new lines for compound outer text objects."
   (pcase spec
     ((pmap (:thing 'compound) (:mod 'outer))
      (pcase-let ((`(,first-pos ,last-pos) range))
@@ -376,7 +403,7 @@ modifiers to the found thing and return range of a text-object."
     range))
 
 
-;; * Movement
+;;; Movement
 
 (defun evil-ts-obj--goto-begin-of-thing (thing)
   "Determine `THING' at point and move point to the beginning of it.
@@ -640,7 +667,7 @@ If `CURRENT' is t, detect current thing at point and return this thing."
       (goto-char (car range)))))
 
 
-;; * common predicates
+;;; Common predicates
 
 (defun evil-ts-obj-common-param-pred (parent-regex node)
   "Predicate for detecting param thing.
@@ -652,97 +679,22 @@ Return t if `NODE' is named and its parent is matching against
     (string-match-p parent-regex (treesit-node-type parent))))
 
 
-;; * modifiers
+;;; Traversing Siblings
 
-(defun evil-ts-obj--generic-find-sep-and-sibling (node node-kind-func next-node-func)
-  "Return list (next-sibling next-sep next-term) for a `NODE'.
-A function `NEXT-NODE-FUNC' should accept a `NODE' as an argument
-and return next sibling node. `NODE-KIND-FUNC' is described in
-`evil-ts-obj-generic-thing-with-sep-outer'."
-  (let ((node-kind nil)
-        next-sep next-sibling next-term)
-    (when-let* ((next-node (funcall next-node-func node))
-                (node-kind (funcall node-kind-func node node-kind next-node)))
-      (pcase node-kind
-        ('sep
-         (setq next-sep next-node)
-         (when-let* ((sibling (funcall next-node-func next-node))
-                     (sibling-kind (funcall node-kind-func next-sep node-kind sibling)))
+(cl-defstruct (evil-ts-obj-trav (:constructor evil-ts-obj-trav-create)
+                                (:copier nil))
+  "Structure that holds all information for traversing siblings.
+SEPS field stores a regexp for separators that may delimit
+siblings. FETCHER is a function that accepts DIR and NODE
+parameters. It should return the immediate sibling of the NODE.
+For example, see `evil-ts-obj--get-sibling-simple'.
+KIND-FUNC is a function that classifies the passed node and returns its kind.
+See `evil-ts-obj-conf-sibling-trav' for more information."
+  seps fetcher kind-func)
 
-           (pcase sibling-kind
-             ('sibling
-              (setq next-sibling sibling))
-             ('term
-              (setq next-term sibling)))))
-        ('sibling
-         (setq next-sibling next-node))
-        ('term
-         (setq next-term next-node))))
-    (list next-sibling next-sep next-term)))
-
-
-(defun evil-ts-obj-generic-thing-with-sep-outer (node node-kind-func
-                                                      node-fetcher
-                                                      &optional extend-to-term)
-  "Create a range for an outer text object that is associated with the `NODE'.
-This function is mostly used to create outer text objects for
-parameter or statement things. Things may be delimited by a
-separator. `NODE-FETCHER' is a function that accepts two
-arguments: direction (next or prev) and node, and returns sibling
-of the passed node. See `evil-ts-obj--get-sibling-simple'.
-
-`NODE-KIND-FUNC' is a function that accepts three arguments:
-current node, current node kind and target node. It should
-classify the passed target node and return its kind: sep,
-sibling, term or nil. sep - means that passed node is a
-recognized separator. sibling - denotes named node that is a
-sibling of the current node. term - signals that this node is a
-terminator of a sequence of things. When nil returned, act as if
-current-node is the last node in the sequence. See
-`evil-ts-obj--get-node-kind' or
-`evil-ts-obj--get-node-kind-strict'.
-
-This function works as follows: at first, it tries to find the
-next sibling node. If such a node exists, start of this node
-defines the outer range end. If there is no next sibling node,
-but `EXTEND-TO-TERM' is t and next node has kind term, then
-start of term node becomes new end of the outer range. If there
-is no next sibling, outer range is extended to the end of the
-previous sibling. It does so only if no trailing separators were
-found."
-  (pcase-let* ((start-pos (treesit-node-start node))
-               (end-pos (treesit-node-end node))
-               (`(,next-sibling ,next-sep ,next-term)
-                (evil-ts-obj--generic-find-sep-and-sibling node node-kind-func
-                                                           (apply-partially node-fetcher 'next))))
-
-    (cond (next-sibling
-           (setq end-pos (treesit-node-start next-sibling)))
-          ((and extend-to-term next-term)
-           (setq end-pos (treesit-node-start next-term)))
-          (next-sep
-           (setq end-pos (treesit-node-end next-sep))))
-
-    (unless next-sibling
-      ;; this is the last thing in a sequence
-      ;; determine how to extend to the previous separator
-      (pcase-let ((`(,prev-sibling ,prev-sep ,prev-term)
-                   (evil-ts-obj--generic-find-sep-and-sibling node node-kind-func
-                                                              (apply-partially node-fetcher 'prev))))
-        (cond ((and (null next-sep) prev-sibling)
-               ;; There was not trailing separator.
-               ;; So we can assume that the previous one should be included.
-               (setq start-pos (treesit-node-end prev-sibling)))
-              ((and extend-to-term prev-term)
-               (setq start-pos (treesit-node-end prev-term)))
-              ((and next-sep prev-sep)
-               ;; There was trailing separator.
-               ;; Extend to the end of the previous separator.
-               (setq start-pos (treesit-node-end prev-sep))))))
-    (list start-pos end-pos)))
 
 (defun evil-ts-obj--get-sibling-simple (dir node)
-  "Implementation of a node-fetcher for `evil-ts-obj-generic-thing-with-sep-outer'.
+  "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
 Return a next or previous sibling for `NODE' based on value of
 `DIR'."
   (pcase dir
@@ -790,19 +742,20 @@ second child (node (3)).
        (>= other-end (line-beginning-position))))))
 
 (defun evil-ts-obj--get-node-kind-strict (sep-regex cur-node cur-kind node)
-  "Return sibling kind for `NODE' only if it is preceded by the separator.
-Implementation of a node-kind-func for
-`evil-ts-obj-generic-thing-with-sep-outer'.
+  "Return sibling kind for `NODE'.
+Implementation of a kind-func for
+`evil-ts-obj-conf-sibling-trav'. The main difference from
+`evil-ts-obj--get-node-kind' - this function returns sibling
+symbol only if `NODE' is preceded by the separator.
 
-Return sep if `NODE' matches against `SEP-REGEX'. Otherwise
-return sibling if `NODE' is named and current node is
-separator (`CUR-KIND'). Return term is `NODE' is anonymous and on
-the same line as `CUR-NODE' (examples of possible termination nodes:
-\) ,\] ,end ,fi, etc.)."
+Return sep if `NODE' matches against `SEP-REGEX'.
+Otherwise return sibling if `NODE' is named and current node is
+separator (`CUR-KIND'). Return term if `NODE' is anonymous and on
+the same line as `CUR-NODE' (examples of possible termination
+nodes: \) ,\] ,end ,fi, etc.)."
 
   (if (string-match-p sep-regex (treesit-node-type node))
       'sep
-
     (let ((named (treesit-node-check node 'named)))
       (pcase (cons named cur-kind)
         (`(t . ,'sep) 'sibling)
@@ -811,13 +764,14 @@ the same line as `CUR-NODE' (examples of possible termination nodes:
          'term)))))
 
 (defun evil-ts-obj--get-node-kind (sep-regex cur-node _cur-kind node)
-  "Return sibling kind for `NODE' if it is named.
-Implementation of a node-kind-func for
-`evil-ts-obj-generic-thing-with-sep-outer'.
+  "Return sibling kind for `NODE'.
+Implementation of a kind-func for
+`evil-ts-obj-conf-sibling-trav'.
 
 Return sep if `NODE' matches against `SEP-REGEX'. Otherwise
-return sibling if `NODE' is named. Return term is `NODE' is
-anonymous."
+return sibling if `NODE' is named. Return term if `NODE' is
+anonymous and on the same line as `CUR-NODE' (examples of
+possible termination nodes: \) ,\] ,end ,fi, etc.)."
 
   (cond
    ((and sep-regex
@@ -828,68 +782,138 @@ anonymous."
    ((when (evil-ts-obj--nodes-on-the-same-line node cur-node)
       'term))))
 
-(defun evil-ts-obj-thing-with-sep-outer (node sep-regex &optional extend-to-term strict)
+
+;;; Modifiers
+
+(defun evil-ts-obj--generic-find-sep-and-sibling (node node-kind-func next-node-func)
+  "Return list (next-sibling next-sep next-term) for a `NODE'.
+A function `NEXT-NODE-FUNC' should accept a `NODE' as an argument
+and return next sibling node. `NODE-KIND-FUNC' is described in
+`evil-ts-obj-conf-sibling-trav'."
+  (let ((node-kind nil)
+        next-sep next-sibling next-term)
+    (when-let* ((next-node (funcall next-node-func node))
+                (node-kind (funcall node-kind-func node node-kind next-node)))
+      (pcase node-kind
+        ('sep
+         (setq next-sep next-node)
+         (when-let* ((sibling (funcall next-node-func next-node))
+                     (sibling-kind (funcall node-kind-func next-sep node-kind sibling)))
+
+           (pcase sibling-kind
+             ('sibling
+              (setq next-sibling sibling))
+             ('term
+              (setq next-term sibling)))))
+        ('sibling
+         (setq next-sibling next-node))
+        ('term
+         (setq next-term next-node))))
+    (list next-sibling next-sep next-term)))
+
+
+(defun evil-ts-obj-generic-thing-with-sep-outer (node
+                                                 node-kind-func node-fetcher
+                                                 &optional strict extend-to-term)
   "Create a range for an outer text object that is associated with the `NODE'.
-It uses `evil-ts-obj-generic-thing-with-sep-outer'
-underneath (examine this function for an explanation of
-`EXTEND-TO-TERM'). If `STRICT' is t use
-`evil-ts-obj--get-node-kind-strict' as node-kind-func, otherwise
-use `evil-ts-obj--get-node-kind'. See those function description
-for `SEP-REGEX' meaning."
+This function is mostly used to create outer text objects for
+parameter or statement things. Things may be delimited by a
+separator. For detailed description of `NODE-FETCHER' and
+`NODE-KIND-FUNC' see `evil-ts-obj-conf-sibling-trav'.
 
-  (evil-ts-obj-generic-thing-with-sep-outer
-   node
-   (apply-partially
-    (if strict
-        #'evil-ts-obj--get-node-kind-strict
-      #'evil-ts-obj--get-node-kind)
-    sep-regex)
-   #'evil-ts-obj--get-sibling-simple
-   extend-to-term))
-
-
-(defun evil-ts-obj-param-outer-mod (node sep-regex)
-  "Create parameter outer text object.
-This function invokes `evil-ts-obj-thing-with-sep-outer' with
-extend-to-term and strict set to t. See
-`evil-ts-obj-thing-with-sep-outer' for information about `NODE'
-and `SEP-REGEX'."
-  (evil-ts-obj-thing-with-sep-outer node sep-regex t t))
-
-(defun evil-ts-obj-param-outer-universal-mod (node &optional sep-regex)
-  "Create parameter outer text object.
-This function invokes `evil-ts-obj-thing-with-sep-outer' with
-extend-to-term set to t. See `evil-ts-obj-thing-with-sep-outer'
-for information about `NODE' and `SEP-REGEX'."
-  (evil-ts-obj-thing-with-sep-outer node sep-regex t nil))
-
-(defun evil-ts-obj-generic-thing-upper (node node-kind-func node-fetcher &optional extend-to-next)
-  "Create a range for an upper text object that is associated with `NODE'.
-Description of `NODE-FETCHER' and `NODE-KIND-FUNC' see in
-`evil-ts-obj-generic-thing-with-sep-outer'.
-
-This function works as follows: at first, it fetches the next
-sibling node. If there is separator between current and the
-sibling node or `EXTEND-TO-NEXT' is t, then start of sibling node
-becomes new end of the upper range. If there is no next sibling
-node, and next node has kind term, then start of the term node
-becomes new end of the upper range. Then it iterates over all
-nodes returned by the `NODE-FETCHER' in the prev direction. It
-stops on the first node, which kind is not either sibling or
-sep (kind is obtained from `NODE-KIND-FUNC'). The range start is
-a start of the last sibling node returned by the `NODE-FETCHER'."
+This function works as follows: at first, it tries to find the
+next sibling node. If such a node exists, start of this node
+defines the outer range end. If `STRICT' is t, then it is
+required that sibling is preceded by the separator, otherwise
+range is not extended to the next sibling. If there is no next
+sibling node, but `EXTEND-TO-TERM' is t and next node has kind
+term, then start of term node becomes new end of the outer range.
+If there is no next sibling, outer range is extended to the end
+of the previous sibling. It does so only if no trailing
+separators were found."
   (pcase-let* ((start-pos (treesit-node-start node))
                (end-pos (treesit-node-end node))
                (`(,next-sibling ,next-sep ,next-term)
                 (evil-ts-obj--generic-find-sep-and-sibling node node-kind-func
                                                            (apply-partially node-fetcher 'next))))
 
-    (when (or extend-to-next
-              next-sep)
-      (if next-sibling
-          (setq end-pos (treesit-node-start next-sibling))
-        (when next-term
-          (setq end-pos (treesit-node-start next-term)))))
+    (cond ((or (and (not strict) next-sibling)
+               (and strict next-sep next-sibling))
+           (setq end-pos (treesit-node-start next-sibling)))
+          ((and extend-to-term next-term)
+           (setq end-pos (treesit-node-start next-term)))
+          (next-sep
+           (setq end-pos (treesit-node-end next-sep))))
+
+    (unless next-sibling
+      ;; this is the last thing in a sequence
+      ;; determine how to extend to the previous separator
+      (pcase-let ((`(,prev-sibling ,prev-sep ,prev-term)
+                   (evil-ts-obj--generic-find-sep-and-sibling node node-kind-func
+                                                              (apply-partially node-fetcher 'prev))))
+        (cond ((and (null next-sep) prev-sibling
+                    (or (not strict) (and strict prev-sep)))
+               ;; There was not trailing separator.
+               ;; So we can assume that the previous one should be included.
+               (setq start-pos (treesit-node-end prev-sibling)))
+              ((and extend-to-term prev-term)
+               (setq start-pos (treesit-node-end prev-term)))
+              ((and next-sep prev-sep)
+               ;; There was trailing separator.
+               ;; Extend to the end of the previous separator.
+               (setq start-pos (treesit-node-end prev-sep))))))
+    (list start-pos end-pos)))
+
+(defun evil-ts-obj-thing-with-sep-outer (node sep-regex &optional strict extend-to-term)
+  "Create a range for an outer text object that is associated with the `NODE'.
+It uses `evil-ts-obj-generic-thing-with-sep-outer'
+underneath (examine this function for an explanation of `STRICT'
+and `EXTEND-TO-TERM'). It uses `evil-ts-obj--get-node-kind' as
+node-kind-func. See this function description for `SEP-REGEX'
+meaning."
+
+  (evil-ts-obj-generic-thing-with-sep-outer
+   node
+   (apply-partially
+    #'evil-ts-obj--get-node-kind
+    sep-regex)
+   #'evil-ts-obj--get-sibling-simple
+   strict
+   extend-to-term))
+
+
+(defun evil-ts-obj-generic-thing-upper (node node-kind-func node-fetcher &optional extend-to-next)
+  "Create a range for an upper text object that is associated with `NODE'.
+Description of `NODE-FETCHER' and `NODE-KIND-FUNC' see in
+`evil-ts-obj-conf-sibling-trav' documentation.
+
+This function works as follows: at first, it determines the end
+position of an upper range. If `EXTEND-TO-NEXT' is t, then start
+of the next sibling node becomes new end of the upper range. If
+there is no next sibling node, and the next node has kind term,
+then start of the term node becomes new end of the upper range.
+Other possible values of `EXTEND-TO-NEXT': nil - never extend,
+symbol if-sep-found - extend only if there is a separator between
+current and the sibling node.
+
+Then it iterates over all nodes returned by
+the `NODE-FETCHER' in the prev direction. It stops on the first
+node, which kind is not either sibling or sep (kind is obtained
+from `NODE-KIND-FUNC'). The range start is a start of the last
+sibling node returned by the `NODE-FETCHER'."
+  (let ((start-pos (treesit-node-start node))
+        (end-pos (treesit-node-end node)))
+
+    (when extend-to-next
+      (pcase-let ((`(,next-sibling ,next-sep ,next-term)
+          (evil-ts-obj--generic-find-sep-and-sibling node node-kind-func
+                                                     (apply-partially node-fetcher 'next))))
+        (when (or (eq extend-to-next t)
+                  next-sep)
+          (if next-sibling
+              (setq end-pos (treesit-node-start next-sibling))
+            (when next-term
+              (setq end-pos (treesit-node-start next-term)))))))
 
     (let ((final-sibling node)
           prev
@@ -917,31 +941,36 @@ information about `NODE' and `SEP-REGEX'."
 (defun evil-ts-obj-generic-thing-lower (node node-kind-func node-fetcher &optional extend-to-prev)
   "Create a range for an lower text object that is associated with `NODE'.
 Description of `NODE-FETCHER' and `NODE-KIND-FUNC' see in
-`evil-ts-obj-generic-thing-with-sep-outer'.
+see in `evil-ts-obj-conf-sibling-trav' documentation.
 
-This function works as follows: at first, it fetches the previous
-sibling node. If there is separator between current and the
-sibling node or `EXTEND-TO-PREV' is t, then end of sibling node
-becomes new start of the lower range. If there is no previous
-sibling node, and previous node has kind term, then end of the
-term node becomes new start of the lower range. Then it iterates
-over all nodes returned by the `NODE-FETCHER' in the next
-direction. It stops on the first node, which kind is not either
-sibling or sep (the kind is obtained from `NODE-KIND-FUNC'). The
-range end is an end of the last sibling node returned by the
-`NODE-FETCHER'."
-  (pcase-let* ((start-pos (treesit-node-start node))
-               (end-pos (treesit-node-end node))
-               (`(,prev-sibling ,prev-sep ,prev-term)
-                (evil-ts-obj--generic-find-sep-and-sibling node node-kind-func
-                                                           (apply-partially node-fetcher 'prev))))
+This function works as follows: at first, it determines the start
+position of a lower range. If `EXTEND-TO-PREV' is t, then the end
+of the previous sibling node becomes new start of the lower
+range. If there is no previous sibling node, and the previous
+node has kind term, then end of the term node becomes new start
+of the lower range. Other possible values of `EXTEND-TO-PREV':
+nil - never extend, symbol if-sep-found - extend only if there is
+a separator between current and the sibling node.
 
-    (when (or extend-to-prev
-              prev-sep)
-      (if prev-sibling
-          (setq start-pos (treesit-node-end prev-sibling))
-        (when prev-term
-          (setq start-pos (treesit-node-end prev-term)))))
+Then it iterates over all nodes returned by the `NODE-FETCHER' in
+the next direction. It stops on the first node, which kind is not
+either sibling or sep (the kind is obtained from
+`NODE-KIND-FUNC'). The range end is an end of the last sibling
+node returned by the `NODE-FETCHER'."
+  (let ((start-pos (treesit-node-start node))
+               (end-pos (treesit-node-end node)))
+
+    (when extend-to-prev
+      (pcase-let ((`(,prev-sibling ,prev-sep ,prev-term)
+                   (evil-ts-obj--generic-find-sep-and-sibling node node-kind-func
+                                                              (apply-partially node-fetcher 'prev))))
+        (when (or (eq extend-to-prev t)
+                  prev-sep)
+          (if prev-sibling
+              (setq start-pos (treesit-node-end prev-sibling))
+            (when prev-term
+              (setq start-pos (treesit-node-end prev-term)))))))
+
 
     (let ((final-sibling node)
           next
@@ -967,41 +996,8 @@ information about `NODE' and `SEP-REGEX'."
    t))
 
 
-;; * extentision functions
-(defun evil-ts-obj-common-statement-ext (spec node sep-regex &optional get-sibling-func)
-  "Common statetement extension function."
-  (pcase spec
-    ((pmap (:mod 'outer))
-     (evil-ts-obj-generic-thing-with-sep-outer
-      node
-      (apply-partially #'evil-ts-obj--get-node-kind-strict
-                       sep-regex)
-      (or get-sibling-func #'evil-ts-obj--get-sibling-simple)))
 
-    ((pmap (:mod 'upper))
-     (evil-ts-obj-generic-thing-upper
-      node
-      (apply-partially #'evil-ts-obj--get-node-kind sep-regex)
-      (or get-sibling-func #'evil-ts-obj--get-sibling-simple)))
-
-    ((pmap (:mod 'lower))
-     (evil-ts-obj-generic-thing-lower
-      node
-      (apply-partially #'evil-ts-obj--get-node-kind
-                         sep-regex)
-      (or get-sibling-func #'evil-ts-obj--get-sibling-simple)))))
-
-(defun evil-ts-obj-common-param-ext (spec node &optional sep-regex universal)
-  (pcase spec
-    ((pmap (:mod 'outer))
-     (if (or universal
-             (null sep-regex))
-         (evil-ts-obj-param-outer-universal-mod node sep-regex)
-       (evil-ts-obj-param-outer-mod node sep-regex)))
-    ((pmap (:mod 'upper))
-     (evil-ts-obj-param-upper-mod node sep-regex))
-    ((pmap (:mod 'lower))
-     (evil-ts-obj-param-lower-mod node sep-regex))))
+;;; Aux ranges
 
 (defun evil-ts-obj-last-range ()
   "Return last used range."

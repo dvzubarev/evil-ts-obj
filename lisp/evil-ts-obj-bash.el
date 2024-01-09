@@ -114,7 +114,9 @@ Compound is represented by a `NODE'."
             (treesit-node-end last-child)))))
 
 (defun evil-ts-obj-bash-statement-get-sibling (dir node)
-
+  "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
+Return a next or previous sibling for `NODE' based on value of
+`DIR'."
   (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("list") dir node)))
       sibling
     (let ((sibling (evil-ts-obj--get-sibling-simple dir node)))
@@ -125,6 +127,7 @@ Compound is represented by a `NODE'."
 
 
 (defun evil-ts-obj-bash-param-sibling-kind (_cur-node _cur-kind node)
+  "Implementation of a kind-func for `evil-ts-obj-conf-sibling-trav'."
   (when (not (equal (treesit-node-type node) "command_name"))
     'sibling))
 
@@ -136,23 +139,7 @@ and `NODE'."
 
   (pcase spec
     ((pmap (:thing 'compound) (:mod 'inner))
-     (evil-ts-obj-bash-extract-compound-inner node))
-
-    ((pmap (:act 'op) (:thing 'statement))
-     (evil-ts-obj-common-statement-ext
-      spec node
-      evil-ts-obj-bash-statement-seps-regex
-      #'evil-ts-obj-bash-statement-get-sibling))
-
-    ((pmap (:act 'op) (:thing 'param) (:mod 'upper))
-     (evil-ts-obj-generic-thing-upper
-      node
-      #'evil-ts-obj-bash-param-sibling-kind
-      #'evil-ts-obj--get-sibling-simple
-      t))
-
-    ((pmap (:act 'op) (:thing 'param))
-     (evil-ts-obj-common-param-ext spec node))))
+     (evil-ts-obj-bash-extract-compound-inner node))))
 
 (defcustom evil-ts-obj-bash-ext-func
   #'evil-ts-obj-bash-ext
@@ -165,18 +152,12 @@ and `NODE'."
 (defun evil-ts-obj-bash-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
 
-  (evil-ts-obj-def-init-lang 'bash)
-
-  (make-local-variable 'treesit-thing-settings)
-  (cl-callf append (alist-get 'bash treesit-thing-settings)
-    evil-ts-obj-bash-things)
-
-  (cl-callf plist-put evil-ts-obj-conf-thing-modifiers
-   'bash evil-ts-obj-bash-ext-func)
-
-  (cl-callf plist-put evil-ts-obj-conf-sep-regexps
-    'bash (evil-ts-obj-conf--make-nodes-regex
-           evil-ts-obj-bash-statement-seps)))
+  (evil-ts-obj-def-init-lang 'bash evil-ts-obj-bash-things
+                             :ext-func evil-ts-obj-bash-ext-func
+                             :seps-reg evil-ts-obj-bash-statement-seps
+                             :stmnt-seps-reg evil-ts-obj-bash-statement-seps-regex
+                             :stmnt-sibl-fetcher #'evil-ts-obj-bash-statement-get-sibling
+                             :param-sibl-kind #'evil-ts-obj-bash-param-sibling-kind))
 
 
 
