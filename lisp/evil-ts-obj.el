@@ -31,8 +31,8 @@
 (require 'evil-ts-obj-yaml)
 
 
-;; * interactive functions
-;; ** Movement
+;;;  interactive functions
+;;;; Movement
 
 (evil-define-motion evil-ts-obj-next-largest-thing (count)
   "Jump to the next largest thing from `evil-ts-obj-conf-nav-things'."
@@ -153,7 +153,7 @@ Also bind `KEY' to defined commands in all appropriate keymaps."
          (nreverse result))))
 
 
-;; ** Text objects
+;;;; Text objects
 
 (defmacro evil-ts-obj-define-text-obj (thing mod)
   (declare (indent defun))
@@ -178,15 +178,22 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (evil-define-text-object evil-ts-obj-last-text-obj (count &optional _beg _end _type)
   (evil-ts-obj-last-range))
 
-;; ** Operators
+;;;; Operators
 
 
 (evil-define-operator evil-ts-obj-replace (beg end type)
-  "Replace one region with the another one."
+  "Replace content of one region with the content of another one."
   :move-point nil
   :repeat t
   (interactive "<R>")
   (evil-ts-obj-edit--replace-operator beg end))
+
+(evil-define-operator evil-ts-obj-swap (beg end type)
+  "Swap content of two regions."
+  :move-point nil
+  :repeat t
+  (interactive "<R>")
+  (evil-ts-obj-edit--swap-operator beg end))
 
 (evil-define-operator evil-ts-obj-raise (beg end type)
   "Replace parent thing with the specified range."
@@ -200,7 +207,7 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (evil-ts-obj-edit--raise-dwim))
 
 
-;;* default keybindings and minor mode
+;;; default keybindings and minor mode
 
 (defvar evil-ts-obj-inner-text-objects-map (make-sparse-keymap "Inner text objects"))
 (defvar evil-ts-obj-outer-text-objects-map (make-sparse-keymap "Outer text objects"))

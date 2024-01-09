@@ -22,6 +22,8 @@
 (require 'evil-ts-obj-util)
 (require 'evil-ts-obj-core)
 
+;;; Customs and variables
+
 (defcustom evil-ts-obj-edit-highlight-face 'highlight
   "Face used to highlight the first selected range."
   :type 'face
@@ -34,12 +36,13 @@ operator type and the range that was selected during the first
 invocation of the operator.")
 (defvar evil-ts-obj-edit--overlays nil)
 
-(defun evil-ts-obj-edit--thing-from-rules (rules-alist)
-  (append '(or) (mapcar #'car rules-alist)))
 
+;;; Basic edit function implementations
 (defun evil-ts-obj-edit--replace (range target-range)
   "Replace text in TARGET-RANGE with then content within RANGE.
-RANGE should be a cons of markers."
+RANGE should be a cons of markers. Set last range to be the range
+of inserted content. Last range is used by
+`evil-ts-obj-last-range'."
 
   (let (text)
     (pcase-let ((`(,start . ,end) range))
@@ -58,7 +61,48 @@ RANGE should be a cons of markers."
             ;; Make last range to be useful, setting it to inserted text range.
             (setq evil-ts-obj--last-text-obj-range (list init-pos (marker-position start)))))))))
 
+(defun evil-ts-obj-edit--swap (range other-range)
+  "Swap content of two ranges: RANGE and OTHER-RANGE."
 
+  (let (text other-text save-first-to-last-range)
+    ;; assign to range variable a range that is placed earlier in the buffer.
+    (when (eq (marker-buffer (car range))
+              (marker-buffer (car other-range)))
+      (when (> (car range) (car other-range))
+        (cl-rotatef range other-range)
+        (setq save-first-to-last-range t))
+
+      (when (< (car other-range) (cdr range))
+        (user-error "Swap operator does not support intersected ranges!")))
+
+    (pcase-let ((`(,ostart . ,oend) other-range))
+      (with-current-buffer (marker-buffer ostart)
+        (setq other-text (evil-ts-obj-util--extract-text ostart oend))
+        ;; insert text from the other range into the beginning of the range
+        (pcase-let ((`(,start . ,end) range))
+          (with-current-buffer (marker-buffer start)
+            (setq text (evil-ts-obj-util--extract-text start end))
+            (save-excursion
+              (let ((init-pos (marker-position start)))
+                (goto-char start)
+                (insert (evil-ts-obj-util--indent-text-according-to-point-pos other-text))
+                (when save-first-to-last-range
+                  (setq evil-ts-obj--last-text-obj-range (list init-pos (marker-position start))))
+                (delete-region start end)))))
+        ;; insert text from the range into the start of the other range
+        (save-excursion
+          (let ((init-pos (marker-position ostart)))
+            (goto-char ostart)
+            (insert (evil-ts-obj-util--indent-text-according-to-point-pos text))
+            (when (not save-first-to-last-range)
+              (setq evil-ts-obj--last-text-obj-range (list init-pos (marker-position ostart))))
+            (delete-region ostart oend)))))))
+
+
+;;; Helper functions
+
+(defun evil-ts-obj-edit--thing-from-rules (rules-alist)
+  (append '(or) (mapcar #'car rules-alist)))
 
 (defun evil-ts-obj-edit--release-markers (range)
   (pcase-let ((`(,start . ,end) range))
@@ -104,9 +148,13 @@ RANGE should be a cons of markers."
                      second-markers)
           (evil-ts-obj-edit--cleanup second-markers))))))
 
+;;; Operators
+
 (defun evil-ts-obj-edit--replace-operator (start end)
   (evil-ts-obj-edit--save-range-or-call-op 'replace start end #'evil-ts-obj-edit--replace))
 
+(defun evil-ts-obj-edit--swap-operator (start end)
+  (evil-ts-obj-edit--save-range-or-call-op 'swap start end #'evil-ts-obj-edit--swap))
 
 (defun evil-ts-obj-edit--raise-operator (start end)
   "Replace parent thing with the text from START END range.
