@@ -23,3 +23,28 @@ elif [[ $v -eq 0 ]]; then
     echo t
 fi
 =-=-=
+
+
+Name: Raise dwim t2
+
+=-=
+echo one |two "three, four"
+=-=
+echo |two
+=-=-=
+
+Name: Raise dwim t3
+
+=-=
+echo one two "t|hree, four"
+=-=
+echo |"three, four"
+=-=-=
+
+Name: Raise dwim t4
+
+=-=
+echo |"three, four"
+=-=
+|"three, four"
+=-=-=
