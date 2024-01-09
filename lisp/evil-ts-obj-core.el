@@ -382,30 +382,28 @@ modifiers to the found thing and return range of a text-object."
 
   (when-let ((node (if (treesit-node-p pos-or-node)
                        pos-or-node
-                     (evil-ts-obj--thing-around pos-or-node thing)))
-             (range (evil-ts-obj--apply-modifiers node thing spec)))
-
-    (when-let* ((bounds (or extend-over-range
-                            (evil-ts-obj--expand-active-region? thing spec)))
-                (bound-start (car bounds))
-                (bound-end (cadr bounds))
-                (cur-range range))
-      ;; Extend to the parent thing.
-      (progn
-        (while (and cur-range
-                    (<= bound-start (car cur-range))
-                    (<= (cadr cur-range) bound-end))
-          (setq node (treesit-parent-until
-                      node (lambda (n) (treesit-node-match-p n thing t)))
-                cur-range (evil-ts-obj--apply-modifiers node thing spec)))
-        (setq range cur-range)))
-
-    (when-let* ((pos (if (integerp pos-or-node) pos-or-node (point)))
-                (lang (treesit-language-at pos))
-                (finalizer (plist-get evil-ts-obj-conf-range-finalizers lang))
-                (r range))
-      (setq range (funcall finalizer evil-ts-obj--last-text-obj-spec r)))
-    range))
+                     (evil-ts-obj--thing-around pos-or-node thing))))
+    (let* ((pos (treesit-node-start node))
+           (lang (treesit-language-at pos))
+           (finalizer (plist-get evil-ts-obj-conf-range-finalizers lang))
+           (range (if-let* ((bounds (or extend-over-range
+                                        (evil-ts-obj--expand-active-region? thing spec)))
+                            (bound-start (car bounds))
+                            (bound-end (cadr bounds))
+                            (cur-range (evil-ts-obj--apply-modifiers node thing spec)))
+                      ;; Extend to the parent thing.
+                      (progn
+                        (while (and cur-range
+                                    (<= bound-start (car cur-range))
+                                    (<= (cadr cur-range) bound-end))
+                          (setq node (treesit-parent-until
+                                      node (lambda (n) (treesit-node-match-p n thing t)))
+                                cur-range (evil-ts-obj--apply-modifiers node thing spec)))
+                        cur-range)
+                    (evil-ts-obj--apply-modifiers node thing spec))))
+      (if (and finalizer range)
+          (funcall finalizer evil-ts-obj--last-text-obj-spec range)
+        range))))
 
 
 ;;; Movement

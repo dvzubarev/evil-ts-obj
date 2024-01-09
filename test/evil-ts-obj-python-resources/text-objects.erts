@@ -784,6 +784,26 @@ Code:
     (evil-visual-char)
     (call-interactively #'evil-ts-obj-compound-outer)
     (call-interactively #'evil-ts-obj-compound-outer)
+    (call-interactively #'delete-region))
+
+Name: extend visual outer text object (else_clause) t1
+
+=-=
+def m():
+    if b and b >3:
+        |b =833
+    else:
+        pass
+=-=
+|s
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-visual-char)
+    (call-interactively #'evil-ts-obj-compound-outer)
+    (call-interactively #'evil-ts-obj-compound-outer)
     (exchange-point-and-mark)
     (call-interactively #'evil-ts-obj-compound-inner)
     (call-interactively #'delete-region))
