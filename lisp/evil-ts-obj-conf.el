@@ -153,6 +153,13 @@ selected text. In both cases it should return alist, for example
 function implementation.")
 
 
+(defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise)
+  "Do not extend upper/lower text object range for specified commands.
+Upper/lower modifiers usually extend text object range to the
+next/previous sibling. It is not desirable behavior for some
+commands. This variable holds a list of commands, for which this
+extending is disabled.")
+
 ;;; Helper functions
 
 (defun evil-ts-obj-conf--make-nodes-regex (nodes)

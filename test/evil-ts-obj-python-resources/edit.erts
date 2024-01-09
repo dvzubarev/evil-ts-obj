@@ -349,7 +349,42 @@ def main():
     for t in range(3):
         t = 3
         break
-    |    t =1
+        t =1
         bb = 3
     return 2 * a
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-raise)
+    (apply #'evil-ts-obj-raise (evil-ts-obj-param-lower)))
+
+Name: Raise param lower t1
+
+=-=
+def main(par1, |par2,
+         par3, par4):
+    pass
+=-=
+def main(|par2,
+         par3, par4):
+    pass
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-raise)
+    (apply #'evil-ts-obj-raise (evil-ts-obj-statement-upper)))
+
+Name: Raise statement upper t1
+
+=-=
+if a is not None and| a > 0 and a < 8:
+    pass
+=-=
+if |a is not None and a > 0:
+    pass
 =-=-=

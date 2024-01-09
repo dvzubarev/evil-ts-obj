@@ -48,3 +48,19 @@ echo |"three, four"
 =-=
 |"three, four"
 =-=-=
+
+Point-Char: @
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-raise)
+    (apply #'evil-ts-obj-raise (evil-ts-obj-statement-lower)))
+
+Name: Raise statement lower t1
+
+=-=
+echo t | @echo e | echo k "t t"
+=-=
+echo e | echo k "t t"
+=-=-=

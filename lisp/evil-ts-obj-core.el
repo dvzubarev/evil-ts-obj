@@ -275,7 +275,12 @@ form (or thing1 thing2 ...). COMMAND is the same as for
                 (trav (plist-get thing-trav thing))
                 (fetcher (evil-ts-obj-trav-fetcher trav))
                 (kind-func (evil-ts-obj-trav-kind-func trav))
-                (upper-lower-extend (if (eq thing 'param) t 'if-sep-found)))
+                (upper-lower-extend (cond
+                                     ((memq (plist-get spec :command)
+                                            evil-ts-obj-conf-dont-extend-to-next-cmds)
+                                      nil)
+                                     ((eq thing 'param) t)
+                                     (t 'if-sep-found))))
           ;; handle upper/lower using traverse functions
           (pcase spec
             ((pmap (:mod 'outer))
