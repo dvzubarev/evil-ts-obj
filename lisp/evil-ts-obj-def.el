@@ -82,6 +82,19 @@ and TEXT-SPEC."
     (compound . outer)))
 
 
+(defvar evil-ts-obj-def--sibling-trav (evil-ts-obj-trav-create
+                                       :fetcher #'evil-ts-obj--get-sibling-simple
+                                       :kind-func #'evil-ts-obj--get-node-kind)
+  "Default value for sibling traversing.")
+
+(defun evil-ts-obj-def--create-sibling-trav (user-trav)
+  "Create sibling traversing object combining USER-TRAV with the default one."
+  (evil-ts-obj-trav-create
+   :seps (evil-ts-obj-trav-seps user-trav)
+   :fetcher (or (evil-ts-obj-trav-fetcher user-trav)
+                (evil-ts-obj-trav-fetcher evil-ts-obj-def--sibling-trav))
+   :kind-func (or (evil-ts-obj-trav-kind-func user-trav)
+                  (evil-ts-obj-trav-kind-func evil-ts-obj-def--sibling-trav))))
 
 ;;;; init functions
 (cl-defun evil-ts-obj-def-init-lang (
@@ -89,14 +102,9 @@ and TEXT-SPEC."
                                      (ext-func nil)
                                      (seps-reg nil)
                                      (nav-thing '(or param statement compound))
-                                     (stmnt-add-sibl-rules t)
-                                     (stmnt-seps-reg nil)
-                                     (stmnt-sibl-fetcher #'evil-ts-obj--get-sibling-simple)
-                                     (stmnt-sibl-kind #'evil-ts-obj--get-node-kind)
-                                     (param-add-sibl-rules t)
-                                     (param-seps-reg nil)
-                                     (param-sibl-fetcher #'evil-ts-obj--get-sibling-simple)
-                                     (param-sibl-kind #'evil-ts-obj--get-node-kind))
+                                     (compound-sib-trav evil-ts-obj-def--sibling-trav)
+                                     (statement-sib-trav evil-ts-obj-def--sibling-trav)
+                                     (param-sib-trav evil-ts-obj-def--sibling-trav))
   "Set default values for language LANG.
 THINGS are added to `treesit-thing-settings' variable.
 
@@ -111,14 +119,18 @@ converted to regexp via `evil-ts-obj-conf--make-nodes-regex'.
 NAV-THING - added to `evil-ts-obj-conf-nav-things', default
 value: (or param statement compound).
 
-STMNT-ADD-SIBL-RULES add rules for traversing statement siblings,
-true by default. STMNT-SEPS-REG (default nil),
-STMNT-SIBL-FETCHER (default `evil-ts-obj--get-sibling-simple'),
-STMNT-SIBL-KIND (default `evil-ts-obj--get-node-kind') will be
-used to create `evil-ts-obj-trav' struct object. Created object
-will be added to `evil-ts-obj-conf-sibling-trav' variable.
-Analogues keywords for the param thing: PARAM-ADD-SIBL-RULES,
-PARAM-SEPS-REG, PARAM-SIBL-FETCHER, PARAM-SIBL-KIND.
+COMPOUND-SIB-TRAV, STATEMENT-SIB-TRAV, PARAM-SIB-TRAV define
+sibling traversing. They are objects of type `evil-ts-obj-trav'.
+An object can be instantiated using `evil-ts-obj-trav-create'. It
+accepts following arguments: :seps - regexp for text object
+separators (default nil), :fetcher - a function for fetching
+next/previous sibling (default
+`evil-ts-obj--get-sibling-simple'), :kind-func - a function for
+labeling a fetched node (default `evil-ts-obj--get-node-kind').
+It is possible to leave some slots undefined. In that case the
+default values will be used. An object will be added to
+`evil-ts-obj-conf-sibling-trav' variable, see description of this
+variable for more information about functions.
 
 This function also adds `evil-ts-obj--finalize-text-obj-range' to
 `evil-ts-obj-conf-range-finalizers',
@@ -136,23 +148,18 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
       (setq seps-reg (evil-ts-obj-conf--make-nodes-regex seps-reg)))
     (cl-callf plist-put evil-ts-obj-conf-sep-regexps lang seps-reg))
 
-
-
   (cl-callf plist-put evil-ts-obj-conf-nav-things lang nav-thing)
 
   (let (sibl-trav-plist)
-    (when stmnt-add-sibl-rules
+    (when compound-sib-trav
+      (cl-callf plist-put sibl-trav-plist 'compound
+                (evil-ts-obj-def--create-sibling-trav compound-sib-trav)))
+    (when statement-sib-trav
       (cl-callf plist-put sibl-trav-plist 'statement
-                (evil-ts-obj-trav-create
-                 :seps stmnt-seps-reg
-                 :fetcher stmnt-sibl-fetcher
-                 :kind-func stmnt-sibl-kind)))
-    (when param-add-sibl-rules
+                (evil-ts-obj-def--create-sibling-trav statement-sib-trav)))
+    (when param-sib-trav
       (cl-callf plist-put sibl-trav-plist 'param
-                (evil-ts-obj-trav-create
-                 :seps param-seps-reg
-                 :fetcher param-sibl-fetcher
-                 :kind-func param-sibl-kind)))
+                (evil-ts-obj-def--create-sibling-trav param-sib-trav)))
     (cl-callf plist-put evil-ts-obj-conf-sibling-trav lang sibl-trav-plist))
 
 
@@ -165,10 +172,8 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
                                           (ext-func nil)
                                           (seps-reg nil)
                                           (nav-thing '(or param compound))
-                                          (param-add-sibl-rules t)
-                                          (param-seps-reg nil)
-                                          (param-sibl-fetcher #'evil-ts-obj--get-sibling-simple)
-                                          (param-sibl-kind #'evil-ts-obj--get-node-kind))
+                                          (compound-sib-trav evil-ts-obj-def--sibling-trav)
+                                          (param-sib-trav evil-ts-obj-def--sibling-trav))
   "Set default values for language LANG.
 THINGS are added to `treesit-thing-settings' variable.
 
@@ -183,12 +188,8 @@ converted to regexp via `evil-ts-obj-conf--make-nodes-regex'.
 NAV-THING - added to `evil-ts-obj-conf-nav-things', default
 value: (or param compound).
 
-PARAM-ADD-SIBL-RULES add rules for traversing statement siblings,
-true by default. PARAM-SEPS-REG (default nil),
-PARAM-SIBL-FETCHER (default `evil-ts-obj--get-sibling-simple'),
-PARAM-SIBL-KIND (default `evil-ts-obj--get-node-kind') will be
-used to create `evil-ts-obj-trav' struct object. Created object
-will be added to `evil-ts-obj-conf-sibling-trav' variable.
+For information about COMPOUND-SIB-TRAV, PARAM-SIB-TRAV see
+`evil-ts-obj-def-init-lang'.
 
 This function also adds `evil-ts-obj-def-raise-rules' to
 `evil-ts-obj-def-conf-lang-raise-rules'."
@@ -205,12 +206,12 @@ This function also adds `evil-ts-obj-def-raise-rules' to
     (cl-callf plist-put evil-ts-obj-conf-sep-regexps lang seps-reg))
 
   (let (sibl-trav-plist)
-    (when param-add-sibl-rules
+    (when compound-sib-trav
+      (cl-callf plist-put sibl-trav-plist 'compound
+                (evil-ts-obj-def--create-sibling-trav compound-sib-trav)))
+    (when param-sib-trav
       (cl-callf plist-put sibl-trav-plist 'param
-                (evil-ts-obj-trav-create
-                 :seps param-seps-reg
-                 :fetcher param-sibl-fetcher
-                 :kind-func param-sibl-kind)))
+                (evil-ts-obj-def--create-sibling-trav param-sib-trav)))
     (cl-callf plist-put evil-ts-obj-conf-sibling-trav lang sibl-trav-plist))
 
 

@@ -131,8 +131,10 @@ and `NODE'."
   (evil-ts-obj-def-init-lang 'nix evil-ts-obj-nix-things
                              :ext-func evil-ts-obj-nix-ext-func
                              :seps-reg evil-ts-obj-nix-param-seps-regex
-                             :stmnt-add-sibl-rules nil
-                             :param-seps-reg evil-ts-obj-nix-param-seps-regex))
+                             :compound-sib-trav nil
+                             :statement-sib-trav nil
+                             :param-sib-trav (evil-ts-obj-trav-create
+                                              :seps evil-ts-obj-nix-param-seps-regex)))
 
 
 

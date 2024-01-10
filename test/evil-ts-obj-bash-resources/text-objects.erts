@@ -520,13 +520,34 @@ Name: Delete statement upper t6
     fi
 =-=-=
 
-Name: Delete statement lower t7
+Name: Delete statement upper t7
 
 =-=
 [[ -z "$e" ]] && read -ra files| && echo e && echo t
 =-=
 echo e && echo t
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-compound-upper)))
+
+Name: Delete compound upper t1
+
+=-=
+if [[ $v -eq 1 ]]; then
+    echo test
+    |for f in "${files[@]}"; do
+        echo $f
+    done
+fi
+=-=
+if [[ $v -eq 1 ]]; then
+    |
+fi
+=-=-=
+
 
 Code:
   (lambda ()

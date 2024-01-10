@@ -155,9 +155,11 @@ and `NODE'."
   (evil-ts-obj-def-init-lang 'bash evil-ts-obj-bash-things
                              :ext-func evil-ts-obj-bash-ext-func
                              :seps-reg evil-ts-obj-bash-statement-seps
-                             :stmnt-seps-reg evil-ts-obj-bash-statement-seps-regex
-                             :stmnt-sibl-fetcher #'evil-ts-obj-bash-statement-get-sibling
-                             :param-sibl-kind #'evil-ts-obj-bash-param-sibling-kind))
+                             :statement-sib-trav (evil-ts-obj-trav-create
+                                                  :seps evil-ts-obj-bash-statement-seps-regex
+                                                  :fetcher #'evil-ts-obj-bash-statement-get-sibling)
+                             :param-sib-trav (evil-ts-obj-trav-create
+                                              :kind-func #'evil-ts-obj-bash-param-sibling-kind)))
 
 
 

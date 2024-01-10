@@ -150,8 +150,8 @@ and `NODE'."
   (evil-ts-obj-def-init-lang 'cpp evil-ts-obj-cpp-things
                              :ext-func evil-ts-obj-cpp-ext-func
                              :seps-reg evil-ts-obj-cpp-param-seps-regex
-                             :stmnt-add-sibl-rules nil
-                             :param-seps-reg evil-ts-obj-cpp-param-seps-regex))
+                             :param-sib-trav (evil-ts-obj-trav-create
+                                              :seps evil-ts-obj-cpp-param-seps-regex)))
 
 (provide 'evil-ts-obj-cpp)
 ;;; evil-ts-obj-cpp.el ends here

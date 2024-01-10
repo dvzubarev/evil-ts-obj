@@ -150,11 +150,6 @@ Compound is represented by a `NODE'."
     (list (treesit-node-start block-node)
           (treesit-node-end block-node))))
 
-(defun evil-ts-obj-python-compound-sibling-kind (_cur-node _cur-kind node &optional _sep-regex)
-  "Implementation of a kind-func for `evil-ts-obj-generic-thing-upper'."
-  (unless (equal (treesit-node-type node) ":")
-    'sibling))
-
 (defun evil-ts-obj-python-statement-get-sibling (dir node)
   "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
 Return a next or previous sibling for `NODE' based on value of
@@ -171,12 +166,7 @@ and `NODE'."
     ((pmap (:thing 'compound) (:mod 'inner))
      (evil-ts-obj-python-extract-compound-inner node))
     ((pmap (:thing 'compound) (:mod 'outer) (:act 'op))
-     (evil-ts-obj-python-compound-outer-ext node))
-    ((pmap (:thing 'compound) (:mod 'upper) (:act 'op))
-     (evil-ts-obj-generic-thing-upper
-      node
-      #'evil-ts-obj-python-compound-sibling-kind
-      #'evil-ts-obj--get-sibling-simple))))
+     (evil-ts-obj-python-compound-outer-ext node))))
 
 (defcustom evil-ts-obj-python-ext-func
   #'evil-ts-obj-python-ext
@@ -191,9 +181,11 @@ and `NODE'."
   (evil-ts-obj-def-init-lang 'python evil-ts-obj-python-things
                              :ext-func evil-ts-obj-python-ext-func
                              :seps-reg evil-ts-obj-python-all-seps-regex
-                             :stmnt-seps-reg evil-ts-obj-python-statement-seps-regex
-                             :stmnt-sibl-fetcher #'evil-ts-obj-python-statement-get-sibling
-                             :param-seps-reg evil-ts-obj-python-param-seps-regex))
+                             :statement-sib-trav (evil-ts-obj-trav-create
+                                                  :seps evil-ts-obj-python-statement-seps-regex
+                                                  :fetcher #'evil-ts-obj-python-statement-get-sibling)
+                             :param-sib-trav (evil-ts-obj-trav-create
+                                              :seps evil-ts-obj-python-param-seps-regex)))
 
 
 
