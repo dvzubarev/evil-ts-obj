@@ -71,7 +71,7 @@
 (defcustom evil-ts-obj-cpp-things
   `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-cpp-compound-nodes))
     (statement ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-cpp-statement-nodes))
-    (param ,(apply-partially #'evil-ts-obj-common-param-pred evil-ts-obj-cpp-param-parent-regex)))
+    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-cpp-param-parent-regex n))))
   "Things for cpp."
   :type 'plist
   :group 'evil-ts-obj)

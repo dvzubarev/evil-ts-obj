@@ -492,3 +492,119 @@ def main(par1, p|ar2, par3):
 def main(par1, par2, |par3):
     pass
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-drag-up))
+
+
+Name: Swap drag up t1
+
+=-=
+def main(p=call2(n,
+                 m), |t=call(nest1,
+                            nest2,
+                            nest3), par1,):
+    pass
+=-=
+def main(|t=call(nest1,
+                nest2,
+                nest3), p=call2(n,
+                                m), par1,):
+    pass
+=-=-=
+
+Name: Swap drag up t2
+
+=-=
+if i is not None and i > 0 and |i < 8:
+   pass
+=-=
+if i is not None and |i < 8 and i > 0:
+   pass
+=-=-=
+
+Name: Swap drag up t3
+
+=-=
+if i is not None and |i < 8 and i > 0:
+   pass
+=-=
+if |i < 8 and i is not None and i > 0:
+   pass
+=-=-=
+
+Name: Swap drag up t3
+
+=-=
+i=3
+if |i < 8 and i is not None and i > 0:
+   pass
+=-=
+i=3
+if |i < 8 and i is not None and i > 0:
+   pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-drag-down))
+
+
+Name: Swap drag down t1
+
+=-=
+def main(|p=call2(n,
+                 m), t=call(nest1,
+                            nest2,
+                            nest3), par1,):
+    pass
+=-=
+def main(t=call(nest1,
+                nest2,
+                nest3), |p=call2(n,
+                                m), par1,):
+    pass
+=-=-=
+
+Name: Swap drag down t2
+
+=-=
+if i is not None and |i > 0 and #comm
+   i < 8:
+   pass
+=-=
+if i is not None and i < 8 and #comm
+   |i > 0:
+   pass
+=-=-=
+
+Name: Swap drag down t3
+
+=-=
+if i is not None and i < 8 and |i > 0:
+   pass
+=-=
+if i is not None and i < 8 and |i > 0:
+   pass
+=-=-=
+
+Name: Swap drag down t4
+
+=-=
+def m():
+    i = 0
+    |if i is not None and i < 8 and |i > 0:
+        pass
+    #comm
+    i *= 3
+=-=
+def m():
+    i = 0
+    i *= 3
+    #comm
+    |if i is not None and i < 8 and |i > 0:
+        pass
+=-=-=

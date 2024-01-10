@@ -96,8 +96,7 @@
 (defcustom evil-ts-obj-python-things
   `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-compound-nodes))
     (statement evil-ts-obj-python-statement-pred)
-    (param ,(apply-partially #'evil-ts-obj-common-param-pred
-                             evil-ts-obj-python-param-parent-regex)))
+    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-python-param-parent-regex n))))
   "Things for python."
   :type 'plist
   :group 'evil-ts-obj)
@@ -151,7 +150,7 @@ Compound is represented by a `NODE'."
     (list (treesit-node-start block-node)
           (treesit-node-end block-node))))
 
-(defun evil-ts-obj-python-compound-sibling-kind (_cur-node _cur-kind node)
+(defun evil-ts-obj-python-compound-sibling-kind (_cur-node _cur-kind node &optional _sep-regex)
   "Implementation of a kind-func for `evil-ts-obj-generic-thing-upper'."
   (unless (equal (treesit-node-type node) ":")
     'sibling))

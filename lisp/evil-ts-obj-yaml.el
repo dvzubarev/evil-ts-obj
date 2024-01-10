@@ -58,7 +58,7 @@ and `NODE'."
 
   (pcase spec
     ((pmap (:thing 'param) (:mod 'inner)
-           (:command (pred (not (eq 'evil-ts-obj-edit-raise-dwim)))))
+           (:command (pred (not (eq 'evil-ts-obj-raise-dwim)))))
      (evil-ts-obj-yaml-param-mod node))
     ((pmap (:thing 'param) (:act 'nav))
      (evil-ts-obj-yaml-param-mod node))))

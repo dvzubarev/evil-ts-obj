@@ -108,8 +108,7 @@ For example:
   (param ,(evil-ts-obj-trav-create
            :seps evil-ts-obj-python-param-seps-regex
            :fetcher #\\='evil-ts-obj--get-sibling-simple
-           :kind-func (apply-partially #\\='evil-ts-obj--get-node-kind
-                                       evil-ts-obj-python-param-seps-regex))))
+           :kind-func #\\='evil-ts-obj--get-node-kind))))
 
 `evil-ts-obj-trav-create' expects regexp as :seps keyword, to
 match separators that delimit sibling things.
@@ -120,13 +119,14 @@ sibling of the passed node. For example, see
 `evil-ts-obj--get-sibling-simple'.
 
 :kind-func is a function that accepts three arguments: current
-node, current node kind and target node. It should classify the
-passed target node and return its kind: sep, sibling, term or
-nil. sep - means that passed node is a recognized separator.
-sibling - denotes named node that is a sibling of the current
-node. term - signals that this node is a terminator of a sequence
-of things. When nil returned, act as if current-node is the last
-node in the sequence. See `evil-ts-obj--get-node-kind' or
+node, current node kind, target node and optionally separators
+regexp. It should classify the passed target node and return its
+kind: sep, sibling, term or nil. sep - means that passed node is
+a recognized separator. sibling - denotes named node that is a
+sibling of the current node. term - signals that this node is a
+terminator of a sequence of things. When nil returned, act as if
+current-node is the last node in the sequence. See
+`evil-ts-obj--get-node-kind' or
 `evil-ts-obj--get-node-kind-strict'.")
 
 (defvar-local evil-ts-obj-conf-sep-regexps nil
@@ -152,6 +152,7 @@ selected text. In both cases it should return alist, for example
 `evil-ts-obj-conf-default-raise-rules' as an example of this
 function implementation.")
 
+(defvar-local evil-ts-obj-conf-drag-rules nil "TODO.")
 
 (defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise)
   "Do not extend upper/lower text object range for specified commands.

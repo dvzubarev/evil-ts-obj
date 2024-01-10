@@ -126,7 +126,7 @@ Return a next or previous sibling for `NODE' based on value of
         (_ sibling)))))
 
 
-(defun evil-ts-obj-bash-param-sibling-kind (_cur-node _cur-kind node)
+(defun evil-ts-obj-bash-param-sibling-kind (_cur-node _cur-kind node &optional _sep-regex)
   "Implementation of a kind-func for `evil-ts-obj-conf-sibling-trav'."
   (when (not (equal (treesit-node-type node) "command_name"))
     'sibling))

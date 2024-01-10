@@ -72,8 +72,7 @@
 (defcustom evil-ts-obj-python-things
   `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-compound-nodes))
     (statement ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-statement-nodes))
-    (param ,(apply-partially #'evil-ts-obj-common-param-pred
-                             evil-ts-obj-python-param-parent-regex)))
+    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-python-param-parent-regex n))))
   "Things for python."
   :type 'plist
   :group 'evil-ts-obj)

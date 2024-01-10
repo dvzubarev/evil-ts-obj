@@ -28,6 +28,7 @@
 ;;; Default functions
 ;;;; Edit rules
 
+;;;;; raise rules
 (defun evil-ts-obj-def-conf-lang-raise-rules (range-type &optional text-spec)
   "Return default raise rules for configuration languages like YAML.
 See `evil-ts-obj-conf-raise-rules' for description of
@@ -62,6 +63,23 @@ RANGE-TYPE and TEXT-SPEC."
        ((pmap (:thing 'param))
         '((statement . inner)
           (param . all)))))))
+
+;;;;; drag rules
+
+(defun evil-ts-obj-def-drag-rules (_range-type &optional _text-spec)
+  "Return default drag rules.
+See `evil-ts-obj-conf-drag-rules' for description of RANGE-TYPE
+and TEXT-SPEC."
+  '((param . inner)
+    (statement . inner)
+    (compound . outer)))
+
+(defun evil-ts-obj-def-conf-lang-drag-rules (_range-type &optional _text-spec)
+  "Return default drag rules.
+See `evil-ts-obj-conf-drag-rules' for description of RANGE-TYPE
+and TEXT-SPEC."
+  '((param . inner)
+    (compound . outer)))
 
 
 
@@ -128,22 +146,19 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
                 (evil-ts-obj-trav-create
                  :seps stmnt-seps-reg
                  :fetcher stmnt-sibl-fetcher
-                 :kind-func (if (eq stmnt-sibl-kind #'evil-ts-obj--get-node-kind)
-                                (apply-partially stmnt-sibl-kind stmnt-seps-reg)
-                              stmnt-sibl-kind))))
+                 :kind-func stmnt-sibl-kind)))
     (when param-add-sibl-rules
       (cl-callf plist-put sibl-trav-plist 'param
                 (evil-ts-obj-trav-create
                  :seps param-seps-reg
                  :fetcher param-sibl-fetcher
-                 :kind-func (if (eq param-sibl-kind #'evil-ts-obj--get-node-kind)
-                                (apply-partially param-sibl-kind param-seps-reg)
-                              param-sibl-kind))))
+                 :kind-func param-sibl-kind)))
     (cl-callf plist-put evil-ts-obj-conf-sibling-trav lang sibl-trav-plist))
 
 
   (cl-callf plist-put evil-ts-obj-conf-range-finalizers lang #'evil-ts-obj--finalize-text-obj-range)
-  (cl-callf plist-put evil-ts-obj-conf-raise-rules lang #'evil-ts-obj-def-raise-rules))
+  (cl-callf plist-put evil-ts-obj-conf-raise-rules lang #'evil-ts-obj-def-raise-rules)
+  (cl-callf plist-put evil-ts-obj-conf-drag-rules lang #'evil-ts-obj-def-drag-rules))
 
 (cl-defun evil-ts-obj-def-init-conf-lang (
                                           lang things &optional &key
@@ -195,9 +210,7 @@ This function also adds `evil-ts-obj-def-raise-rules' to
                 (evil-ts-obj-trav-create
                  :seps param-seps-reg
                  :fetcher param-sibl-fetcher
-                 :kind-func (if (eq param-sibl-kind #'evil-ts-obj--get-node-kind)
-                                (apply-partially param-sibl-kind param-seps-reg)
-                              param-sibl-kind))))
+                 :kind-func param-sibl-kind)))
     (cl-callf plist-put evil-ts-obj-conf-sibling-trav lang sibl-trav-plist))
 
 
@@ -205,7 +218,9 @@ This function also adds `evil-ts-obj-def-raise-rules' to
   (cl-callf plist-put evil-ts-obj-conf-nav-things lang nav-thing)
 
   (cl-callf plist-put evil-ts-obj-conf-raise-rules
-    lang #'evil-ts-obj-def-conf-lang-raise-rules))
+    lang #'evil-ts-obj-def-conf-lang-raise-rules)
+  (cl-callf plist-put evil-ts-obj-conf-drag-rules
+    lang #'evil-ts-obj-def-conf-lang-drag-rules))
 
 
 (provide 'evil-ts-obj-def)

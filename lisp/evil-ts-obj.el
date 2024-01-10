@@ -202,10 +202,17 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (interactive "<R>")
   (evil-ts-obj-edit--raise-operator beg end))
 
-(evil-define-operator evil-ts-obj-edit-raise-dwim ()
+(evil-define-operator evil-ts-obj-raise-dwim ()
   (interactive)
   (evil-ts-obj-edit--raise-dwim))
 
+(evil-define-operator evil-ts-obj-drag-up ()
+  (interactive)
+  (evil-ts-obj-edit--drag 'prev))
+
+(evil-define-operator evil-ts-obj-drag-down ()
+  (interactive)
+  (evil-ts-obj-edit--drag 'next))
 
 ;;; default keybindings and minor mode
 
