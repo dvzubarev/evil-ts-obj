@@ -36,7 +36,7 @@ Install Emacs 30.0.50 from sources.
 #+begin_src bash
 git clone --no-tags --single-branch --filter=blob:none  https://github.com/mirrors/emacs.git emacs-30
 cd emacs-30
-git checkout 530315287254da2e6b0767ad343fa55f79be8536
+git checkout b37676642679a9ec3cd3b995cd14a4af3567cf80
 ./configure --with-tree-sitter --add-flags-to-your-liking
 make
 sudo make install
