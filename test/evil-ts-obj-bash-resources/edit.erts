@@ -68,7 +68,7 @@ echo e | echo k "t t"
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-drag-down))
+    (evil-ts-obj-drag-down 1))
 
 Name: drag down pipelined cmds t1
 
@@ -83,7 +83,7 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-drag-up))
+    (evil-ts-obj-drag-up 1))
 
 Name: drag up t1
 
@@ -159,7 +159,7 @@ fi
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-drag-down))
+    (evil-ts-obj-drag-down 1))
 
 Name: drag down t1
 

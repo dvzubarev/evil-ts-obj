@@ -206,13 +206,13 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (interactive)
   (evil-ts-obj-edit--raise-dwim))
 
-(evil-define-operator evil-ts-obj-drag-up ()
-  (interactive)
-  (evil-ts-obj-edit--drag 'prev))
+(evil-define-operator evil-ts-obj-drag-up (count)
+  (interactive "<c>")
+  (evil-ts-obj-edit--drag 'prev count))
 
-(evil-define-operator evil-ts-obj-drag-down ()
-  (interactive)
-  (evil-ts-obj-edit--drag 'next))
+(evil-define-operator evil-ts-obj-drag-down (count)
+  (interactive "<c>")
+  (evil-ts-obj-edit--drag 'next count))
 
 ;;; default keybindings and minor mode
 

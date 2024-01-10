@@ -196,7 +196,7 @@ Actual raise is implemented via replace operator."
         (evil-ts-obj-edit--raise-operator (car range) (cadr range)))
     (evil-ts-obj-edit--cleanup)))
 
-(defun evil-ts-obj-edit--drag (dir)
+(defun evil-ts-obj-edit--drag (dir &optional count)
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
   (unwind-protect
@@ -216,7 +216,8 @@ Actual raise is implemented via replace operator."
                     (second-rules-alist (funcall drag-rules-func 'second last-spec))
                     (second-thing (evil-ts-obj-edit--thing-from-rules second-rules-alist))
                     (second-spec (evil-ts-obj--make-spec second-rules-alist 'op))
-                    (sibling (evil-ts-obj--find-matching-sibling node first-thing dir second-thing))
+                    (sibling (evil-ts-obj--find-matching-sibling node first-thing dir second-thing
+                                                                 count))
                     (sibling-range (evil-ts-obj--get-text-obj-range sibling second-thing second-spec)))
           (evil-ts-obj-edit--swap-operator (car sibling-range) (cadr sibling-range))
           (goto-char (car evil-ts-obj--last-text-obj-range))))

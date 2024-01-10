@@ -788,6 +788,10 @@ possible termination nodes: \) ,\] ,end ,fi, etc.)."
       'term))))
 
 (iter-defun evil-ts-obj--iter-siblings (node node-thing dir match-thing)
+  "Return sibling of a NODE in a direction DIR.
+DIR is either prev or next. NODE-THING is a thing that is
+represented by the NODE. Returned sibling will match with the
+thing specified in MATCH-THING."
   (let* ((lang (treesit-language-at (treesit-node-start node)))
          (trav-things (plist-get evil-ts-obj-conf-sibling-trav lang))
          (trav (plist-get trav-things node-thing))
@@ -809,12 +813,20 @@ possible termination nodes: \) ,\] ,end ,fi, etc.)."
                  (treesit-node-match-p node match-thing t))
         (iter-yield node)))))
 
-(defun evil-ts-obj--find-matching-sibling (node node-thing dir match-thing)
-  (let ((iter (evil-ts-obj--iter-siblings node node-thing dir match-thing)))
+(defun evil-ts-obj--find-matching-sibling (node node-thing dir match-thing &optional count)
+  "Return Nth sibling of the NODE.
+By default return first sibling. COUNT may be positive integer
+specifying the number of a sibling to return. For description of
+NODE-THING, DIR, MATCH-THING see `evil-ts-obj--iter-siblings'."
+  (let ((iter (evil-ts-obj--iter-siblings node node-thing dir match-thing))
+        (count (or count 1)))
     (condition-case nil
         (prog1
-            (iter-next iter)
-         (iter-close iter))
+            (let (result)
+              (dotimes (_ count)
+                (setq result (iter-next iter)))
+              result)
+          (iter-close iter))
       (iter-end-of-sequence nil))))
 
 
@@ -945,7 +957,7 @@ sibling node returned by the `NODE-FETCHER'."
            node node-kind-func
            (lambda (n) (funcall node-fetcher 'next n)))))
         (when (or (eq extend-to-next t)
-                  next-sep)
+                  (and (eq extend-to-next 'if-sep-found) next-sep))
           (if next-sibling
               (setq end-pos (treesit-node-start next-sibling))
             (when next-term
@@ -1002,7 +1014,7 @@ node returned by the `NODE-FETCHER'."
                     node node-kind-func
                     (lambda (n) (funcall node-fetcher 'prev n)))))
         (when (or (eq extend-to-prev t)
-                  prev-sep)
+                  (and (eq extend-to-prev 'if-sep-found) prev-sep))
           (if prev-sibling
               (setq start-pos (treesit-node-end prev-sibling))
             (when prev-term

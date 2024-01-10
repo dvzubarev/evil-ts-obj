@@ -496,7 +496,7 @@ def main(par1, par2, |par3):
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-drag-up))
+    (evil-ts-obj-drag-up 1))
 
 
 Name: Swap drag up t1
@@ -550,7 +550,7 @@ if |i < 8 and i is not None and i > 0:
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-drag-down))
+    (evil-ts-obj-drag-down 1))
 
 
 Name: Swap drag down t1
@@ -607,4 +607,50 @@ def m():
     #comm
     |if i is not None and i < 8 and |i > 0:
         pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-drag-down 2))
+
+
+Name: Swap drag down with count arg t1
+
+=-=
+def main(|p=call2(n,
+                 m), par2, par3,):
+    pass
+=-=
+def main(par3, par2, |p=call2(n,
+                             m),):
+    pass
+=-=-=
+
+Name: Swap drag down with count arg t2
+
+=-=
+def main(par1, |par2, par3,):
+    pass
+=-=
+def main(par1, |par2, par3,):
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-drag-up 3))
+
+
+Name: Swap drag up with count arg t1
+
+=-=
+def main(par1, par2, par3, |p=call2(n,
+                                   m)):
+    pass
+=-=
+def main(|p=call2(n,
+                 m), par2, par3, par1):
+    pass
 =-=-=
