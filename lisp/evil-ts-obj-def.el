@@ -66,10 +66,10 @@ RANGE-TYPE and TEXT-SPEC."
 
 ;;;;; drag rules
 
-(defun evil-ts-obj-def-drag-rules (_range-type &optional _text-spec)
+(defun evil-ts-obj-def-drag-rules (_range-type &optional _first-spec)
   "Return default drag rules.
 See `evil-ts-obj-conf-drag-rules' for description of RANGE-TYPE
-and TEXT-SPEC."
+and FIRST-SPEC."
   '((param . inner)
     (statement . inner)
     (compound . outer)))

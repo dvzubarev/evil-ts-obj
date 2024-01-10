@@ -144,15 +144,32 @@ This function is invoked by `evil-ts-obj-edit--raise-operator'
 and `evil-ts-obj-edit--raise-dwim' to determine what things they
 should operate on. The function should accept RANGE-TYPE and
 optionally TEXT-SPEC. RANGE-TYPE can be either text or place. If
-RANGE-TYPE is text then function should return objects, text of
-which will be used in raise operator. If RANGE-TYPE is place then
-function should return the objects that should be replaced by the
-selected text. In both cases it should return alist, for example
-\\='((statement . inner) (compound . outer)). See
-`evil-ts-obj-conf-default-raise-rules' as an example of this
-function implementation.")
+RANGE-TYPE is text then function should return a text object,
+content of which will be used in raise operator. If RANGE-TYPE is
+place then function should return a text object that should be
+replaced by the selected content. In both cases it should return
+alist, for example \\='((statement . inner) (compound . outer)).
+So it is possible to specify multiple potential text objects.
+When the RANGE-TYPE is place, TEXT-SPEC stores specification of
+previously selected text object. See
+`evil-ts-obj-def-raise-rules' as an example of this function
+implementation.")
 
-(defvar-local evil-ts-obj-conf-drag-rules nil "TODO.")
+(defvar-local evil-ts-obj-conf-drag-rules nil
+  "This is a plist that maps language to a function that returns drag rules.
+This function is invoked by `evil-ts-obj-edit--drag'to determine
+what things it should operate on. The function should accept
+RANGE-TYPE and optionally FIRST-SPEC. RANGE-TYPE is a symbol that
+value is either first or second. If RANGE-TYPE is first then
+function should return text object, which will be dragged. If
+RANGE-TYPE is second then it returns the object that should be
+swapped with the dragged one. The second object is searched
+across the first object siblings. In both cases it should return
+alist, for example \\='((statement . inner) (compound . outer)).
+So it is possible to specify multiple potential text objects.
+When the RANGE-TYPE is second, FIRST-SPEC stores specification of
+previously selected text object. See `evil-ts-obj-def-drag-rules'
+as an example of this function implementation.")
 
 (defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise)
   "Do not extend upper/lower text object range for specified commands.

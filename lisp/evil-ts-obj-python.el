@@ -153,7 +153,10 @@ Compound is represented by a `NODE'."
 (defun evil-ts-obj-python-statement-get-sibling (dir node)
   "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
 Return a next or previous sibling for `NODE' based on value of
-`DIR'."
+`DIR'. This function handles traversing of statements in
+condition (see `evil-ts-obj--get-sibling-bin-op'). Fallback to
+`evil-ts-obj--get-sibling-simple', if NODE is not inside boolean
+operator."
   (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("boolean_operator") dir node)))
       sibling
     (evil-ts-obj--get-sibling-simple dir node)))

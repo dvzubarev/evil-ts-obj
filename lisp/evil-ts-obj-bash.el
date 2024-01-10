@@ -116,7 +116,11 @@ Compound is represented by a `NODE'."
 (defun evil-ts-obj-bash-statement-get-sibling (dir node)
   "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
 Return a next or previous sibling for `NODE' based on value of
-`DIR'."
+`DIR'. This function handles traversing of bash list structure:
+`echo h && echo e`. See `evil-ts-obj--get-sibling-bin-op' for
+more information. Fallback to `evil-ts-obj--get-sibling-simple',
+if NODE is not inside boolean operator. It also stops traversing
+when reaching {else,elif}_clause."
   (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("list") dir node)))
       sibling
     (let ((sibling (evil-ts-obj--get-sibling-simple dir node)))
@@ -127,7 +131,11 @@ Return a next or previous sibling for `NODE' based on value of
 
 
 (defun evil-ts-obj-bash-param-sibling-kind (_cur-node _cur-kind node &optional _sep-regex)
-  "Implementation of a kind-func for `evil-ts-obj-conf-sibling-trav'."
+  "Implementation of a kind-func for `evil-ts-obj-conf-sibling-trav'.
+Command name is a sibling of its arguments in bash. This function
+prevents including command name while traversing over arguments.
+For description of CUR-NODE, CUR-KIND, NODE and SEP-REGEX see
+`evil-ts-obj-conf-sibling-trav'."
   (when (not (equal (treesit-node-type node) "command_name"))
     'sibling))
 

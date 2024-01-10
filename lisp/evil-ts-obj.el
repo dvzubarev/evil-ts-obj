@@ -304,8 +304,5 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 
 
 
-
-
-
 (provide 'evil-ts-obj)
 ;;; evil-ts-obj.el ends here
