@@ -423,6 +423,26 @@ if |( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
     pass
 =-=-=
 
+Name: prev sibling t12
+
+=-=
+@dec
+def func1():
+    pass
+
+@dec.call()
+|def func2():
+    pass
+=-=
+@dec
+|def func1():
+    pass
+
+@dec.call()
+def func2():
+    pass
+=-=-=
+
 
 Code:
   (lambda ()

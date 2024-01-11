@@ -547,6 +547,30 @@ if |i < 8 and i is not None and i > 0:
    pass
 =-=-=
 
+Name: Swap drag up t4
+
+=-=
+def f2():
+    pass
+
+@mydec
+def main():
+    pass
+
+|def func(t, **kwargs):
+    pass
+=-=
+def f2():
+    pass
+
+|def func(t, **kwargs):
+    pass
+
+@mydec
+def main():
+    pass
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
@@ -634,6 +658,34 @@ def main(par1, |par2, par3,):
     pass
 =-=
 def main(par1, |par2, par3,):
+    pass
+=-=-=
+
+Name: Swap drag down with count arg t3
+
+=-=
+@pytest.mark.skip
+|@mydec.temp()
+def premain():
+    pass
+
+@mydec
+def main():
+    pass
+
+def func(t, **kwargs):
+    pass
+=-=
+def func(t, **kwargs):
+    pass
+
+@mydec
+def main():
+    pass
+
+|@pytest.mark.skip
+@mydec.temp()
+def premain():
     pass
 =-=-=
 

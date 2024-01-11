@@ -22,6 +22,7 @@
 
 (defcustom evil-ts-obj-python-compound-nodes
   '("class_definition"
+    "decorated_definition"
     "function_definition"
     "if_statement"
     "elif_clause"
@@ -38,6 +39,14 @@
   :type '(repeat string)
   :group 'evil-ts-obj)
 
+(defun evil-ts-obj-python-compound-pred (node)
+  "When NODE is a function and it has decorator, match only top
+level decorated_definition node as thing."
+  (if-let* (((equal (treesit-node-type node) "function_definition"))
+            (parent (treesit-node-parent node))
+            ((equal (treesit-node-type parent) "decorated_definition")))
+      nil
+    t))
 
 (defvar evil-ts-obj-python-statement-regex nil
   "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
@@ -62,10 +71,11 @@
   :set #'evil-ts-obj-conf-nodes-setter)
 
 
-
-
-
 (defun evil-ts-obj-python-statement-pred (node)
+  "Return t if NODE is a statement thing.
+Consider NODE to be a statement if it is a part of a condition,
+or if its type is matched against
+`evil-ts-obj-python-statement-regex'."
   (if (or (equal (treesit-node-field-name node) "condition")
           (and (not (equal (treesit-node-type node) "boolean_operator"))
                (equal (treesit-node-type (treesit-node-parent node)) "boolean_operator")
@@ -94,7 +104,8 @@
 
 
 (defcustom evil-ts-obj-python-things
-  `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-compound-nodes))
+  `((compound ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-compound-nodes)
+                     #'evil-ts-obj-python-compound-pred))
     (statement evil-ts-obj-python-statement-pred)
     (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-python-param-parent-regex n))))
   "Things for python."
@@ -126,14 +137,14 @@
   :set #'evil-ts-obj-conf-seps-setter)
 
 
-(defun evil-ts-obj-python-compound-outer-ext (node)
-  "Extend a function range to the start of decorator, if it exists.
-Current thing is represented by `NODE'."
-  (when-let* ((is-func (equal (treesit-node-type node) "function_definition"))
-              (parent (treesit-node-parent node))
-              (is-decorator (equal (treesit-node-type parent) "decorated_definition")))
-    (list (treesit-node-start parent)
-          (treesit-node-end parent))))
+(defun evil-ts-obj-python-compound-nav-mod (node)
+  "Skip decorator header when navigating to decorated function.
+If NODE has type decorated_definition find function_definition
+child and jump to its beginning."
+  (when (equal (treesit-node-type node) "decorated_definition")
+    (when-let (func-node (treesit-node-child-by-field-name node "definition"))
+      (list (treesit-node-start func-node)
+            (treesit-node-end func-node)))))
 
 (defun evil-ts-obj-python-extract-compound-inner (node)
   "Return range for a compound inner text object.
@@ -144,6 +155,10 @@ Compound is represented by a `NODE'."
                   (treesit-node-child-by-field-name node "consequence"))
                  ((or "except_clause" "finally_clause")
                   (treesit-node-child node -1))
+                 ("decorated_definition"
+                  (thread-first node
+                                (treesit-node-child-by-field-name "definition")
+                                (treesit-node-child-by-field-name "body")))
                 (_
                  (treesit-node-child-by-field-name node "body"))))
               ((equal (treesit-node-type block-node) "block")))
@@ -168,8 +183,8 @@ and `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:mod 'inner))
      (evil-ts-obj-python-extract-compound-inner node))
-    ((pmap (:thing 'compound) (:mod 'outer) (:act 'op))
-     (evil-ts-obj-python-compound-outer-ext node))))
+    ((pmap (:thing 'compound) (:mod 'outer) (:act 'nav))
+     (evil-ts-obj-python-compound-nav-mod node))))
 
 (defcustom evil-ts-obj-python-ext-func
   #'evil-ts-obj-python-ext

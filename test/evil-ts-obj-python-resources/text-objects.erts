@@ -104,6 +104,34 @@ def f():
         pass
 =-=-=
 
+Name: Delete function with decorator inner in class t1
+
+=-=
+class T:
+    @decorator
+    def |main():
+        pass
+=-=
+class T:
+    @decorator
+    def main():
+        |
+=-=-=
+
+Name: Delete function with decorator inner in class t2
+
+=-=
+class T:
+    @|decorator
+    def main():
+        pass
+=-=
+class T:
+    @decorator
+    def main():
+        |
+=-=-=
+
 
 Name: Delete except inner t1
 
@@ -158,6 +186,30 @@ def main():
     pa|ss
 =-=
 |
+=-=-=
+
+Name: Delete function with double decorator outer t3
+
+=-=
+@temp
+@decorator(arg1=1,
+           arg2=2)
+def main():
+    pa|ss
+=-=
+|
+=-=-=
+
+Name: Delete function with decorator outer in class t4
+
+=-=
+class T:
+    @decorat|or
+    def main():
+        pass
+=-=
+class T:
+    |
 =-=-=
 
 Name: Delete loop outer t1

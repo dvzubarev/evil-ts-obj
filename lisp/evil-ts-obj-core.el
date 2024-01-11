@@ -257,7 +257,10 @@ form (or thing1 thing2 ...). COMMAND is the same as for
 `evil-ts-obj--make-spec'."
   (if (not (listp thing))
       (evil-ts-obj--make-spec thing 'nav nil command)
-    (evil-ts-obj--make-spec (mapcar (lambda (th) (cons th nil)) (cdr thing))
+    (evil-ts-obj--make-spec (mapcar (lambda (th) (cons th (pcase th
+                                                            ('compound 'outer)
+                                                            (_ 'inner))))
+                                    (cdr thing))
                             'nav
                             nil command)))
 

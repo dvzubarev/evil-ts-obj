@@ -63,15 +63,12 @@ calculated (see `evil-ts-obj--default-range'). The function
 should accept two arguments: SPEC and NODE.
 
 SPEC is a plist that contains a context for a current text
-object. The possible fields are :thing, :mod, :act,
-:command and :visual. :thing should contain the current thing that is
-represented by the treesit NODE. :mod may contain the current
-modifier (inner/outer etc.). It also may be nil if modifiers
-are not needed by the command. For example, movement commands
-work on the level of things for now, therefore they do not
-specify modifiers in SPEC plist. :act is a type of a
-current operation with the text object. :act can be one of
-the following symbols:
+object. The possible fields are :thing, :mod, :act, :command and
+:visual. :thing should contain the current thing that is
+represented by the treesit NODE. :mod contains the current
+modifier (inner/outer etc.). :act is a type of a current
+operation with the text object. :act can be one of the following
+symbols:
 
 * op - any evil operator or other modification operations like
   avy actions.
