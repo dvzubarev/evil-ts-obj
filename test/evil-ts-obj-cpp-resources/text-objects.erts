@@ -349,3 +349,72 @@ std::vector({1+1, 2|+2, 3+3})
 =-=
 std::vector({|3+3})
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-statement-outer)))
+
+Name: Delete statement outer t1
+
+=-=
+if (o|pts and (not i or i < 0 < 3) && t.call() or true ){}
+=-=
+if (|(not i or i < 0 < 3) && t.call() or true ){}
+=-=-=
+
+Name: Delete statement outer t2
+
+=-=
+if (opts and (not i or i < 0 < 3) && |t.call() or true ){}
+=-=
+if (opts and (not i or i < 0 < 3) && true ){}
+=-=-=
+
+Name: Delete statement outer t3
+
+=-=
+if (opts and (not i or i < 0 < 3) && t.call() or t|rue ){}
+=-=
+if (opts and (not i or i < 0 < 3) && t.call()| ){}
+=-=-=
+
+Name: Delete statement outer t4
+
+=-=
+if (opts and (not i or i < |0 < 3) && t.call() or true ){}
+=-=
+if (opts and (not i|) && t.call() or true ){}
+=-=-=
+
+Name: Delete statement outer t5
+
+=-=
+if |(opts and (not i or i < |0 < 3) && t.call() or true){}
+=-=
+if (|){}
+=-=-=
+
+Name: Delete statement outer t6
+
+=-=
+if (t|rue){}
+=-=
+if (|){}
+=-=-=
+
+Name: Delete statement outer t7
+
+=-=
+while (i < |3){}
+=-=
+while (|){}
+=-=-=
+
+Name: Delete statement outer t8
+
+=-=
+if (0< i < |3){}
+=-=
+if (|){}
+=-=-=

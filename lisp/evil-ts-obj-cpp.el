@@ -46,19 +46,66 @@ This is useful if NODE represents struct, class or function."
       nil
     t))
 
+(defvar evil-ts-obj-cpp-statement-regex nil
+  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
+
 (defcustom evil-ts-obj-cpp-statement-nodes
   '("type_definition"
     "field_declaration"
     "declaration"
     "expression_statement"
     "return_statement"
+    "call_expression"
 
     "using_declaration"
     "alias_declaration"
     "throw_statement")
   "Nodes that designate simple statement in cpp."
   :type '(repeat string)
-  :group 'evil-ts-obj)
+  :group 'evil-ts-obj
+  :set #'evil-ts-obj-conf-nodes-setter)
+
+(defvar evil-ts-obj-cpp-all-seps-regex nil
+  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
+
+(defvar evil-ts-obj-cpp-statement-seps-regex nil
+  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
+
+(defcustom evil-ts-obj-cpp-statement-seps
+  '("&&" "||" "and" "or")
+  "Separators for cpp statements."
+  :type '(choice (repeat string) string)
+  :group 'evil-ts-obj
+  :set #'evil-ts-obj-conf-seps-setter)
+
+(defun evil-ts-obj-cpp--boolean-expr? (node)
+  "Return t if NODE is boolean expression."
+  (string-match-p evil-ts-obj-cpp-statement-seps-regex
+                  (thread-first node
+                                (treesit-node-child-by-field-name "operator")
+                                (treesit-node-type))))
+
+(defun evil-ts-obj-cpp-statement-pred (node)
+  "Return t if NODE is a statement thing.
+Consider NODE to be a statement if it is a part of a condition,
+or if its type is matched against
+`evil-ts-obj-cpp-statement-regex'."
+  (let* ((parent (treesit-node-parent node))
+         (parent-type (treesit-node-type parent)))
+    (cond
+     ((and (equal parent-type "condition_clause")
+           (equal (treesit-node-field-name node) "value"))
+      t)
+     ((and (equal parent-type "binary_expression")
+           (member (treesit-node-field-name node) '("left" "right"))
+           ;; Binary expression is also used for comparison operator.
+           ;; We do not want to match parts of comparison operators,
+           ;; only the whole operator; see condition below
+           (evil-ts-obj-cpp--boolean-expr? parent))
+      (or (not (equal (treesit-node-type node) "binary_expression"))
+          ;; match only comparison operator, not boolean expressions
+          (not (evil-ts-obj-cpp--boolean-expr? node))))
+     (t (string-match-p evil-ts-obj-cpp-statement-regex (treesit-node-type node))))))
 
 (defvar evil-ts-obj-cpp-param-parent-regex nil
   "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
@@ -76,16 +123,6 @@ This is useful if NODE represents struct, class or function."
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-nodes-setter)
 
-
-(defcustom evil-ts-obj-cpp-things
-  `((compound ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-cpp-compound-nodes)
-                     #'evil-ts-obj-cpp-compound-pred))
-    (statement ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-cpp-statement-nodes))
-    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-cpp-param-parent-regex n))))
-  "Things for cpp."
-  :type 'plist
-  :group 'evil-ts-obj)
-
 (defvar evil-ts-obj-cpp-param-seps-regex nil
   "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
 
@@ -95,6 +132,16 @@ This is useful if NODE represents struct, class or function."
   :type '(choice (repeat string) string)
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-seps-setter)
+
+(defcustom evil-ts-obj-cpp-things
+  `((compound ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-cpp-compound-nodes)
+                     #'evil-ts-obj-cpp-compound-pred))
+    (statement evil-ts-obj-cpp-statement-pred)
+    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-cpp-param-parent-regex n))))
+  "Things for cpp."
+  :type 'plist
+  :group 'evil-ts-obj)
+
 
 (defun evil-ts-obj-cpp--find-func-in-template (node)
   "Find function, class or struct child and return it.
@@ -152,6 +199,17 @@ struct child and jump to its beginning."
       (list (treesit-node-start func-node)
             (treesit-node-end func-node)))))
 
+(defun evil-ts-obj-cpp-statement-get-sibling (dir node)
+  "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
+Return a next or previous sibling for `NODE' based on value of
+`DIR'. This function handles traversing of statements in
+condition (see `evil-ts-obj--get-sibling-bin-op'). Fallback to
+`evil-ts-obj--get-sibling-simple', if NODE is not inside binary
+expression."
+  (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("binary_expression") dir node)))
+      sibling
+    (evil-ts-obj--get-sibling-simple dir node)))
+
 (defun evil-ts-obj-cpp-ext (spec node)
   "Main extension function for cpp.
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
@@ -176,7 +234,10 @@ and `NODE'."
   "Set all variables needed by evil-ts-obj-core."
   (evil-ts-obj-def-init-lang 'cpp evil-ts-obj-cpp-things
                              :ext-func evil-ts-obj-cpp-ext-func
-                             :seps-reg evil-ts-obj-cpp-param-seps-regex
+                             :seps-reg evil-ts-obj-cpp-all-seps-regex
+                             :statement-sib-trav (evil-ts-obj-trav-create
+                                                  :seps evil-ts-obj-cpp-statement-seps-regex
+                                                  :fetcher #'evil-ts-obj-cpp-statement-get-sibling)
                              :param-sib-trav (evil-ts-obj-trav-create
                                               :seps evil-ts-obj-cpp-param-seps-regex)))
 

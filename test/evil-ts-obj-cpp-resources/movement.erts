@@ -41,6 +41,30 @@ func2(T t, U u){
 }
 =-=-=
 
+Name: Move to previous largest t2
+
+=-=
+if (opts and (not i or i < 0 < 3) && t.call() or |true ){}
+=-=
+if (opts and (not i or i < 0 < 3) && |t.call() or true ){}
+=-=-=
+
+Name: Move to previous largest t3
+
+=-=
+if (opts and (not i or i < 0 < 3) && |t.call() or true ){}
+=-=
+if (opts and |(not i or i < 0 < 3) && t.call() or true ){}
+=-=-=
+
+Name: Move to previous largest t4
+
+=-=
+if (opts and |(not i or i < 0 < 3) && t.call() or true ){}
+=-=
+if (|opts and (not i or i < 0 < 3) && t.call() or true ){}
+=-=-=
+
 
 Code:
   (lambda ()
@@ -63,4 +87,28 @@ float func2(){
 
 template <class T>
 |struct st_t{};
+=-=-=
+
+Name: Move to next largest t2
+
+=-=
+if (o|pts and (not i or i < 0 < 3) && t.call() or true ){}
+=-=
+if (opts and |(not i or i < 0 < 3) && t.call() or true ){}
+=-=-=
+
+Name: Move to next largest t3
+
+=-=
+if (opts and |(not i or i < 0 < 3) && t.call() or true ){}
+=-=
+if (opts and (not i or i < 0 < 3) && |t.call() or true ){}
+=-=-=
+
+Name: Move to next largest t4
+
+=-=
+if (opts and (not i or i < 0 < 3) && |t.call() or true ){}
+=-=
+if (opts and (not i or i < 0 < 3) && t.call() or |true ){}
 =-=-=
