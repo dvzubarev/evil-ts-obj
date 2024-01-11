@@ -233,9 +233,11 @@ text objects in in other windows."
            (setq evil-ts-obj-avy--current-marker (copy-marker (point)))
            (add-hook 'post-command-hook #'evil-ts-obj-avy--post-op-reset 10)))
 
+       (setq evil-ts-obj-avy--selected-node nil)
        (avy-with ,name
          (evil-ts-obj-avy-on-thing ',thing ',mod))
-       (if evil-ts-obj--last-text-obj-range
+       (if (and evil-ts-obj-avy--selected-node
+                evil-ts-obj--last-text-obj-range)
            (copy-sequence evil-ts-obj--last-text-obj-range)
          ;; Return an empty range so evil-motion-range doesn't try to guess
          (let ((p (point)))
