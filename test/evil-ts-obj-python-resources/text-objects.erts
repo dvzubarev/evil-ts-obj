@@ -653,6 +653,22 @@ if |:
     pass
 =-=-=
 
+Name: Delete statement outer t11
+
+=-=
+val = |False or var2 or var3
+=-=
+val = |var2 or var3
+=-=-=
+
+Name: Delete statement outer t12
+
+=-=
+val = False or var2 or |var3
+=-=
+val = False or var2|
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)

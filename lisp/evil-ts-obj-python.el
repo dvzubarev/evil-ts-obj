@@ -73,15 +73,14 @@ level decorated_definition node as thing."
 
 (defun evil-ts-obj-python-statement-pred (node)
   "Return t if NODE is a statement thing.
-Consider NODE to be a statement if it is a part of a condition,
-or if its type is matched against
-`evil-ts-obj-python-statement-regex'."
-  (if (or (equal (treesit-node-field-name node) "condition")
-          (and (not (equal (treesit-node-type node) "boolean_operator"))
-               (equal (treesit-node-type (treesit-node-parent node)) "boolean_operator")
-               (member (treesit-node-field-name node) '("left" "right"))))
-      t
-    (string-match-p evil-ts-obj-python-statement-regex (treesit-node-type node))))
+Consider NODE to be a statement if it is used as condition in a
+compound statement or it is a part of a boolean expression, or if
+its type is matched against `evil-ts-obj-python-statement-regex'."
+  (or (equal (treesit-node-field-name node) "condition")
+      (and (not (equal (treesit-node-type node) "boolean_operator"))
+           (equal (treesit-node-type (treesit-node-parent node)) "boolean_operator")
+           (member (treesit-node-field-name node) '("left" "right")))
+      (string-match-p evil-ts-obj-python-statement-regex (treesit-node-type node))))
 
 (defvar evil-ts-obj-python-param-parent-regex nil
   "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
