@@ -673,6 +673,34 @@ If `CURRENT' is t, detect current thing at point and return this thing."
 
 ;;; Common predicates
 
+
+(defun evil-ts-obj--bool-expr? (node bool-op-regex)
+  "Return t if NODE is boolean expression.
+BOOL-OP-REGEX is regexp that is matched against NODE operator:
+field."
+  (string-match-p bool-op-regex
+                  (treesit-node-type
+                   (treesit-node-child-by-field-name node "operator"))))
+
+(defun evil-ts-obj--common-bool-expr-pred (node bool-op-type bool-op-regex)
+  "Return t if NODE is a part of a boolean expression.
+BOOL-OP-TYPE is a type of boolean expression node. BOOL-OP-REGEX
+is regexp that is matched against boolean expression operator:
+field."
+  (when-let* ((parent (treesit-node-parent node))
+              (parent-type (treesit-node-type parent))
+              ((and (equal parent-type bool-op-type)
+                    (member (treesit-node-field-name node) '("left" "right"))
+                    ;; bool-op-type may also used for comparison operator
+                    ;; (e.g. binary_expression).
+                    ;; We do not want to match parts of comparison operators,
+                    ;; only the whole operator; see condition below
+                    (evil-ts-obj--bool-expr? parent bool-op-regex))))
+
+    (or (not (equal (treesit-node-type node) bool-op-type))
+        ;; match only comparison operator, not boolean expressions
+        (not (evil-ts-obj--bool-expr? node bool-op-regex)))))
+
 (defun evil-ts-obj-common-param-pred (parent-regex node)
   "Predicate for detecting param thing.
 Return t if `NODE' is named and its parent is matching against

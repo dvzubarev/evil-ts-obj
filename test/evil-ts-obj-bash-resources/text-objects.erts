@@ -339,6 +339,14 @@ Name: Delete statement outer t10
 =-=
 [[ @-z "$e" ]] && read -ra files || buffer=$(cat /dev/stdin ; echo .)
 =-=
+[[ @ ]] && read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=-=
+
+Name: Delete statement outer t10-2
+
+=-=
+[@[ -z "$e" ]] && read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=
 @read -ra files || buffer=$(cat /dev/stdin ; echo .)
 =-=-=
 
@@ -379,15 +387,49 @@ Name: Delete statement outer t13
 [[ -z "$e" ]] && read -ra files@
 =-=-=
 
-# Name: Delete list outer t1
+Name: Delete statement outer t14
 
-# =-=
-#  | [[ -z "$e" ]] && read -ra files || b|uffer=$(cat /dev/stdin ; echo .)
-# =-=
-#  |
-# =-=-=
+=-=
+if [[@ -n "$send_mode" && move || "$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=
+if [[ @ ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=-=
 
+Name: Delete statement outer t15
 
+=-=
+if [[ -n "$send_mode" && @move || "$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=
+if [[ -n "$send_mode" && @"$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=-=
+
+Name: Delete statement outer t16
+
+=-=
+if [[ -n "$send_mode" && move || @"$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=
+if [[ -n "$send_mode" && move@ ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=-=
+
+Name: Delete list outer t1
+
+=-=
+ @[[ -z "$e" ]] && read -ra files || buffer=$(cat /dev/stdin ; echo .)
+=-=
+ @
+=-=-=
 
 Name: Delete pipe statement outer t1
 

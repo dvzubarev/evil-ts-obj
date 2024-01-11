@@ -37,6 +37,10 @@
   (skip-unless (treesit-ready-p 'bash))
   (ert-test-erts-file (ert-resource-file "text-objects.erts")))
 
+(ert-deftest evil-ts-obj-bash-movement-test ()
+  (skip-unless (treesit-ready-p 'bash))
+  (ert-test-erts-file (ert-resource-file "movement.erts")))
+
 (ert-deftest evil-ts-obj-bash-edit-test ()
   (skip-unless (treesit-ready-p 'bash))
   (ert-test-erts-file (ert-resource-file "edit.erts")))

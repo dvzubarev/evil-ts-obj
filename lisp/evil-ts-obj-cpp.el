@@ -78,34 +78,18 @@ This is useful if NODE represents struct, class or function."
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-seps-setter)
 
-(defun evil-ts-obj-cpp--boolean-expr? (node)
-  "Return t if NODE is boolean expression."
-  (string-match-p evil-ts-obj-cpp-statement-seps-regex
-                  (thread-first node
-                                (treesit-node-child-by-field-name "operator")
-                                (treesit-node-type))))
-
 (defun evil-ts-obj-cpp-statement-pred (node)
   "Return t if NODE is a statement thing.
-Consider NODE to be a statement if it is a part of a condition,
-or if its type is matched against
-`evil-ts-obj-cpp-statement-regex'."
-  (let* ((parent (treesit-node-parent node))
-         (parent-type (treesit-node-type parent)))
-    (cond
-     ((and (equal parent-type "condition_clause")
+Consider NODE to be a statement if it is used as condition in a
+compound statement or it is a part of a boolean expression, or if
+its type is matched against `evil-ts-obj-cpp-statement-regex'."
+
+  (or (and (equal (treesit-node-type (treesit-node-parent node)) "condition_clause")
            (equal (treesit-node-field-name node) "value"))
-      t)
-     ((and (equal parent-type "binary_expression")
-           (member (treesit-node-field-name node) '("left" "right"))
-           ;; Binary expression is also used for comparison operator.
-           ;; We do not want to match parts of comparison operators,
-           ;; only the whole operator; see condition below
-           (evil-ts-obj-cpp--boolean-expr? parent))
-      (or (not (equal (treesit-node-type node) "binary_expression"))
-          ;; match only comparison operator, not boolean expressions
-          (not (evil-ts-obj-cpp--boolean-expr? node))))
-     (t (string-match-p evil-ts-obj-cpp-statement-regex (treesit-node-type node))))))
+      (evil-ts-obj--common-bool-expr-pred node "binary_expression"
+                                          evil-ts-obj-cpp-statement-seps-regex)
+      (string-match-p evil-ts-obj-cpp-statement-regex (treesit-node-type node))))
+
 
 (defvar evil-ts-obj-cpp-param-parent-regex nil
   "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")

@@ -1,0 +1,59 @@
+Point-Char: @
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (evil-ts-obj-next-largest-thing))
+
+Name: Move to next largest t1
+
+=-=
+if [[ -n@ "$send_mode" && move || "$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=
+if [[ -n "$send_mode" && @move || "$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=-=
+
+Name: Move to next largest t2
+
+=-=
+if [[ -n "$send_mode" && @move || "$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=
+if [[ -n "$send_mode" && move || @"$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (evil-ts-obj-previous-largest-thing))
+
+Name: Move to next largest t1
+
+=-=
+if [[ -n "$send_mode" && move || @"$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=
+if [[ -n "$send_mode" && @move || "$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=-=
+
+Name: Move to next largest t2
+
+=-=
+if [[ -n "$send_mode" && @move || "$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=
+if [[ @-n "$send_mode" && move || "$A" == "$B" ]] ; then
+    buffer=${buffer//\"/\\\"}
+fi
+=-=-=

@@ -32,7 +32,8 @@
   :group 'evil-ts-obj)
 
 
-
+(defvar evil-ts-obj-bash-statement-regex nil
+  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
 
 (defcustom evil-ts-obj-bash-statement-nodes
   '("command"
@@ -45,30 +46,8 @@
     "list")
   "Nodes that designate simple statement in bash."
   :type '(repeat string)
-  :group 'evil-ts-obj)
-
-(defun evil-ts-obj-bash-statement-pred (node)
-  "Predicate for detecting statement thing, represented by `NODE'.
-For list node, it returns t only for the furthest parent of the
-same type."
-  (let ((node-type (treesit-node-type node)))
-    (if (equal node-type "list")
-        (not (equal node-type (treesit-node-type (treesit-node-parent node))))
-      t)))
-
-(defun evil-ts-obj-bash-param-pred (node)
-  "Predicate for detecting param thing.
-Return t if `NODE' is a node that represents a parameter."
-  (equal (treesit-node-field-name node) "argument"))
-
-(defcustom evil-ts-obj-bash-things
-  `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-compound-nodes))
-    (statement ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-statement-nodes)
-                      #'evil-ts-obj-bash-statement-pred))
-    (param evil-ts-obj-bash-param-pred))
-  "Things for bash."
-  :type 'plist
-  :group 'evil-ts-obj)
+  :group 'evil-ts-obj
+  :set #'evil-ts-obj-conf-nodes-setter)
 
 (defvar evil-ts-obj-bash-statement-seps-regex nil
   "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
@@ -79,6 +58,39 @@ Return t if `NODE' is a node that represents a parameter."
   :type '(repeat string)
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-seps-setter)
+
+(defun evil-ts-obj-bash-statement-pred (node)
+  "Predicate for detecting statement thing, represented by `NODE'.
+Consider NODE to be a statement if it is used as condition in a
+compound statement or it is a part of a boolean expression, or if
+its type is matched against `evil-ts-obj-bash-statement-regex'.
+For list node, it returns t only for the furthest parent of the
+same type."
+
+  (let ((node-type (treesit-node-type node))
+        (parent-type (treesit-node-type (treesit-node-parent node))))
+    (pcase node-type
+      ("list" (not (equal node-type parent-type)))
+      (_
+       (or
+        (and (equal parent-type "test_command") (treesit-node-check node 'named))
+        (evil-ts-obj--common-bool-expr-pred node "binary_expression"
+                                            evil-ts-obj-bash-statement-seps-regex)
+        (string-match-p evil-ts-obj-bash-statement-regex (treesit-node-type node)))))))
+
+(defun evil-ts-obj-bash-param-pred (node)
+  "Predicate for detecting param thing.
+Return t if `NODE' is a node that represents a parameter."
+  (equal (treesit-node-field-name node) "argument"))
+
+(defcustom evil-ts-obj-bash-things
+  `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-compound-nodes))
+    (statement evil-ts-obj-bash-statement-pred)
+    (param evil-ts-obj-bash-param-pred))
+  "Things for bash."
+  :type 'plist
+  :group 'evil-ts-obj)
+
 
 (defun evil-ts-obj-bash-extract-compound-inner (node)
   "Return range for a compound inner text object.
@@ -121,7 +133,7 @@ Return a next or previous sibling for `NODE' based on value of
 more information. Fallback to `evil-ts-obj--get-sibling-simple',
 if NODE is not inside boolean operator. It also stops traversing
 when reaching {else,elif}_clause."
-  (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("list") dir node)))
+  (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("list" "binary_expression") dir node)))
       sibling
     (let ((sibling (evil-ts-obj--get-sibling-simple dir node)))
       (pcase (treesit-node-type sibling)
