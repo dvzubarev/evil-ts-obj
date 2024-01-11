@@ -38,9 +38,13 @@
   (skip-unless (treesit-ready-p 'cpp))
   (ert-test-erts-file (ert-resource-file "text-objects.erts")))
 
-;; (ert-deftest evil-ts-obj-cpp-movement-test ()
-;;   (skip-unless (treesit-ready-p 'cpp))
-;;   (ert-test-erts-file (ert-resource-file "movement.erts")))
+(ert-deftest evil-ts-obj-cpp-movement-test ()
+  (skip-unless (treesit-ready-p 'cpp))
+  (ert-test-erts-file (ert-resource-file "movement.erts")))
+
+(ert-deftest evil-ts-obj-cpp-edit-test ()
+  (skip-unless (treesit-ready-p 'cpp))
+  (ert-test-erts-file (ert-resource-file "edit.erts")))
 
 
 

@@ -1,0 +1,66 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-previous-largest-thing))
+
+Name: Move to previous largest t1
+
+=-=
+template<typename TTraits> //comment1
+template<class T, typename U> //comment2
+float
+some_struct_t<TTraits>::
+func1(T t, U u){
+    return t + u;
+}
+
+template<typename TTraits> //comment1
+template<class T, typename U> //comment2
+float
+some_struct_t<TTraits>::
+|func2(T t, U u){
+    return t + u;
+}
+=-=
+template<typename TTraits> //comment1
+template<class T, typename U> //comment2
+|float
+some_struct_t<TTraits>::
+func1(T t, U u){
+    return t + u;
+}
+
+template<typename TTraits> //comment1
+template<class T, typename U> //comment2
+float
+some_struct_t<TTraits>::
+func2(T t, U u){
+    return t + u;
+}
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-next-largest-thing))
+
+Name: Move to next largest t1
+
+=-=
+|float func2(){
+    return;
+}
+
+template <class T>
+struct st_t{};
+=-=
+float func2(){
+    return;
+}
+
+template <class T>
+|struct st_t{};
+=-=-=

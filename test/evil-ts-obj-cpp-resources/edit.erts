@@ -1,0 +1,38 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-drag-up 1))
+
+Name: drag up t1
+
+=-=
+struct s1_t {};
+
+template<typename TTraits> //comment1
+template<class T, typename U> //comment2
+float
+some_struct_t<TTraits>::
+func1(T t, U u){
+    return t + u;
+}
+
+float some_struct_t<TTraits>::|func2(T t, U u){
+    return t + u;
+}
+=-=
+struct s1_t {};
+
+|float some_struct_t<TTraits>::func2(T t, U u){
+    return t + u;
+}
+
+template<typename TTraits> //comment1
+template<class T, typename U> //comment2
+float
+some_struct_t<TTraits>::
+func1(T t, U u){
+    return t + u;
+}
+=-=-=
