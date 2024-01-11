@@ -764,6 +764,17 @@ second child (node (3)).
            (treesit-node-child sibling -1)))
         (_ sibling)))))
 
+(defun evil-ts-obj--common-get-statement-sibling (dir node bool-expr-types)
+  "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
+Return a next or previous sibling for `NODE' based on value of
+`DIR'. This function handles traversing of statements in boolean
+expressions. Boolean node names are passed in BOOL-EXPR-TYPE
+variable (see `evil-ts-obj--get-sibling-bin-op'). Fallback to
+`evil-ts-obj--get-sibling-simple', if NODE is not inside boolean
+expression."
+  (or (evil-ts-obj--get-sibling-bin-op bool-expr-types dir node)
+      (evil-ts-obj--get-sibling-simple dir node)))
+
 (defun evil-ts-obj--nodes-on-the-same-line (node other-node)
   "Return t if `NODE' and `OTHER-NODE' end on the same line."
   (save-excursion

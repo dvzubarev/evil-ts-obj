@@ -164,17 +164,6 @@ Compound is represented by a `NODE'."
     (list (treesit-node-start block-node)
           (treesit-node-end block-node))))
 
-(defun evil-ts-obj-python-statement-get-sibling (dir node)
-  "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
-Return a next or previous sibling for `NODE' based on value of
-`DIR'. This function handles traversing of statements in
-condition (see `evil-ts-obj--get-sibling-bin-op'). Fallback to
-`evil-ts-obj--get-sibling-simple', if NODE is not inside boolean
-operator."
-  (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("boolean_operator") dir node)))
-      sibling
-    (evil-ts-obj--get-sibling-simple dir node)))
-
 (defun evil-ts-obj-python-ext (spec node)
   "Main extension function for python.
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
@@ -198,9 +187,11 @@ and `NODE'."
   (evil-ts-obj-def-init-lang 'python evil-ts-obj-python-things
                              :ext-func evil-ts-obj-python-ext-func
                              :seps-reg evil-ts-obj-python-all-seps-regex
-                             :statement-sib-trav (evil-ts-obj-trav-create
-                                                  :seps evil-ts-obj-python-statement-seps-regex
-                                                  :fetcher #'evil-ts-obj-python-statement-get-sibling)
+                             :statement-sib-trav
+                             (evil-ts-obj-trav-create
+                              :seps evil-ts-obj-python-statement-seps-regex
+                              :fetcher (lambda (d n) (evil-ts-obj--common-get-statement-sibling
+                                                      d n '("boolean_operator"))))
                              :param-sib-trav (evil-ts-obj-trav-create
                                               :seps evil-ts-obj-python-param-seps-regex)))
 

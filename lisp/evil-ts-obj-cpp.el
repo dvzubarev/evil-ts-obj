@@ -183,17 +183,6 @@ struct child and jump to its beginning."
       (list (treesit-node-start func-node)
             (treesit-node-end func-node)))))
 
-(defun evil-ts-obj-cpp-statement-get-sibling (dir node)
-  "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
-Return a next or previous sibling for `NODE' based on value of
-`DIR'. This function handles traversing of statements in
-condition (see `evil-ts-obj--get-sibling-bin-op'). Fallback to
-`evil-ts-obj--get-sibling-simple', if NODE is not inside binary
-expression."
-  (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("binary_expression") dir node)))
-      sibling
-    (evil-ts-obj--get-sibling-simple dir node)))
-
 (defun evil-ts-obj-cpp-ext (spec node)
   "Main extension function for cpp.
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
@@ -219,9 +208,11 @@ and `NODE'."
   (evil-ts-obj-def-init-lang 'cpp evil-ts-obj-cpp-things
                              :ext-func evil-ts-obj-cpp-ext-func
                              :seps-reg evil-ts-obj-cpp-all-seps-regex
-                             :statement-sib-trav (evil-ts-obj-trav-create
-                                                  :seps evil-ts-obj-cpp-statement-seps-regex
-                                                  :fetcher #'evil-ts-obj-cpp-statement-get-sibling)
+                             :statement-sib-trav
+                             (evil-ts-obj-trav-create
+                              :seps evil-ts-obj-cpp-statement-seps-regex
+                              :fetcher (lambda (d n) (evil-ts-obj--common-get-statement-sibling
+                                                      d n '("binary_expression"))))
                              :param-sib-trav (evil-ts-obj-trav-create
                                               :seps evil-ts-obj-cpp-param-seps-regex)))
 
