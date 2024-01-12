@@ -616,7 +616,7 @@ if ( | ) is not None and (isinstance(v, int) or v) and v > 3:
 Name: Delete statement outer t7
 
 =-=
-if ( v := d.get(k) ) |is not None and (isinstance(v, int) or v) and v > 3:
+if |( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
     pass
 =-=
 if |(isinstance(v, int) or v) and v > 3:
@@ -646,7 +646,7 @@ if ( v := d.get(k) ) is not None and (|v) and v > 3:
 Name: Delete statement outer t10
 
 =-=
-if |( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
+if| ( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
     pass
 =-=
 if |:

@@ -423,13 +423,6 @@ if [[ -n "$send_mode" && move@ ]] ; then
 fi
 =-=-=
 
-Name: Delete list outer t1
-
-=-=
- @[[ -z "$e" ]] && read -ra files || buffer=$(cat /dev/stdin ; echo .)
-=-=
- @
-=-=-=
 
 Name: Delete pipe statement outer t1
 

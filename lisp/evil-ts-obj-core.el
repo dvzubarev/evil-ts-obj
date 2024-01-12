@@ -168,19 +168,18 @@ multiple things start at the same position. For example, yaml:
  The first hyphen symbol is the beginning of the list and a list
 item. When there are multiple overlapping things, the result
 depends on `POS'. If `POS' is inside of any thing, then the
-smallest enclosing thing is returned. If the `POS' is at the
-start of multiple things or before any thing (on the same line),
-function returns the largest node that starts at or after `POS'.
-If the `POS' is after any thing, function returns the largest
-node that ends before `POS'. It returns nil if no thing can be
-found (e.g. empty line)."
+smallest enclosing thing is returned. If the `POS' is before any
+thing (on the same line), function returns the largest node that
+starts after `POS'. If the `POS' is after any thing, function
+returns the largest node that ends before `POS'. It returns nil
+if no thing can be found (e.g. empty line)."
 
   (let* ((cursor (evil-ts-obj--node-at-or-around pos))
          (iter-pred (lambda (node)
                       (treesit-node-match-p node thing t)))
          (enclosing-node (treesit-parent-until cursor iter-pred t))
          (before-cursor (and enclosing-node
-                             (<= pos (treesit-node-start enclosing-node))))
+                             (< pos (treesit-node-start enclosing-node))))
          (after-cursor (and enclosing-node
                             (<= (treesit-node-end enclosing-node) pos))))
 
@@ -401,6 +400,7 @@ If `RETURN-NODE' is t, return cons of range and the treesit node."
                             (bound-start (car bounds))
                             (bound-end (cadr bounds))
                             (cur-range (evil-ts-obj--apply-modifiers node thing spec)))
+
                       ;; Extend to the parent thing.
                       (progn
                         (while (and cur-range

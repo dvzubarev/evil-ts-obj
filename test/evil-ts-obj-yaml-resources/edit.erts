@@ -12,12 +12,14 @@ Name: raise dwim t1
 ---
 partridges:
   count: 1
-  |location: "a pear tree"
+  |location: a pear tree
   ecount: 1
+t: t
 =-=
 ---
 partridges:
-  |location: "a pear tree"
+  |location: a pear tree
+t: t
 =-=-=
 
 Name: raise dwim t2
@@ -25,11 +27,11 @@ Name: raise dwim t2
 =-=
 ---
 partridges:
-  |location: "a pear tree"
+  |location: a pear tree
 t: t
 =-=
 ---
-|location: "a pear tree"
+|location: a pear tree
 t: t
 =-=-=
 
@@ -37,19 +39,17 @@ Name: raise dwim t3
 
 =-=
 ---
-calling-birds: four
-turtle-doves: two
-partridges:
-  |count: 1
-  location: "a pear tree"
-a: t
+k1: two
+k2:
+ | n1: 1
+  n2: 2
+k3: t
 =-=
 ---
-calling-birds: four
-turtle-doves: two
-|count: 1
-location: "a pear tree"
-a: t
+k1: two
+|n1: 1
+n2: 2
+k3: t
 =-=-=
 
 Name: raise dwim t4
@@ -58,7 +58,7 @@ Name: raise dwim t4
 ---
 - a: t
   bb:
-    |- temp2
+   | - temp2
     - temp1
 - c
 =-=
@@ -77,9 +77,69 @@ Name: raise dwim t5
   bb:
     - |temp2
     - temp1
+- b
 =-=
 ---
 - a: t
   bb:
     |- temp2
+- b
+=-=-=
+
+Name: raise dwim t6
+
+=-=
+---
+- a: 1
+  bb: 2
+- |b: 3
+- c: 4
+=-=
+---
+- a: 1
+  bb: 2
+|b: 3
+- c: 4
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-raise)
+    (apply #'evil-ts-obj-raise (evil-ts-obj-param-upper)))
+
+Name: raise param upper t1
+
+=-=
+---
+k1: two
+k2:
+  n1: 1
+  |n2: 2
+  n3: 3
+k3: t
+=-=
+---
+k1: two
+k2:
+  |n1: 1
+  n2: 2
+k3: t
+=-=-=
+
+Name: raise param upper t2
+
+=-=
+---
+k1: two
+k2:
+  n1: 1
+  |n2: 2
+k3: t
+=-=
+---
+k1: two
+|n1: 1
+n2: 2
+k3: t
 =-=-=

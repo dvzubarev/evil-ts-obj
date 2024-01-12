@@ -198,8 +198,8 @@ if v is not None and v != 0:
 Here the first =v= is the start of the two statement things: whole condition and the first condition (=v is not None=).
 
 When there are multiple overlapping things, the current thing at point depends on the point position.
-If the position is at the start of multiple things or before any thing (on the same line),
-the largest thing is selected, which starts at or after the position.
+If the position is before any thing (on the same line),
+the largest thing is selected, which starts after the position.
 If the position is after any thing (on the same line), the largest thing is selected, which ends before the position.
 If the position is inside of any thing, then the smallest enclosing thing is returned.
 ** Expand region

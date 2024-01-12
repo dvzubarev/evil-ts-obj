@@ -208,7 +208,7 @@ if |d.get('k'):
 Name: Raise statement test t5
 
 =-=
-if |call() and True:
+if| call() and True:
     pass
 =-=
 |call() and True
@@ -217,7 +217,7 @@ if |call() and True:
 Name: Raise statement test t6
 
 =-=
-if c|all() and True:
+if |call() and True:
     pass
 =-=
 if |call():

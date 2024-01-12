@@ -43,8 +43,8 @@ RANGE-TYPE and TEXT-SPEC."
         '((param . inner)
           (compound . outer)))
        ((pmap (:thing 'param))
-        '((param . all)
-          (compound . outer)))))))
+        '((param . inner)
+          (compound . inner)))))))
 
 (defun evil-ts-obj-def-raise-rules (range-type &optional text-spec)
   "Return default raise rules.
