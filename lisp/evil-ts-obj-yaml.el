@@ -57,10 +57,8 @@ See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
 
   (pcase spec
-    ((pmap (:thing 'param) (:mod 'inner)
+    ((pmap (:thing 'param) (:mod 'inner) (:act 'op)
            (:command (pred (not (eq 'evil-ts-obj-raise-dwim)))))
-     (evil-ts-obj-yaml-param-mod node))
-    ((pmap (:thing 'param) (:act 'nav))
      (evil-ts-obj-yaml-param-mod node))))
 
 (defcustom evil-ts-obj-yaml-ext-func

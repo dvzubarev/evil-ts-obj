@@ -14,7 +14,7 @@ Name: to beginning t1
 =-=
 ---
 - key:
-    - |list1
+    |- list1
 =-=-=
 
 Name: to beginning t2
@@ -58,7 +58,7 @@ Name: to beginning t5
 =-=
 ---
 - 1
-- |a:
+|- a:
    - temp2
 =-=
 ---
@@ -122,7 +122,19 @@ Name: to prev sibling t2
 - |ab:
     - temp2
 =-=
-- |aa
+- aa
+|- ab:
+    - temp2
+=-=-=
+
+Name: to prev sibling t2-2
+
+=-=
+- aa
+|- ab:
+    - temp2
+=-=
+|- aa
 - ab:
     - temp2
 =-=-=
@@ -166,7 +178,7 @@ So thing is inferred to be param.
 - >
     str
 - a:
-    - |temp2
+    |- temp2
     - temp1
 =-=-=
 
@@ -234,7 +246,7 @@ jump to the previous sibling
     - temp1
   aa: temp
   bb:
-    - |- 1
+    |- - 1
       - 2
     - temp1
 =-=-=
@@ -297,7 +309,7 @@ Name: to next sibling t1
 - ac
 =-=
 - aa
-- |ab
+|- ab
 - ac
 =-=-=
 
@@ -312,7 +324,7 @@ Name: to next sibling t2
 - aa
 - ab
   - aab
-- |ac
+|- ac
 =-=-=
 
 Name: to next sibling t3
@@ -392,7 +404,7 @@ Name: to next sibling t8
 - a: t
   bb:
     - temp1
-- |map: t
+|- map: t
 =-=-=
 
 
