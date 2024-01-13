@@ -40,9 +40,8 @@ invocation of the operator.")
 ;;; Basic edit function implementations
 (defun evil-ts-obj-edit--replace (range target-range)
   "Replace text in TARGET-RANGE with then content within RANGE.
-RANGE should be a cons of markers. Set last range to be the range
-of inserted content. Last range is used by
-`evil-ts-obj-last-range'."
+RANGE should be a cons of markers. Return the range
+of the inserted content."
 
   (let (text)
     (pcase-let ((`(,start . ,end) range))
@@ -58,19 +57,20 @@ of inserted content. Last range is used by
             (insert (evil-ts-obj-util--indent-text-according-to-point-pos text))
             ;; after insert, marker is pushed to the end of inserted text.
             ;; We explicitly set this behavior when marker was created.
-            ;; Make last range to be useful, setting it to inserted text range.
-            (setq evil-ts-obj--last-text-obj-range (list init-pos (marker-position start)))))))))
+            (list init-pos (marker-position start))))))))
 
 (defun evil-ts-obj-edit--swap (range other-range)
-  "Swap content of two ranges: RANGE and OTHER-RANGE."
+  "Swap content of two ranges: RANGE and OTHER-RANGE.
+Return new range of the content from the RANGE."
 
-  (let (text other-text save-first-to-last-range)
+  (let (text other-text swap-final-ranges
+             final-range final-other-range)
     ;; assign to range variable a range that is placed earlier in the buffer.
     (when (eq (marker-buffer (car range))
               (marker-buffer (car other-range)))
       (when (> (car range) (car other-range))
         (cl-rotatef range other-range)
-        (setq save-first-to-last-range t))
+        (setq swap-final-ranges t))
 
       (when (< (car other-range) (cdr range))
         (user-error "Swap operator does not support intersected ranges!")))
@@ -86,17 +86,18 @@ of inserted content. Last range is used by
               (let ((init-pos (marker-position start)))
                 (goto-char start)
                 (insert (evil-ts-obj-util--indent-text-according-to-point-pos other-text))
-                (when save-first-to-last-range
-                  (setq evil-ts-obj--last-text-obj-range (list init-pos (marker-position start))))
+                (setq final-other-range (list init-pos (marker-position start)))
                 (delete-region start end)))))
         ;; insert text from the range into the start of the other range
         (save-excursion
           (let ((init-pos (marker-position ostart)))
             (goto-char ostart)
             (insert (evil-ts-obj-util--indent-text-according-to-point-pos text))
-            (when (not save-first-to-last-range)
-              (setq evil-ts-obj--last-text-obj-range (list init-pos (marker-position ostart))))
-            (delete-region ostart oend)))))))
+            (setq final-range (list init-pos (marker-position ostart)))
+            (delete-region ostart oend)))))
+    (if swap-final-ranges
+        final-other-range
+      final-range)))
 
 
 ;;; Helper functions
@@ -129,6 +130,14 @@ of inserted content. Last range is used by
     (add-to-list 'evil-ts-obj-edit--overlays o)))
 
 (defun evil-ts-obj-edit--save-range-or-call-op (op-type start end op-func)
+  "Helper function for two-staged operators.
+If invoked for the first time, saves START, END and OP-TYPE to
+the `evil-ts-obj-edit--saved-range'. If
+`evil-ts-obj-edit--saved-range' is not nil and OP-TYPE is equal
+to saved op-type, then invokes OP-FUNC on two ranges. It expects
+that OP-FUNC returns range that is set to
+`evil-ts-obj--last-text-obj-range' variable. Last range is used
+by `evil-ts-obj-last-range'."
   (let ((start-marker (copy-marker start t))
         (end-marker (copy-marker end nil)))
     (if (or (null evil-ts-obj-edit--saved-range)
@@ -143,9 +152,10 @@ of inserted content. Last range is used by
       ;; second call
       (let ((second-markers (cons start-marker end-marker)))
         (unwind-protect
-            (funcall op-func
-                     (cdr evil-ts-obj-edit--saved-range)
-                     second-markers)
+            (setq evil-ts-obj--last-text-obj-range
+                  (funcall op-func
+                           (cdr evil-ts-obj-edit--saved-range)
+                           second-markers))
           (evil-ts-obj-edit--cleanup second-markers))))))
 
 ;;; Operators
