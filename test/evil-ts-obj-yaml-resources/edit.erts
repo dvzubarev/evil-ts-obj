@@ -143,3 +143,71 @@ k1: two
 n2: 2
 k3: t
 =-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-outer))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-outer)))
+
+Name: Clone after param outer t1
+
+=-=
+---
+|- a: 1
+  bb: 2
+- b: 3
+=-=
+---
+|- a: 1
+  bb: 2
+- a: 1
+  bb: 2
+- b: 3
+=-=-=
+
+Name: Clone after param outer t2
+
+=-=
+---
+- |a: 1
+  bb: 2
+- b: 3
+=-=
+---
+- |a: 1
+  a: 1
+  bb: 2
+- b: 3
+=-=-=
+
+Name: Clone after param outer t3
+
+=-=
+---
+- a: 1
+  |bb: 2
+- b: 3
+=-=
+---
+- a: 1
+  |bb: 2
+  bb: 2
+- b: 3
+=-=-=
+
+Name: Clone after param outer t4
+
+=-=
+---
+- a: 1
+- |b: 3
+- c: 4
+=-=
+---
+- a: 1
+- |b: 3
+  b: 3
+- c: 4
+=-=-=

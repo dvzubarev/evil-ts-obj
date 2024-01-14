@@ -195,6 +195,16 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (interactive "<R>")
   (evil-ts-obj-edit--swap-operator beg end))
 
+(evil-define-operator evil-ts-obj-clone-after (beg end type)
+  "Copy content of range to the position after END."
+  :move-point nil
+  (evil-ts-obj-edit--clone-after-operator beg end))
+
+(evil-define-operator evil-ts-obj-teleport-after (beg end type)
+  "Move content of range to the position after END."
+  :move-point nil
+  (evil-ts-obj-edit--teleport-after-operator beg end))
+
 (evil-define-operator evil-ts-obj-raise (beg end type)
   "Replace parent thing with the specified range."
   :move-point nil

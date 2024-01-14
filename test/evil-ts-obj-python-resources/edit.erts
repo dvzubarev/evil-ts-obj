@@ -706,3 +706,240 @@ def main(|p=call2(n,
                  m), par2, par3, par1):
     pass
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-compound-outer))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-compound-outer)))
+
+Name: Clone after compound outer t1
+
+=-=
+def main(v):
+    |if v:
+        return call(v=v,
+                    cv=13)
+=-=
+def main(v):
+    |if v:
+        return call(v=v,
+                    cv=13)
+    if v:
+        return call(v=v,
+                    cv=13)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-compound-outer))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-compound-inner)))
+
+Name: Clone after compound outer t2
+
+=-=
+def main(v):
+    |if v:
+        return call(v=v,
+                    cv=13)
+=-=
+def main(v):
+    |if v:
+        return call(v=v,
+                    cv=13)
+        if v:
+            return call(v=v,
+                        cv=13)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-statement-lower))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-statement-lower)))
+
+Name: Clone after statement lower t1
+
+=-=
+def main(v):
+    |v = 3
+    return call(v=v,
+                cv=13)
+=-=
+def main(v):
+    |v = 3
+    return call(v=v,
+                cv=13)
+    v = 3
+    return call(v=v,
+                cv=13)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-statement-lower))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-statement-inner)))
+
+Name: Clone after statement lower t2
+
+=-=
+def main(v):
+    |v = 3
+    return call(v=v,
+                cv=13)
+=-=
+def main(v):
+    |v = 3
+    v = 3
+    return call(v=v,
+                cv=13)
+    return call(v=v,
+                cv=13)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-outer))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-outer)))
+
+Name: Clone after param outer t1
+
+=-=
+var = call(arg1, kw1=1, |kw2='a, b')
+=-=
+var = call(arg1, kw1=1, |kw2='a, b', kw2='a, b')
+=-=-=
+
+Name: Clone after param outer t2
+
+=-=
+var = call(arg1, |kw1=1, kw2='a, b')
+=-=
+var = call(arg1, |kw1=1, kw1=1, kw2='a, b')
+=-=-=
+
+Name: Clone after param outer t3
+
+=-=
+var = call(arg1,
+           |kw1=1,
+           kw2='a, b')
+=-=
+var = call(arg1,
+           |kw1=1,
+           kw1=1,
+           kw2='a, b')
+=-=-=
+
+Name: Clone after param outer t4
+
+=-=
+var = call(arg1,
+           kw1=1,
+           |kw2='a, b')
+=-=
+var = call(arg1,
+           kw1=1,
+           |kw2='a, b',
+           kw2='a, b')
+=-=-=
+
+Name: Clone after param outer t5
+
+=-=
+var = call(arg1
+           , |kw1=[]
+           , kw2='a, b')
+=-=
+var = call(arg1
+           , |kw1=[]
+           , kw1=[]
+           , kw2='a, b')
+=-=-=
+
+Name: Clone after param outer t6
+
+=-=
+var = call(arg1
+           , kw1=[]
+           , |kw2='a, b')
+=-=
+var = call(arg1
+           , kw1=[]
+           , |kw2='a, b'
+           , kw2='a, b')
+=-=-=
+
+Name: Clone after param outer t7
+
+=-=
+var = call(arg1, |kw1=[],
+           kw2='a, b')
+=-=
+var = call(arg1, |kw1=[],
+           kw1=[],
+           kw2='a, b')
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-upper))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-upper)))
+
+Name: Clone after param upper t1
+
+=-=
+func(k, |func(k), *args, **kwargs)
+=-=
+func(k, |func(k), k, func(k), *args, **kwargs)
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-lower))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-lower)))
+
+Name: Clone after param lower t1
+
+=-=
+var = call(arg1, |kw1=1,
+           kw2='a, b')
+=-=
+var = call(arg1, kw1=1,
+           kw2='a, b', kw1=1,
+           kw2='a, b')
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-statement-lower))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-compound-outer))
+    (apply #'evil-upcase (evil-ts-obj-last-range)))
+
+Name: Last range with clone after t1
+
+=-=
+for var1, var2 in call():
+    ar1 +=1
+    |var2 *= var1
+    return
+
+var = 1
+=-=
+for var1, var2 in call():
+    ar1 +=1
+    var2 *= var1
+    return
+VAR2 *= VAR1
+RETURN
+
+var = 1
+=-=-=

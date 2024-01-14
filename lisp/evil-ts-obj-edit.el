@@ -99,6 +99,47 @@ Return new range of the content from the RANGE."
         final-other-range
       final-range)))
 
+(defun evil-ts-obj-edit--clone-after (range target-range &optional delete-range)
+  "Copy content of RANGE to the position after TARGET-RANGE.
+If DELETE-RANGE is t delete content of range from the buffer.
+Return new range of the content from the RANGE. If the
+end of the TARGET-RANGE is \n, then new line is inserted and
+indented according to an indentation at the beginning of the
+TARGET-RANGE. After this content of RANGE is inserted on the new
+line."
+  (let (text text-starts-with-newline)
+    (pcase-let ((`(,start . ,end) range))
+      (with-current-buffer (marker-buffer start)
+        (save-excursion
+          (goto-char start)
+          (skip-chars-forward " \t")
+          (setq text-starts-with-newline (eolp)))
+        (setq text (evil-ts-obj-util--extract-text start end))
+        (when delete-range
+          (delete-region start end))))
+
+    (pcase-let ((`(,start . ,end) target-range))
+      (with-current-buffer (marker-buffer start)
+        (let ((insert-pos (marker-position end))
+              indent)
+          (save-excursion
+            (goto-char insert-pos)
+            (when (and (not text-starts-with-newline)
+                       (eq (char-after insert-pos) ?\n))
+              ;; insert new line and insert on it.
+              ;; Use indentation of the start position.
+              (goto-char start)
+              (setq indent (current-column))
+              (goto-char insert-pos)
+              (newline)
+              (indent-to indent)
+              (end-of-line)
+              (setq insert-pos (point)))
+
+            (let ((indented-text (evil-ts-obj-util--indent-text-according-to-point-pos text)))
+              (insert indented-text)
+              (list insert-pos (+ insert-pos (length indented-text))))))))))
+
 
 ;;; Helper functions
 
@@ -165,6 +206,13 @@ by `evil-ts-obj-last-range'."
 
 (defun evil-ts-obj-edit--swap-operator (start end)
   (evil-ts-obj-edit--save-range-or-call-op 'swap start end #'evil-ts-obj-edit--swap))
+
+(defun evil-ts-obj-edit--clone-after-operator (start end)
+  (evil-ts-obj-edit--save-range-or-call-op 'clone start end #'evil-ts-obj-edit--clone-after))
+
+(defun evil-ts-obj-edit--teleport-after-operator (start end)
+  (evil-ts-obj-edit--save-range-or-call-op 'teleport start end
+                                           (lambda (r or) (evil-ts-obj-edit--clone-after r or t))))
 
 (defun evil-ts-obj-edit--raise-operator (start end)
   "Replace parent thing with the text from START END range.

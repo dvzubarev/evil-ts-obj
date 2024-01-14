@@ -17,18 +17,16 @@
 ;;; Code:
 
 
-;; * paste utils
+;;;  paste utils
 
 (defun evil-ts-obj-util--indent-text-according-to-point-pos (text &optional indent-empty-line)
   "Indent `TEXT' for later inserting to the buffer.
 The functions should be called with the destination buffer as the
-current buffer, and with point at the place where the string is
-to be inserted."
+current buffer, and with point at the place where the string will
+be inserted. If INDENT-EMPTY-LINE is t and point is on empty
+line, indent line according to mode and paste TEXT."
 
-  (let ((cur-indent (+ (current-indentation)
-                       (- (point) (save-excursion
-                                    (back-to-indentation)
-                                    (point)))))
+  (let ((cur-indent (current-column))
         (del-leading-spaces-for-first-line t))
     (when (and indent-empty-line (bolp) (eolp))
       ;; empty line
@@ -41,13 +39,21 @@ to be inserted."
 
 ;; based on https://emacs.stackexchange.com/a/34981
 (defun evil-ts-obj-util--pad-text (pad text &optional del-leading-spaces-for-first-line)
-  "Indent the `TEXT' by the `PAD' amount.
-If `DEL-LEADING-SPACES-FOR-FIRST-LINE' is t remove space before
-the first line of TEXT."
+  "Indent the `TEXT' to `PAD' column rigidly.
+Indent all lines in the TEXT forward by I = PAD - first-line-indent
+columns (or backward if I is negative). This function only reindent
+TEXT when the first line of TEXT has the same or lesser
+indentation level as other lines. If
+`DEL-LEADING-SPACES-FOR-FIRST-LINE' is t remove space before the
+first line of TEXT."
+
   (let ((itm indent-tabs-mode)
         (tw tab-width)
         (st (syntax-table))
-        (indent nil))
+        (first-line-indent nil)
+        (first-line-empty nil)
+        (indent nil)
+        (restore-trailing-spaces nil))
 
     (with-temp-buffer
       (setq indent-tabs-mode itm
@@ -56,24 +62,44 @@ the first line of TEXT."
       (insert text)
       ;; Establish the minimum level of indentation.
       (goto-char (point-min))
+      (setq first-line-empty (eolp))
       (while (and (re-search-forward "^[[:space:]\n]*" nil :noerror)
                   (not (eobp)))
         (let ((length (current-column)))
+          (when (null first-line-indent)
+            (setq first-line-indent length))
           (when (or (not indent) (< length indent))
             (setq indent length)))
         (forward-line 1))
       (if (not indent)
           (error "Region is entirely whitespace")
-        ;; Un-indent the buffer contents by the length of the minimum
-        ;; indent level.
+        (when (and (not first-line-empty)
+                   (= first-line-indent indent))
+          ;; First line has the same or lesser indentation level as other lines.
+          ;; Most likely that indentation of other lines is dependent on the
+          ;; indentation of the first line.
+          ;; So adopt all lines to the new indentation level that is set via PAD parameter.
+          ;; Otherwise do not indent, since lines seem to be indepedently indented.
 
-        (setq indent (- indent pad))
+          (setq indent (- pad indent))
+          (when (and (eobp)
+                     (save-excursion
+                       (skip-chars-backward " \t")
+                       (bolp)))
+            ;; last line consist of spaces entirely
+            ;; indent-rigidly will delete trailing spaces
+            ;; we have to save here how many we have to restore
+            (setq restore-trailing-spaces (current-column)))
 
-        (indent-rigidly (point-min) (point-max) (- indent))
+          (indent-rigidly (point-min) (point-max) indent))
+
         (when del-leading-spaces-for-first-line
           (goto-char (point-min))
           (skip-chars-forward " \t")
           (delete-region (point-min) (point)))
+        (when restore-trailing-spaces
+          (goto-char (point-max))
+          (insert (make-string restore-trailing-spaces 32)))
         (buffer-substring-no-properties (point-min) (point-max))))))
 
 (defun evil-ts-obj-util--extract-text (start end)
@@ -87,16 +113,16 @@ the first line of TEXT."
 
 ;;;###autoload
 (defun evil-ts-obj-util--calc-first-line-indent (beg end)
-  "Return number of chars before the first line when `BEG' `END'
-span multiple lines."
+  "Return number of chars before the `BEG' position.
+Return nil, if the range between `BEG', `END' does not span multiple lines."
   (save-excursion
     (goto-char beg)
-    (when (< (pos-eol) end )
-      ;; span multiple lines
-      (+ (current-indentation)
-         (- beg (progn (back-to-indentation) (point)))))))
+    (when (and (not (eolp))
+               (< (pos-eol) end ))
+      ;; span multiple lines and not starts with empty line
+      (current-column))))
 
-;; * Misc utils
+;;;  Misc utils
 
 ;; inspired by the code from map.el
 ;;;###autoload
