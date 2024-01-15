@@ -168,6 +168,8 @@ When the RANGE-TYPE is second, FIRST-SPEC stores specification of
 previously selected text object. See `evil-ts-obj-def-drag-rules'
 as an example of this function implementation.")
 
+(defvar-local evil-ts-obj-conf-clone-rules nil)
+
 (defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise)
   "Do not extend upper/lower text object range for specified commands.
 Upper/lower modifiers usually extend text object range to the

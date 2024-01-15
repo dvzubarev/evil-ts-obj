@@ -75,12 +75,31 @@ and FIRST-SPEC."
     (compound . outer)))
 
 (defun evil-ts-obj-def-conf-lang-drag-rules (_range-type &optional _text-spec)
-  "Return default drag rules.
+  "Return default drag rules for configuration languages like YAML.
 See `evil-ts-obj-conf-drag-rules' for description of RANGE-TYPE
 and TEXT-SPEC."
   '((param . inner)
     (compound . outer)))
 
+;;;;; clone rules
+
+(defun evil-ts-obj-def-clone-rules (_range-type &optional _text-spec)
+  "Return default clone rules.
+See `evil-ts-obj-conf-clone-rules' for description of RANGE-TYPE
+and FIRST-SPEC."
+  '((param . outer)
+    (statement . outer)
+    (compound . outer)))
+
+(defun evil-ts-obj-def-conf-lang-clone-rules (_range-type &optional _text-spec)
+  "Return default clone rules for configuration languages like YAML.
+See `evil-ts-obj-conf-clone-rules' for description of RANGE-TYPE
+and FIRST-SPEC."
+  '((param . outer)
+    (compound . outer)))
+
+
+;;;; sibling traverse helpers
 
 (defvar evil-ts-obj-def--sibling-trav (evil-ts-obj-trav-create
                                        :fetcher #'evil-ts-obj--get-sibling-simple
@@ -95,6 +114,7 @@ and TEXT-SPEC."
                 (evil-ts-obj-trav-fetcher evil-ts-obj-def--sibling-trav))
    :kind-func (or (evil-ts-obj-trav-kind-func user-trav)
                   (evil-ts-obj-trav-kind-func evil-ts-obj-def--sibling-trav))))
+
 
 ;;;; init functions
 (cl-defun evil-ts-obj-def-init-lang (
@@ -165,7 +185,8 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
 
   (cl-callf plist-put evil-ts-obj-conf-range-finalizers lang #'evil-ts-obj--finalize-text-obj-range)
   (cl-callf plist-put evil-ts-obj-conf-raise-rules lang #'evil-ts-obj-def-raise-rules)
-  (cl-callf plist-put evil-ts-obj-conf-drag-rules lang #'evil-ts-obj-def-drag-rules))
+  (cl-callf plist-put evil-ts-obj-conf-drag-rules lang #'evil-ts-obj-def-drag-rules)
+  (cl-callf plist-put evil-ts-obj-conf-clone-rules lang #'evil-ts-obj-def-clone-rules))
 
 (cl-defun evil-ts-obj-def-init-conf-lang (
                                           lang things &optional &key
@@ -221,7 +242,9 @@ This function also adds `evil-ts-obj-def-raise-rules' to
   (cl-callf plist-put evil-ts-obj-conf-raise-rules
     lang #'evil-ts-obj-def-conf-lang-raise-rules)
   (cl-callf plist-put evil-ts-obj-conf-drag-rules
-    lang #'evil-ts-obj-def-conf-lang-drag-rules))
+    lang #'evil-ts-obj-def-conf-lang-drag-rules)
+  (cl-callf plist-put evil-ts-obj-conf-clone-rules
+    lang #'evil-ts-obj-def-conf-lang-clone-rules))
 
 
 (provide 'evil-ts-obj-def)

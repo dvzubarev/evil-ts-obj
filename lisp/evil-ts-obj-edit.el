@@ -281,5 +281,31 @@ Actual raise is implemented via replace operator."
           (goto-char (car evil-ts-obj--last-text-obj-range))))
     (evil-ts-obj-edit--cleanup)))
 
+(defun evil-ts-obj-edit--clone-dwim-impl (after?)
+  ;; clean unfinished edit operations
+  (evil-ts-obj-edit--cleanup)
+  (unwind-protect
+      (when-let* ((lang (treesit-language-at (point)))
+                  (clone-rules-func (plist-get evil-ts-obj-conf-clone-rules lang))
+                  (rules-alist (funcall clone-rules-func 'text))
+                  (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
+                  (spec (evil-ts-obj--make-spec rules-alist 'op))
+                  (range (evil-ts-obj--get-text-obj-range (point) thing spec nil t))
+                  (node (caddr range)))
+        (if after?
+            (evil-ts-obj-edit--clone-after-operator (car range) (cadr range))
+          (evil-ts-obj-edit--clone-before-operator (car range) (cadr range)))
+
+        (when-let* ((last-spec evil-ts-obj--last-text-obj-spec)
+                    (first-thing (plist-get last-spec :thing))
+                    (second-rules-alist (funcall clone-rules-func 'place last-spec))
+                    (second-thing (evil-ts-obj-edit--thing-from-rules second-rules-alist))
+                    (second-spec (evil-ts-obj--make-spec second-rules-alist 'op))
+                    (sibling-range (evil-ts-obj--get-text-obj-range (point) second-thing second-spec)))
+          (if after?
+              (evil-ts-obj-edit--clone-after-operator (car range) (cadr range))
+            (evil-ts-obj-edit--clone-before-operator (car range) (cadr range)))))
+    (evil-ts-obj-edit--cleanup)))
+
 (provide 'evil-ts-obj-edit)
 ;;; evil-ts-obj-edit.el ends here

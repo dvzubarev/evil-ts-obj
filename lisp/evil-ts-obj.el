@@ -205,6 +205,9 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   :move-point nil
   (evil-ts-obj-edit--teleport-after-operator beg end))
 
+(evil-define-operator evil-ts-obj-clone-after-dwim ()
+  (interactive)
+  (evil-ts-obj-edit--clone-dwim-impl t))
 (evil-define-operator evil-ts-obj-raise (beg end type)
   "Replace parent thing with the specified range."
   :move-point nil
