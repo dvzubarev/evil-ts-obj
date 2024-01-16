@@ -118,7 +118,7 @@ Return nil, if the range between `BEG', `END' does not span multiple lines."
   (save-excursion
     (goto-char beg)
     (when (and (not (eolp))
-               (< (pos-eol) end ))
+               (< (pos-eol) end))
       ;; span multiple lines and not starts with empty line
       (current-column))))
 

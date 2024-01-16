@@ -167,7 +167,7 @@ Code:
     (evil-ts-obj-python-tests-setup)
     (apply #'evil-ts-obj-raise (evil-ts-obj-statement-inner)))
 
-Name: Raise statement test t1
+Name: Raise statement inner test t1
 
 =-=
     for i in range(3, 10):
@@ -229,7 +229,7 @@ Code:
     (evil-ts-obj-python-tests-setup)
     (apply #'evil-ts-obj-raise (evil-ts-obj-statement-outer)))
 
-Name: Raise statement test t1
+Name: Raise statement outer test t1
 
 =-=
 if b and |b >3:
@@ -942,4 +942,331 @@ VAR2 *= VAR1
 RETURN
 
 var = 1
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-compound-outer))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-compound-outer)))
+
+Name: Clone before compound outer t1
+
+=-=
+def main(v):
+    |if v:
+        return call(v=v,
+                    cv=13)
+=-=
+def main(v):
+    if v:
+        return call(v=v,
+                    cv=13)
+    |if v:
+        return call(v=v,
+                    cv=13)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-compound-outer))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-compound-inner)))
+
+Name: Clone before compound outer t2
+
+=-=
+def main(v):
+    |if v:
+        return call(v=v,
+                    cv=13)
+=-=
+def main(v):
+    |if v:
+        if v:
+            return call(v=v,
+                        cv=13)
+        return call(v=v,
+                    cv=13)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-statement-lower))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-statement-lower)))
+
+Name: Clone before statement lower t1
+
+=-=
+def main(v):
+    |v = 3
+    return call(v=v,
+                cv=13)
+=-=
+def main(v):
+    v = 3
+    return call(v=v,
+                cv=13)
+    |v = 3
+    return call(v=v,
+                cv=13)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-statement-lower))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-statement-inner)))
+
+Name: Clone before statement lower t2
+
+=-=
+def main(v):
+    |v = 3
+    return call(v=v,
+                cv=13)
+=-=
+def main(v):
+    v = 3
+    return call(v=v,
+                cv=13)
+    |v = 3
+    return call(v=v,
+                cv=13)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-outer))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-outer))
+    (delete-trailing-whitespace))
+
+Name: Clone before param outer t1
+
+=-=
+var = call(arg1, kw1=1, |kw2='a, b')
+=-=
+var = call(arg1, kw1=1, kw2='a, b', |kw2='a, b')
+=-=-=
+
+Name: Clone before param outer t2
+
+=-=
+var = call(arg1, |kw1=1, kw2='a, b')
+=-=
+var = call(arg1, kw1=1, |kw1=1, kw2='a, b')
+=-=-=
+
+Name: Clone before param outer t3
+
+=-=
+var = call(arg1,
+           |kw1=1,
+           kw2='a, b')
+=-=
+var = call(arg1,
+           kw1=1,
+           |kw1=1,
+           kw2='a, b')
+=-=-=
+
+Name: Clone before param outer t4
+
+=-=
+var = call(arg1,
+           kw1=1,
+           |kw2='a, b')
+=-=
+var = call(arg1,
+           kw1=1,
+           kw2='a, b',
+           |kw2='a, b')
+=-=-=
+
+Name: Clone before param outer t5
+
+=-=
+var = call(arg1
+           , |kw1=[]
+           , kw2='a, b')
+=-=
+var = call(arg1
+           , kw1=[]
+           , |kw1=[]
+           , kw2='a, b')
+=-=-=
+
+Name: Clone before param outer t6
+
+=-=
+var = call(arg1
+           , kw1=[]
+           , |kw2='a, b')
+=-=
+var = call(arg1
+           , kw1=[]
+           , kw2='a, b'
+           , |kw2='a, b')
+=-=-=
+
+Name: Clone before param outer t7
+
+=-=
+var = call(arg1, arg2,
+           |kw1=[], kw2='a, b')
+=-=
+var = call(arg1, arg2,
+           kw1=[], |kw1=[], kw2='a, b')
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-upper))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-upper)))
+
+Name: Clone before param upper t1
+
+=-=
+func(k, |func(k), *args, **kwargs)
+=-=
+func(k, func(k), k, |func(k), *args, **kwargs)
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-lower))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-lower)))
+
+Name: Clone before param lower t1
+
+=-=
+var = call(arg1, |kw1=1,
+           kw2='a, b')
+=-=
+var = call(arg1, kw1=1,
+           kw2='a, b', |kw1=1,
+           kw2='a, b')
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-statement-lower))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-compound-outer))
+    (apply #'evil-upcase (evil-ts-obj-last-range)))
+
+Name: Last range with clone before t1
+
+=-=
+var = 1
+for var1, var2 in call():
+    ar1 +=1
+    |var2 *= var1
+    return
+=-=
+var = 1
+VAR2 *= VAR1
+RETURN
+for var1, var2 in call():
+    ar1 +=1
+    var2 *= var1
+    return
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-clone-after-dwim))
+
+Name: Clone after dwim t1
+
+=-=
+if True or |call():
+    pass
+=-=
+if True or |call() or call():
+    pass
+=-=-=
+
+Name: Clone after dwim t2
+
+=-=
+    var |= 3
+    pass
+=-=
+    var |= 3
+    var = 3
+    pass
+=-=-=
+
+Name: Clone after dwim t3
+
+=-=
+    b = True or |call()
+    pass
+=-=
+    b = True or |call() or call()
+    pass
+=-=-=
+
+Name: Clone after dwim t4
+
+=-=
+    if |True:
+        pass
+=-=
+    if |True True:
+        pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-clone-before-dwim))
+
+Name: Clone before dwim t1
+
+=-=
+if |True or call():
+    pass
+=-=
+if True or |True or call():
+    pass
+=-=-=
+
+Name: Clone before dwim t2
+
+=-=
+    pass
+    var |= 3
+=-=
+    pass
+    var = 3
+    var |= 3
+=-=-=
+
+Name: Clone before dwim t3
+
+=-=
+    b = |True or call()
+    pass
+=-=
+    b = True or True or call()
+    pass
+=-=-=
+
+Name: Clone before dwim t4
+
+=-=
+    if |True:
+        pass
+=-=
+    if True |True:
+        pass
 =-=-=

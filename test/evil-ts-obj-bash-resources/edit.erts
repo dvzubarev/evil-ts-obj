@@ -186,3 +186,79 @@ echo str2
 echo str3; |echo str1
 echo str4
 =-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (evil-ts-obj-clone-after-dwim))
+
+Name: clone after dwim t1
+
+=-=
+echo he \
+    |ll \
+    o
+=-=
+echo he \
+    |ll \
+    ll \
+    o
+=-=-=
+
+Name: clone after dwim t2
+
+=-=
+echo he \
+    ll \
+    |o
+=-=
+echo he \
+    ll \
+    |o\
+    o
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (evil-ts-obj-clone-before-dwim))
+
+Name: clone before dwim t1
+
+=-=
+echo |he \
+    ll \
+    o
+=-=
+echo he \
+    |he \
+    ll \
+    o
+=-=-=
+
+Name: clone before dwim t2
+
+=-=
+echo he \
+    |ll \
+    o
+=-=
+echo he \
+    ll \
+    |ll \
+    o
+=-=-=
+
+Name: clone before dwim t3
+
+=-=
+echo he \
+    ll \
+    |o
+=-=
+echo he \
+    ll\
+    o \
+    |o
+=-=-=

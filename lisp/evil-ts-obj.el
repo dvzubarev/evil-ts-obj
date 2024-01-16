@@ -208,6 +208,16 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (evil-define-operator evil-ts-obj-clone-after-dwim ()
   (interactive)
   (evil-ts-obj-edit--clone-dwim-impl t))
+
+(evil-define-operator evil-ts-obj-clone-before (beg end type)
+  "Copy content of range before BEG."
+  :move-point nil
+  (evil-ts-obj-edit--clone-before-operator beg end))
+
+(evil-define-operator evil-ts-obj-clone-before-dwim ()
+  (interactive)
+  (evil-ts-obj-edit--clone-dwim-impl nil))
+
 (evil-define-operator evil-ts-obj-raise (beg end type)
   "Replace parent thing with the specified range."
   :move-point nil

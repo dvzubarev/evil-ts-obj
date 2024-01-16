@@ -211,3 +211,160 @@ Name: Clone after param outer t4
   b: 3
 - c: 4
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-outer))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-outer)))
+
+Name: Clone before param outer t1
+
+=-=
+---
+|- a: 1
+  bb: 2
+- b: 3
+=-=
+---
+- a: 1
+  bb: 2
+|- a: 1
+  bb: 2
+- b: 3
+=-=-=
+
+Name: Clone before param outer t2
+
+=-=
+---
+- |a: 1
+  bb: 2
+- b: 3
+=-=
+---
+- a: 1
+  |a: 1
+  bb: 2
+- b: 3
+=-=-=
+
+Name: Clone before param outer t3
+
+=-=
+---
+- a: 1
+  |bb: 2
+- b: 3
+=-=
+---
+- a: 1
+  bb: 2
+  |bb: 2
+- b: 3
+=-=-=
+
+Name: Clone before param outer t4
+
+=-=
+---
+- a: 1
+- |b: 3
+- c: 4
+=-=
+---
+- a: 1
+- b: 3
+  |b: 3
+- c: 4
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (evil-ts-obj-clone-after-dwim))
+
+Name: Clone after dwim t1
+=-=
+---
+  a: 1
+  |l:
+    - my
+    - list
+  b: 2
+=-=
+---
+  a: 1
+  |l:
+    - my
+    - list
+  l:
+    - my
+    - list
+  b: 2
+=-=-=
+
+Name: Clone after dwim t2
+=-=
+---
+- a: 1
+- |l:
+    - my
+    - list
+- b: 2
+=-=
+---
+- a: 1
+- |l:
+    - my
+    - list
+  l:
+    - my
+    - list
+- b: 2
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (evil-ts-obj-clone-before-dwim))
+
+Name: Clone before dwim t1
+=-=
+---
+  a: 1
+  |l:
+    - my
+    - list
+  b: 2
+=-=
+---
+  a: 1
+  l:
+    - my
+    - list
+  |l:
+    - my
+    - list
+  b: 2
+=-=-=
+
+Name: Clone before dwim t2
+=-=
+---
+- a: 1
+- |l:
+    - my
+    - list
+- b: 2
+=-=
+---
+- a: 1
+- l:
+    - my
+    - list
+  |l:
+    - my
+    - list
+- b: 2
+=-=-=
