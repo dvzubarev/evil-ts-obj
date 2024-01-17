@@ -103,9 +103,37 @@ Return new range of the content from the RANGE."
   "Heuristic to determine whether to insert a space between texts.
 Return t if one of the chars (TEXT-FIRST-CHAR or PLACE-LAST-CHAR)
 is newline, space or punctuation."
-  (let ((wh-chars '(?> ?\  ?. )))
+  (let ((wh-chars '(?> ?\  ?.)))
     (or (memq (char-syntax text-first-char) wh-chars)
         (memq (char-syntax place-last-char) wh-chars))))
+
+(defun evil-ts-obj-edit--clone-indent (indent-ref-pos &optional start end)
+  "Indent current point.
+Indentation level is controlled via
+`evil-ts-obj-conf-clone-indent-policy' variable. If value of this
+variable is cur-indent, then indentation is equal to current
+indentation at INDENT-REF-POS position. If its value is column,
+then current column at INDENT-REF-POS is used as indentation
+level. If this variable is nil, then `indent-according-to-mode'
+is used. If START and END are not nil, then indent this region
+instead of point."
+  (let* ((indent-policy (plist-get evil-ts-obj-conf-clone-indent-policy
+                                   (treesit-language-at indent-ref-pos)))
+         indent)
+    (save-excursion
+      (goto-char indent-ref-pos)
+      (setq indent
+            (pcase indent-policy
+              ('column (current-column))
+              ('cur-indent (current-indentation)))))
+    (if (null start)
+        (if indent
+            (indent-to indent)
+          (indent-according-to-mode))
+
+      (if (null indent)
+          (indent-region start end)
+        (indent-rigidly start end (- indent (current-indentation)))))))
 
 (defun evil-ts-obj-edit--clone-after (range target-range &optional delete-range)
   "Copy content of RANGE to the position after TARGET-RANGE.
@@ -113,48 +141,47 @@ If DELETE-RANGE is t delete content of RANGE. Return new range of
 the cloned content. If the end of the TARGET-RANGE is \n and
 content does not start with newline, then new line is inserted
 and indented according to an indentation at the beginning of the
-TARGET-RANGE. After this content of RANGE is inserted on the new
-line."
+TARGET-RANGE (see `evil-ts-obj-edit--clone-indent'). After this
+content of RANGE is inserted on the new line."
   (let (text text-starts-with-newline
-             is-multiline text-first-char)
+             text-starts-with-space text-first-char)
     (pcase-let ((`(,start . ,end) range))
       (with-current-buffer (marker-buffer start)
         (save-excursion
           (goto-char start)
-          (setq text-first-char (char-after))
-          (setq is-multiline (< (pos-eol) end))
+          (setq text-first-char (char-after)
+                text-starts-with-space (eq (char-syntax text-first-char) ?\ ))
           (skip-syntax-forward " \\")
           (setq text-starts-with-newline (eolp)))
-        (setq text (evil-ts-obj-util--extract-text start end))
+        (setq text (if text-starts-with-space (buffer-substring-no-properties start end)
+                     (evil-ts-obj-util--extract-text start end)))
         (when delete-range
           (delete-region start end))))
 
     (pcase-let ((`(,start . ,end) target-range))
       (with-current-buffer (marker-buffer start)
         (let ((insert-pos (marker-position end))
-              indent)
+              (place-last-char (char-after (1- end))))
           (save-excursion
             (goto-char insert-pos)
             (cond
              ((and (eq (char-after insert-pos) ?\n)
-                   (not text-starts-with-newline)
                    ;; heuristics to determine whether to open a new line
-                   (not (evil-ts-obj-edit--clone-compatible? text-first-char (char-after (1- end)))))
+                   (not text-starts-with-newline)
+                   (or
+                    (eq (char-syntax place-last-char) ?.)
+                    (not (evil-ts-obj-edit--clone-compatible? text-first-char place-last-char))))
               ;; insert new line and insert on it.
               ;; Use indentation of the start position.
-              (goto-char start)
-              (setq indent (current-column))
-              (goto-char insert-pos)
               (newline)
-              (indent-to indent)
+              (evil-ts-obj-edit--clone-indent start)
               (end-of-line)
               (setq insert-pos (point)))
              ((not (evil-ts-obj-edit--clone-compatible? text-first-char (char-after (1- end))))
               (insert " ")
               (setq insert-pos (point))))
 
-
-            (let ((indented-text (if is-multiline
+            (let ((indented-text (if (not text-starts-with-space)
                                      (evil-ts-obj-util--indent-text-according-to-point-pos text)
                                    text)))
               (insert indented-text)
@@ -164,44 +191,52 @@ line."
   "Copy content of RANGE before the beginning of TARGET-RANGE.
 If DELETE-RANGE is t delete content of RANGE. Return new range of
 the cloned content. If beginning of the TARGET-RANGE preceded by
-only spaces and content does not end with newline, then new line
-is inserted and indented according to an indentation at the
-beginning of the TARGET-RANGE. After this content of RANGE is
+only spaces and new content does not end with newline, then a new
+line is inserted and indented according to an indentation at the
+beginning of the TARGET-RANGE (see
+`evil-ts-obj-edit--clone-indent'). After this content of RANGE is
 inserted on the new line."
   (let (text text-ends-with-newline
-             text-last-char is-multiline)
+             text-starts-with-space
+             text-last-char
+             newline-after-text)
     (pcase-let ((`(,start . ,end) range))
       (with-current-buffer (marker-buffer start)
         (save-excursion
           (goto-char end)
-          (setq text-last-char (char-after (1- (point))))
+          (setq text-last-char (char-after (1- (point)))
+                newline-after-text (eq (char-after) ?\n))
           (skip-chars-backward " \t")
           (setq text-ends-with-newline (bolp))
-          (setq is-multiline (< start (pos-bol))))
-        (setq text (evil-ts-obj-util--extract-text start end))
+          (goto-char start)
+          (setq text-starts-with-space (eq (char-syntax (char-after)) ?\ )))
+        (setq text (if text-starts-with-space
+                       (buffer-substring-no-properties start end)
+                       (evil-ts-obj-util--extract-text start end)))
         (when delete-range
           (delete-region start end))))
 
     (pcase-let ((`(,start . ,end) target-range))
       (with-current-buffer (marker-buffer start)
         (let ((insert-pos (marker-position start))
-              (point-mark (copy-marker (point) t))
+              (point-mark (copy-marker (max start (point)) t))
               indent)
           (goto-char insert-pos)
           (cond
-           ((and (not text-ends-with-newline)
-                 (eq (char-after end) ?\n)
-                 (not (evil-ts-obj-edit--clone-compatible? text-last-char (char-after start))))
+           ((and ;; heuristics to determine whether to open a new line
+                 newline-after-text
+                 (not text-ends-with-newline)
+                 (or (eq (char-syntax text-last-char) ?.)
+                     (not (evil-ts-obj-edit--clone-compatible? text-last-char (char-after start)))))
 
             (if (save-excursion (skip-chars-backward " \t") (bolp))
                 (progn
-                  ;; Insert place is at the start of the line.
+                  ;; Insert point is at the start of the line.
                   ;; Insert new line with the indentation of the start position.
-                  (setq indent (current-column))
                   (goto-char (line-beginning-position))
                   (newline)
                   (forward-line -1)
-                  (indent-to indent)
+                  (evil-ts-obj-edit--clone-indent start)
                   (end-of-line)
                   (setq insert-pos (point)))
               ;; otherwise move current content down one line
@@ -209,13 +244,15 @@ inserted on the new line."
               (open-line 1)
               (setq insert-pos (point))
               (forward-line 1)
+              (set-marker-insertion-type start nil)
               (indent-to indent)
+              (evil-ts-obj-edit--clone-indent insert-pos start end)
               (goto-char insert-pos)))
            ((not (evil-ts-obj-edit--clone-compatible? text-last-char (char-after start)))
             (save-excursion
               (insert " "))))
 
-          (let ((indented-text (if is-multiline
+          (let ((indented-text (if (not text-starts-with-space)
                                    (evil-ts-obj-util--indent-text-according-to-point-pos text)
                                  text)))
             (insert indented-text)

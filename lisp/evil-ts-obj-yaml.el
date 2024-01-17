@@ -72,7 +72,8 @@ and `NODE'."
   "Set all variables needed by evil-ts-obj-core."
 
   (evil-ts-obj-def-init-conf-lang 'yaml evil-ts-obj-yaml-things
-                                  :ext-func evil-ts-obj-yaml-ext-func))
+                                  :ext-func evil-ts-obj-yaml-ext-func
+                                  :clone-indent-policy 'column))
 
 
 

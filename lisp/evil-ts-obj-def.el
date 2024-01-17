@@ -124,7 +124,8 @@ and FIRST-SPEC."
                                      (nav-thing '(or param statement compound))
                                      (compound-sib-trav evil-ts-obj-def--sibling-trav)
                                      (statement-sib-trav evil-ts-obj-def--sibling-trav)
-                                     (param-sib-trav evil-ts-obj-def--sibling-trav))
+                                     (param-sib-trav evil-ts-obj-def--sibling-trav)
+                                     (clone-indent-policy 'cur-indent))
   "Set default values for language LANG.
 THINGS are added to `treesit-thing-settings' variable.
 
@@ -186,7 +187,8 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
   (cl-callf plist-put evil-ts-obj-conf-range-finalizers lang #'evil-ts-obj--finalize-text-obj-range)
   (cl-callf plist-put evil-ts-obj-conf-raise-rules lang #'evil-ts-obj-def-raise-rules)
   (cl-callf plist-put evil-ts-obj-conf-drag-rules lang #'evil-ts-obj-def-drag-rules)
-  (cl-callf plist-put evil-ts-obj-conf-clone-rules lang #'evil-ts-obj-def-clone-rules))
+  (cl-callf plist-put evil-ts-obj-conf-clone-rules lang #'evil-ts-obj-def-clone-rules)
+  (cl-callf plist-put evil-ts-obj-conf-clone-indent-policy lang clone-indent-policy))
 
 (cl-defun evil-ts-obj-def-init-conf-lang (
                                           lang things &optional &key
@@ -194,7 +196,9 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
                                           (seps-reg nil)
                                           (nav-thing '(or param compound))
                                           (compound-sib-trav evil-ts-obj-def--sibling-trav)
-                                          (param-sib-trav evil-ts-obj-def--sibling-trav))
+                                          (param-sib-trav evil-ts-obj-def--sibling-trav)
+                                          (clone-indent-policy nil))
+
   "Set default values for language LANG.
 THINGS are added to `treesit-thing-settings' variable.
 
@@ -244,7 +248,8 @@ This function also adds `evil-ts-obj-def-raise-rules' to
   (cl-callf plist-put evil-ts-obj-conf-drag-rules
     lang #'evil-ts-obj-def-conf-lang-drag-rules)
   (cl-callf plist-put evil-ts-obj-conf-clone-rules
-    lang #'evil-ts-obj-def-conf-lang-clone-rules))
+    lang #'evil-ts-obj-def-conf-lang-clone-rules)
+  (cl-callf plist-put evil-ts-obj-conf-clone-indent-policy lang clone-indent-policy))
 
 
 (provide 'evil-ts-obj-def)

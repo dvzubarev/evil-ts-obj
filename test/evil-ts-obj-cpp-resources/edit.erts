@@ -36,3 +36,428 @@ func1(T t, U u){
     return t + u;
 }
 =-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-clone-after-dwim))
+
+Name: Clone after dwim t1
+
+=-=
+while (true)
+    |i++;
+=-=
+while (true)
+    |i++;
+    i++;
+=-=-=
+
+Name: Clone after dwim t2
+
+=-=
+|while (true)
+    i++;
+=-=
+|while (true)
+    i++;
+while (true)
+    i++;
+=-=-=
+
+Name: Clone after dwim t3
+
+=-=
+template <class T>
+|struct st_t{};
+=-=
+template <class T>
+|struct st_t{};
+template <class T>
+struct st_t{};
+=-=-=
+
+Name: Clone after dwim t4
+
+=-=
+template <class T>
+struct st_t{
+    |using base_t     = cnt_t<S,
+                             w_t<S>>;
+};
+=-=
+template <class T>
+struct st_t{
+    |using base_t     = cnt_t<S,
+                             w_t<S>>;
+    using base_t     = cnt_t<S,
+                             w_t<S>>;
+};
+=-=-=
+
+Name: Clone after dwim t5
+
+=-=
+template <class S, |class B  = base_t<S>>
+struct cnt_t : public B{};
+=-=
+template <class S, |class B  = base_t<S>, class B  = base_t<S>>
+struct cnt_t : public B{};
+=-=-=
+
+Name: Clone after dwim t7
+
+=-=
+if (|opts and (not i || i < 0 < 3) && t.call() || true ){
+}
+=-=
+if (|opts and opts and (not i || i < 0 < 3) && t.call() || true ){
+}
+=-=-=
+
+Name: Clone after dwim t8
+
+=-=
+if (opts and |(not i or i < 0 < 3) && t.call() or true ){
+}
+=-=
+if (opts and |(not i or i < 0 < 3) && (not i or i < 0 < 3) && t.call() or true ){
+}
+=-=-=
+
+Name: Clone after dwim t9
+
+=-=
+if (opts and (not i or i < 0 < 3) && t.call() or |true ){
+}
+=-=
+if (opts and (not i or i < 0 < 3) && t.call() or |true or true ){
+}
+=-=-=
+
+Name: Clone after dwim t10
+
+=-=
+if (true){
+    auto comp = true && false && |call();
+}
+=-=
+if (true){
+    auto comp = true && false && |call() && call();
+}
+=-=-=
+
+Name: Clone after dwim t11
+
+=-=
+if (true){
+    auto comp = |true && false && call();
+}
+=-=
+if (true){
+    auto comp = |true && true && false && call();
+}
+=-=-=
+
+Name: Clone after dwim t12
+
+=-=
+if (true){
+    |auto comp = true && false && call();
+    call2();
+}
+=-=
+if (true){
+    |auto comp = true && false && call();
+    auto comp = true && false && call();
+    call2();
+}
+=-=-=
+
+Name: Clone after dwim t13
+
+=-=
+if (true){
+    auto comp = true && false;
+    |res = sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=
+if (true){
+    auto comp = true && false;
+    |res = sort(items_hld, comp);
+    res = sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=-=
+Name: Clone after dwim t14
+
+=-=
+if (true){
+    auto comp = true && false;
+    res = |sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=
+if (true){
+    auto comp = true && false;
+    res = |sort(items_hld, comp) sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=-=
+
+Name: Clone after dwim t15
+
+=-=
+if (true){
+    auto comp = true && false;
+    |call(comp);
+}
+=-=
+if (true){
+    auto comp = true && false;
+    |call(comp) call(comp);
+}
+=-=-=
+
+Name: Clone after dwim t16
+
+=-=
+if (true){
+    auto comp = true && false;
+   | call(comp);
+}
+=-=
+if (true){
+    auto comp = true && false;
+   | call(comp);
+    call(comp);
+}
+=-=-=
+
+Name: Clone after dwim t17
+
+=-=
+if (true){
+    auto comp = |call() + 1;
+    return comp;
+}
+=-=
+if (true){
+    auto comp = |call() call() + 1;
+    return comp;
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-clone-before-dwim))
+
+Name: Clone before dwim t1
+
+=-=
+while (true)
+    |i++;
+=-=
+while (true)
+    i++;
+    |i++;
+=-=-=
+
+Name: Clone before dwim t2
+
+=-=
+|while (true)
+    i++;
+=-=
+while (true)
+    i++;
+|while (true)
+    i++;
+=-=-=
+
+Name: Clone before dwim t3
+
+=-=
+template <class T>
+|struct st_t{};
+=-=
+template <class T>
+struct st_t{};
+template <class T>
+|struct st_t{};
+=-=-=
+
+Name: Clone before dwim t4
+
+=-=
+template <class T>
+struct st_t{
+    |using base_t     = cnt_t<S,
+                             w_t<S>>;
+};
+=-=
+template <class T>
+struct st_t{
+    using base_t     = cnt_t<S,
+                             w_t<S>>;
+    |using base_t     = cnt_t<S,
+                             w_t<S>>;
+};
+=-=-=
+
+Name: Clone before dwim t5
+
+=-=
+template <class S, |class B  = base_t<S>>
+struct cnt_t : public B{};
+=-=
+template <class S, class B  = base_t<S>, |class B  = base_t<S>>
+struct cnt_t : public B{};
+=-=-=
+
+Name: Clone before dwim t7
+
+=-=
+if (|opts and (not i || i < 0 < 3) && t.call() || true ){
+}
+=-=
+if (opts and |opts and (not i || i < 0 < 3) && t.call() || true ){
+}
+=-=-=
+
+Name: Clone before dwim t8
+
+=-=
+if (opts and |(not i or i < 0 < 3) && t.call() or true ){
+}
+=-=
+if (opts and (not i or i < 0 < 3) && |(not i or i < 0 < 3) && t.call() or true ){
+}
+=-=-=
+
+Name: Clone before dwim t9
+
+=-=
+if (opts and (not i or i < 0 < 3) && t.call() or |true ){
+}
+=-=
+if (opts and (not i or i < 0 < 3) && t.call() or true or |true ){
+}
+=-=-=
+
+Name: Clone before dwim t10
+
+=-=
+if (true){
+    auto comp = true && false && |call();
+}
+=-=
+if (true){
+    auto comp = true && false && call() && |call();
+}
+=-=-=
+
+Name: Clone before dwim t11
+
+=-=
+if (true){
+    auto comp = |true && false && call();
+}
+=-=
+if (true){
+    auto comp = true && |true && false && call();
+}
+=-=-=
+
+Name: Clone before dwim t12
+
+=-=
+if (true){
+    |auto comp = true && false && call();
+    call2();
+}
+=-=
+if (true){
+    auto comp = true && false && call();
+    |auto comp = true && false && call();
+    call2();
+}
+=-=-=
+
+Name: Clone before dwim t13
+
+=-=
+if (true){
+    auto comp = true && false;
+    |res = sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=
+if (true){
+    auto comp = true && false;
+    res = sort(items_hld, comp);
+    |res = sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=-=
+Name: Clone before dwim t14
+
+=-=
+if (true){
+    auto comp = true && false;
+    res = |sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=
+if (true){
+    auto comp = true && false;
+    res = sort(items_hld, comp) |sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=-=
+
+Name: Clone before dwim t15
+
+=-=
+if (true){
+    auto comp = true && false;
+    |call(comp);
+}
+=-=
+if (true){
+    auto comp = true && false;
+    call(comp) |call(comp);
+}
+=-=-=
+
+Name: Clone before dwim t16
+
+=-=
+if (true){
+    auto comp = true && false;
+   | call(comp);
+}
+=-=
+if (true){
+    auto comp = true && false;
+    call(comp);
+    |call(comp);
+}
+=-=-=
+
+Name: Clone before dwim t17
+
+=-=
+if (true){
+    auto comp = |call() + 1;
+    return comp;
+}
+=-=
+if (true){
+    auto comp = call() |call() + 1;
+    return comp;
+}
+=-=-=

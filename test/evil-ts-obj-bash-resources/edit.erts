@@ -215,7 +215,7 @@ echo he \
 =-=
 echo he \
     ll \
-    |o\
+    |o \
     o
 =-=-=
 
@@ -258,7 +258,7 @@ echo he \
     |o
 =-=
 echo he \
-    ll\
+    ll \
     o \
     |o
 =-=-=

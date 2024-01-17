@@ -982,11 +982,11 @@ def main(v):
                     cv=13)
 =-=
 def main(v):
-    |if v:
+    if v:
         if v:
             return call(v=v,
                         cv=13)
-        return call(v=v,
+        |return call(v=v,
                     cv=13)
 =-=-=
 
@@ -1034,6 +1034,25 @@ def main(v):
     |v = 3
     return call(v=v,
                 cv=13)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-statement-inner))
+    (evil-ts-obj-previous-statement)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-statement-inner)))
+
+Name: Clone before statement w/o newline t1
+
+=-=
+var = call(t, p)
+if |True:
+    pass
+=-=
+var = True |call(t, p)
+if True:
+    pass
 =-=-=
 
 Code:
@@ -1225,6 +1244,34 @@ Name: Clone after dwim t4
         pass
 =-=-=
 
+Name: Clone after dwim t5
+
+=-=
+def main(v):
+    if v:
+        return |call(v=v,
+                    cv=13)
+=-=
+def main(v):
+    if v:
+        return |call(v=v,
+                    cv=13)
+        call(v=v,
+             cv=13)
+=-=-=
+
+Name: Clone after dwim t6
+
+=-=
+def main(v):
+    return call(v=v, cv=13) + |call2('st')
+=-=
+def main(v):
+    return call(v=v, cv=13) + |call2('st')
+    call2('st')
+=-=-=
+
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
@@ -1269,4 +1316,31 @@ Name: Clone before dwim t4
 =-=
     if True |True:
         pass
+=-=-=
+
+Name: Clone before dwim t5
+
+=-=
+def main(v):
+    if v:
+        return |call(v=v,
+                    cv=13)
+=-=
+def main(v):
+    if v:
+        return call(v=v,
+                    cv=13)
+        |call(v=v,
+             cv=13)
+=-=-=
+
+Name: Clone before dwim t6
+
+=-=
+def main(v):
+    return call(v=v, cv=13) + |call2('st')
+=-=
+def main(v):
+    return call(v=v, cv=13) + call2('st')
+    |call2('st')
 =-=-=

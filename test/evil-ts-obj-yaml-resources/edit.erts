@@ -324,6 +324,21 @@ Name: Clone after dwim t2
 - b: 2
 =-=-=
 
+Name: Clone after dwim t3
+=-=
+---
+-| name: install
+  become: yes
+- t
+=-=
+---
+-| name: install
+  become: yes
+  name: install
+  become: yes
+- t
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
@@ -367,4 +382,19 @@ Name: Clone before dwim t2
     - my
     - list
 - b: 2
+=-=-=
+
+Name: Clone before dwim t3
+=-=
+---
+-| name: install
+  become: yes
+- t
+=-=
+---
+- name: install
+  become: yes
+  |name: install
+  become: yes
+- t
 =-=-=

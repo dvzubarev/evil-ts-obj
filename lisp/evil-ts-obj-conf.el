@@ -168,7 +168,31 @@ When the RANGE-TYPE is second, FIRST-SPEC stores specification of
 previously selected text object. See `evil-ts-obj-def-drag-rules'
 as an example of this function implementation.")
 
-(defvar-local evil-ts-obj-conf-clone-rules nil)
+(defvar-local evil-ts-obj-conf-clone-rules nil
+  "This is a plist that maps language to a function that returns clone DWIM rules.
+This function is invoked by `evil-ts-obj-edit--clone-dwim-impl'to
+determine what things it should operate on. The function should
+accept RANGE-TYPE and optionally TEXT-SPEC. RANGE-TYPE is a
+symbol that value is either text or place. If RANGE-TYPE is text
+then function should return a text object, content of which will
+be cloned. If RANGE-TYPE is place then function should return a
+text object that denotes position to insert the selected content.
+If clone-before then start of text object is the insert position,
+if clone-after then text is inserted at the end of the range. In
+both cases it should return alist, for example \\='((statement .
+inner) (compound . outer)). So it is possible to specify multiple
+potential text objects. When the RANGE-TYPE is place, TEXT-SPEC
+stores specification of previously selected text object. See
+`evil-ts-obj-def-clone-rules' as an example of this function
+implementation.")
+
+(defvar-local evil-ts-obj-conf-clone-indent-policy nil
+  "Map a language to a symbol that determines clone policy on newlines indentation.
+If its value is nil, then `indent-according-to-mode' function is
+used. If value is symbol cur-indent, then indentation is equal to
+the current indentation at the start of a place range. If its
+value is the symbol column, then column number of the start of
+the place range is used as an indentation level.")
 
 (defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise)
   "Do not extend upper/lower text object range for specified commands.

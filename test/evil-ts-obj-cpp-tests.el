@@ -32,6 +32,7 @@
   (evil-normal-state)
   (let ((inhibit-message t))
     (c++-ts-mode))
+  (indent-tabs-mode -1)
   (evil-ts-obj-mode 1))
 
 (ert-deftest evil-ts-obj-cpp-text-objects-test ()
