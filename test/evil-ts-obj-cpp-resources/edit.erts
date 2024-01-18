@@ -429,7 +429,8 @@ if (true){
 =-=
 if (true){
     auto comp = true && false;
-    call(comp) |call(comp);
+    call(comp)
+    |call(comp);
 }
 =-=-=
 

@@ -196,8 +196,7 @@ line is inserted and indented according to an indentation at the
 beginning of the TARGET-RANGE (see
 `evil-ts-obj-edit--clone-indent'). After this content of RANGE is
 inserted on the new line."
-  (let (text text-ends-with-newline
-             text-starts-with-space
+  (let (text text-starts-with-space
              text-last-char
              newline-after-text)
     (pcase-let ((`(,start . ,end) range))
@@ -206,8 +205,6 @@ inserted on the new line."
           (goto-char end)
           (setq text-last-char (char-after (1- (point)))
                 newline-after-text (eq (char-after) ?\n))
-          (skip-chars-backward " \t")
-          (setq text-ends-with-newline (bolp))
           (goto-char start)
           (setq text-starts-with-space (eq (char-syntax (char-after)) ?\ )))
         (setq text (if text-starts-with-space
@@ -223,31 +220,32 @@ inserted on the new line."
               indent)
           (goto-char insert-pos)
           (cond
-           ((and ;; heuristics to determine whether to open a new line
-                 newline-after-text
-                 (not text-ends-with-newline)
-                 (or (eq (char-syntax text-last-char) ?.)
-                     (not (evil-ts-obj-edit--clone-compatible? text-last-char (char-after start)))))
-
-            (if (save-excursion (skip-chars-backward " \t") (bolp))
-                (progn
-                  ;; Insert point is at the start of the line.
-                  ;; Insert new line with the indentation of the start position.
-                  (goto-char (line-beginning-position))
-                  (newline)
-                  (forward-line -1)
-                  (evil-ts-obj-edit--clone-indent start)
-                  (end-of-line)
-                  (setq insert-pos (point)))
-              ;; otherwise move current content down one line
-              (setq indent (current-column))
-              (open-line 1)
-              (setq insert-pos (point))
-              (forward-line 1)
-              (set-marker-insertion-type start nil)
-              (indent-to indent)
-              (evil-ts-obj-edit--clone-indent insert-pos start end)
-              (goto-char insert-pos)))
+           ;; heuristics to determine whether to open a new line
+           ((and
+             (save-excursion (skip-chars-backward " \t") (bolp))
+             (or (eq (char-syntax text-last-char) ?.)
+                 (not (evil-ts-obj-edit--clone-compatible? text-last-char (char-after start)))))
+            ;; Insert point is at the start of the line.
+            ;; Insert new line with the indentation of the start position.
+            (goto-char (line-beginning-position))
+            (newline)
+            (forward-line -1)
+            (evil-ts-obj-edit--clone-indent start)
+            (end-of-line)
+            (setq insert-pos (point)))
+           ((and
+             newline-after-text
+             (or (eq (char-syntax text-last-char) ?.)
+                 (not (evil-ts-obj-edit--clone-compatible? text-last-char (char-after start)))))
+            ;; Move current content down one line
+            (setq indent (current-column))
+            (open-line 1)
+            (setq insert-pos (point))
+            (forward-line 1)
+            (set-marker-insertion-type start nil)
+            (indent-to indent)
+            (evil-ts-obj-edit--clone-indent insert-pos start end)
+            (goto-char insert-pos))
            ((not (evil-ts-obj-edit--clone-compatible? text-last-char (char-after start)))
             (save-excursion
               (insert " "))))

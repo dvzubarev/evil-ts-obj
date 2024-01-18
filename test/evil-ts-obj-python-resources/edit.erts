@@ -1058,6 +1058,50 @@ if True:
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-statement-inner))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-compound-outer)))
+
+Name: Clone condition before compound t1
+
+=-=
+var = call(t, p)
+if| True or call(m,
+                p) and
+   False:
+    pass
+call()
+=-=
+var = call(t, p)
+True or call(m,
+             p) and
+False
+if| True or call(m,
+                p) and
+   False:
+    pass
+call()
+=-=-=
+
+Name: Clone condition before compound t2
+
+=-=
+var = call(t, p)
+if True or call(m, p) and
+   |False:
+    pass
+call()
+=-=
+var = call(t, p)
+False
+if True or call(m, p) and
+   |False:
+    pass
+call()
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
     (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-outer))
     (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-outer))
     (delete-trailing-whitespace))
