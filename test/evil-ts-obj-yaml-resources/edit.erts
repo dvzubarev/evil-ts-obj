@@ -215,6 +215,27 @@ Name: Clone after param outer t4
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-inner))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-outer)))
+
+Name: Clone after param inner t1
+
+=-=
+---
+a: 1
+|b: 3
+c: 4
+=-=
+---
+a: 1
+|b: 3
+b: 3
+c: 4
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
     (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-outer))
     (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-outer)))
 
@@ -397,4 +418,456 @@ Name: Clone before dwim t3
   |name: install
   become: yes
 - t
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-extract-up-dwim)
+    (evil-ts-obj-extract-up-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Extract up dwim t1
+=-=
+---
+- |a: t
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=
+---
+|a: t
+-
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=-=
+
+Name: Extract up dwim t2
+=-=
+---
+- t
+-| a: t
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=
+---
+- t
+|a: t
+bb:
+  - temp2
+  - temp1
+-
+- aa
+=-=-=
+
+Name: Extract up dwim t3
+=-=
+---
+- t
+- a: t
+  |bb:
+    - temp2
+    - temp1
+- aa
+=-=
+---
+- t
+|bb:
+  - temp2
+  - temp1
+- a: t
+
+- aa
+=-=-=
+
+Name: Extract up dwim t4
+=-=
+---
+- t
+- a: t
+  bb:
+    - temp2
+    - |temp1
+- aa
+=-=
+---
+- t
+- a: t
+  |- temp1
+  bb:
+    - temp2
+
+- aa
+=-=-=
+
+Name: Extract up dwim t5
+=-=
+---
+xmas-fifth-day:
+  golden-rings: >
+   | temp
+    tesm fen
+  partridges:
+    count: 1
+    location: 2
+  a:
+=-=
+---
+|golden-rings: >
+  temp
+  tesm fen
+xmas-fifth-day:
+
+  partridges:
+    count: 1
+    location: 2
+  a:
+=-=-=
+
+Name: Extract up dwim t6
+=-=
+---
+xmas-fifth-day:
+  partridges:
+   | count: 1
+    location: 2
+  a:
+=-=
+---
+xmas-fifth-day:
+  |count: 1
+  location: 2
+  partridges:
+
+  a:
+=-=-=
+
+Name: Extract up dwim t7
+=-=
+---
+xmas-fifth-day:
+  partridges:
+    |count: 1
+    location: 2
+  a:
+=-=
+---
+xmas-fifth-day:
+  |count: 1
+  partridges:
+
+    location: 2
+  a:
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-extract-up-dwim)
+    (evil-ts-obj-extract-up-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Extract up dwim 2 levels t1
+=-=
+---
+- |a: t
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=
+---
+|a: t
+-
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=-=
+
+Name: Extract up dwim 2 levels t2
+=-=
+---
+- t
+- a: t
+  bb:
+    - temp2
+    - |temp1
+- aa
+=-=
+---
+- t
+- temp1
+- a: t
+  bb:
+    - temp2
+
+- aa
+=-=-=
+
+Name: Extract up dwim 2 levels t3
+=-=
+---
+xmas-fifth-day:
+  partridges:
+   | count: 1
+    location: 2
+  a:
+=-=
+---
+|count: 1
+location: 2
+xmas-fifth-day:
+  partridges:
+
+  a:
+=-=-=
+
+Name: Extract up dwim 2 levels t4
+=-=
+---
+xmas-fifth-day:
+  partridges:
+    |count: 1
+    location: 2
+  a:
+=-=
+---
+|count: 1
+xmas-fifth-day:
+  partridges:
+
+    location: 2
+  a:
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-extract-down-dwim)
+    (evil-ts-obj-extract-down-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Extract down dwim t1
+=-=
+---
+- |a: t
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=
+---
+-
+  bb:
+    - temp2
+    - temp1
+|a: t
+- aa
+=-=-=
+
+Name: Extract down dwim t2
+=-=
+---
+- t
+-| a: t
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=
+---
+- t
+-
+|a: t
+bb:
+  - temp2
+  - temp1
+- aa
+=-=-=
+
+Name: Extract down dwim t3
+=-=
+---
+- t
+- a: t
+  |bb:
+    - temp2
+    - temp1
+- aa
+=-=
+---
+- t
+- a: t
+
+|bb:
+  - temp2
+  - temp1
+- aa
+=-=-=
+
+Name: Extract down dwim t4
+=-=
+---
+- t
+- a: t
+  bb:
+    - temp2
+    - |temp1
+- aa
+=-=
+---
+- t
+- a: t
+  bb:
+    - temp2
+
+  |- temp1
+- aa
+=-=-=
+
+Name: Extract down dwim t5
+=-=
+---
+xmas-fifth-day:
+  golden-rings: >
+   | temp
+    tesm fen
+  partridges:
+    count: 1
+    location: 2
+  a:
+=-=
+---
+xmas-fifth-day:
+
+  partridges:
+    count: 1
+    location: 2
+  a:
+|golden-rings: >
+  temp
+  tesm fen
+=-=-=
+
+Name: Extract down dwim t6
+=-=
+---
+xmas-fifth-day:
+  partridges:
+   | count: 1
+    location: 2
+  a:
+=-=
+---
+xmas-fifth-day:
+  partridges:
+
+  |count: 1
+  location: 2
+  a:
+=-=-=
+
+Name: Extract down dwim t7
+=-=
+---
+xmas-fifth-day:
+  partridges:
+    |count: 1
+    location: 2
+  a:
+=-=
+---
+xmas-fifth-day:
+  partridges:
+
+    location: 2
+  |count: 1
+  a:
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-extract-down-dwim)
+    (evil-ts-obj-extract-down-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Extract down dwim 2 levels t1
+=-=
+---
+- |a: t
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=
+---
+-
+  bb:
+    - temp2
+    - temp1
+|a: t
+- aa
+=-=-=
+
+Name: Extract down dwim 2 levels t2
+=-=
+---
+- t
+- a: t
+  bb:
+    - temp2
+    - |temp1
+- aa
+=-=
+---
+- t
+- a: t
+  bb:
+    - temp2
+
+- temp1
+- aa
+=-=-=
+
+Name: Extract down dwim 2 levels t3
+=-=
+---
+xmas-fifth-day:
+  partridges:
+   | count: 1
+    location: 2
+  a:
+=-=
+---
+xmas-fifth-day:
+  partridges:
+
+  a:
+|count: 1
+location: 2
+=-=-=
+
+Name: Extract down dwim 2 levels t4
+=-=
+---
+xmas-fifth-day:
+  partridges:
+    |count: 1
+    location: 2
+  a:
+=-=
+---
+xmas-fifth-day:
+  partridges:
+
+    location: 2
+  a:
+|count: 1
 =-=-=

@@ -1181,7 +1181,8 @@ var = call(arg1, arg2,
            |kw1=[], kw2='a, b')
 =-=
 var = call(arg1, arg2,
-           kw1=[], |kw1=[], kw2='a, b')
+           kw1=[],
+           |kw1=[], kw2='a, b')
 =-=-=
 
 
@@ -1387,4 +1388,382 @@ def main(v):
 def main(v):
     return call(v=v, cv=13) + call2('st')
     |call2('st')
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-extract-up (evil-ts-obj-statement-lower))
+    (delete-trailing-whitespace))
+
+Name: Extract up lower statements t1
+
+=-=
+def main(v):
+    if True:
+        |var = call(t, p)
+        return call(v=v, cv=13) + call2('st')
+    call()
+=-=
+def main(v):
+    |var = call(t, p)
+    return call(v=v, cv=13) + call2('st')
+    if True:
+
+    call()
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-extract-up-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Extract up dwim t1
+
+=-=
+def main(v):
+    if True:
+        |var = call(t, p)
+    call()
+=-=
+def main(v):
+    |var = call(t, p)
+    if True:
+
+    call()
+=-=-=
+
+Name: Extract up dwim t2
+
+=-=
+def main(v):
+    if True:
+        var = call(|t, p)
+    call()
+=-=
+def main(v):
+    if True:
+        |call(t, p)
+        var =
+    call()
+=-=-=
+
+Name: Extract up dwim t3
+
+=-=
+def main(v):
+    if |True:
+        var = call(t, p)
+    call()
+=-=
+def main(v):
+    |True
+    if :
+        var = call(t, p)
+    call()
+=-=-=
+
+Name: Extract up dwim t4
+
+=-=
+def main(v):
+    if| True and
+       False:
+        var = call(t, p)
+    call()
+=-=
+def main(v):
+    |True and
+    False
+    if :
+        var = call(t, p)
+    call()
+=-=-=
+
+Name: Extract up dwim t5
+
+=-=
+|def main(v):
+    pass
+=-=
+|def main(v):
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-extract-up-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Extract up dwim 2 levels t1
+
+=-=
+def main(v):
+    if True:
+        |var = call(t, p)
+    call()
+=-=
+|var = call(t, p)
+def main(v):
+    if True:
+
+    call()
+=-=-=
+
+
+
+
+Name: Extract up dwim 2 levels t2
+
+=-=
+def main(v):
+    if True:
+        var = call(|t, p)
+    call()
+=-=
+def main(v):
+    |call(t, p)
+    if True:
+        var =
+    call()
+=-=-=
+
+Name: Extract up dwim 2 levels t3
+
+=-=
+def main(v):
+    if |True:
+        var = call(t, p)
+    call()
+=-=
+|True
+def main(v):
+    if :
+        var = call(t, p)
+    call()
+=-=-=
+
+Name: Extract up dwim 2 levels t4
+
+=-=
+def main(v):
+    if True and |False:
+        var = call(t, p)
+    call()
+=-=
+def main(v):
+    |False
+    if True and :
+        var = call(t, p)
+    call()
+=-=-=
+
+Name: Extract up dwim 2 levels t5
+
+=-=
+@dec
+def main(v):
+   if True:
+       |var = call(t, p)
+   call()
+=-=
+|var = call(t, p)
+@dec
+def main(v):
+   if True:
+
+   call()
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-extract-up-dwim 9)
+    (delete-trailing-whitespace))
+
+Name: Extract up dwim 9 levels t1
+
+=-=
+def main(v):
+    if True:
+        |var = call(t, p)
+    call()
+=-=
+|var = call(t, p)
+def main(v):
+    if True:
+
+    call()
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-extract-down (evil-ts-obj-statement-upper))
+    (delete-trailing-whitespace))
+
+Name: Extract down upper statements t1
+
+=-=
+def main(v):
+    if True:
+        var = call(t, p)
+        |return call(v=v, cv=13) + call2('st')
+    call()
+=-=
+def main(v):
+    if True:
+
+    |var = call(t, p)
+    return call(v=v, cv=13) + call2('st')
+    call()
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-extract-down-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Extract down dwim t1
+
+=-=
+def main(v):
+    if True:
+        |var = call(t, p)
+    call()
+=-=
+def main(v):
+    if True:
+
+    |var = call(t, p)
+    call()
+=-=-=
+
+Name: Extract down dwim t2
+
+=-=
+def main(v):
+    if True:
+        var = call(|t, p)
+    call()
+=-=
+def main(v):
+    if True:
+        var =
+        |call(t, p)
+    call()
+=-=-=
+
+Name: Extract down dwim t3
+
+=-=
+def main(v):
+    if |True:
+        var = call(t, p)
+    call()
+=-=
+def main(v):
+    if :
+        var = call(t, p)
+    |True
+    call()
+=-=-=
+
+Name: Extract down dwim t4
+
+=-=
+def main(v):
+    if| True and
+       False:
+        var = call(t, p)
+    call()
+=-=
+def main(v):
+    if :
+        var = call(t, p)
+    |True and
+    False
+    call()
+=-=-=
+
+Name: Extract down dwim t5
+
+=-=
+|def main(v):
+    pass
+=-=
+|def main(v):
+    pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-extract-down-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Extract down dwim 2 levels t1
+
+=-=
+def main(v):
+    if True:
+        |var = call(t, p)
+    call()
+=-=
+def main(v):
+    if True:
+
+    call()
+|var = call(t, p)
+=-=-=
+
+
+Name: Extract down dwim 2 levels t2
+
+=-=
+def main(v):
+    if True:
+        var = call(|t, p)
+    call()
+=-=
+def main(v):
+    if True:
+        var =
+    |call(t, p)
+    call()
+=-=-=
+
+Name: Extract down dwim 2 levels t3
+
+=-=
+def main(v):
+    if |True:
+        var = call(t, p)
+    call()
+=-=
+def main(v):
+    if :
+        var = call(t, p)
+    call()
+|True
+=-=-=
+
+Name: Extract down dwim 2 levels t4
+
+=-=
+def main(v):
+    if True and |False:
+        var = call(t, p)
+    call()
+=-=
+def main(v):
+    if True and :
+        var = call(t, p)
+    |False
+    call()
 =-=-=

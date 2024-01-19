@@ -237,6 +237,25 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (interactive "<c>")
   (evil-ts-obj-edit--drag 'next count))
 
+(evil-define-operator evil-ts-obj-extract-up (beg end type count)
+  :move-point nil
+  (interactive "<R><c>")
+  (evil-ts-obj-edit--extract-operator-impl beg end count))
+
+(evil-define-operator evil-ts-obj-extract-up-dwim (count)
+  (interactive "<c>")
+  (evil-ts-obj-edit--extract-dwim-impl count))
+
+(evil-define-operator evil-ts-obj-extract-down (beg end type count)
+  :move-point nil
+  (interactive "<R><c>")
+  (evil-ts-obj-edit--extract-operator-impl beg end count t))
+
+(evil-define-operator evil-ts-obj-extract-down-dwim (count)
+  (interactive "<c>")
+  (evil-ts-obj-edit--extract-dwim-impl count t))
+
+
 ;;; default keybindings and minor mode
 
 (defvar evil-ts-obj-inner-text-objects-map (make-sparse-keymap "Inner text objects"))

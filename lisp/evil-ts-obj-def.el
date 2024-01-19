@@ -98,6 +98,27 @@ and FIRST-SPEC."
   '((param . outer)
     (compound . outer)))
 
+;;;;; extract rules
+
+(defun evil-ts-obj-def-extract-rules (_range-type &optional _text-spec)
+  "Return default clone rules.
+See `evil-ts-obj-conf-extract-rules' for description of RANGE-TYPE
+and FIRST-SPEC."
+  '((statement . inner)
+    (compound . outer)))
+
+(defun evil-ts-obj-def-conf-lang-extract-rules (range-type &optional _text-spec)
+  "Return default clone rules for configuration languages like YAML.
+See `evil-ts-obj-conf-extract-rules' for description of RANGE-TYPE
+and FIRST-SPEC."
+
+  (pcase range-type
+    ('text
+     '((param . inner)
+       (compound . outer)))
+    ('place
+     '((param . inner)))))
+
 
 ;;;; sibling traverse helpers
 
@@ -188,7 +209,9 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
   (cl-callf plist-put evil-ts-obj-conf-raise-rules lang #'evil-ts-obj-def-raise-rules)
   (cl-callf plist-put evil-ts-obj-conf-drag-rules lang #'evil-ts-obj-def-drag-rules)
   (cl-callf plist-put evil-ts-obj-conf-clone-rules lang #'evil-ts-obj-def-clone-rules)
-  (cl-callf plist-put evil-ts-obj-conf-clone-indent-policy lang clone-indent-policy))
+  (cl-callf plist-put evil-ts-obj-conf-clone-indent-policy lang clone-indent-policy)
+  (cl-callf plist-put evil-ts-obj-conf-extract-rules lang #'evil-ts-obj-def-extract-rules))
+
 
 (cl-defun evil-ts-obj-def-init-conf-lang (
                                           lang things &optional &key
@@ -249,7 +272,9 @@ This function also adds `evil-ts-obj-def-raise-rules' to
     lang #'evil-ts-obj-def-conf-lang-drag-rules)
   (cl-callf plist-put evil-ts-obj-conf-clone-rules
     lang #'evil-ts-obj-def-conf-lang-clone-rules)
-  (cl-callf plist-put evil-ts-obj-conf-clone-indent-policy lang clone-indent-policy))
+  (cl-callf plist-put evil-ts-obj-conf-clone-indent-policy lang clone-indent-policy)
+  (cl-callf plist-put evil-ts-obj-conf-extract-rules lang
+            #'evil-ts-obj-def-conf-lang-extract-rules))
 
 
 (provide 'evil-ts-obj-def)

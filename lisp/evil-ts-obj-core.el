@@ -413,7 +413,7 @@ If `RETURN-NODE' is t, return cons of range and the treesit node."
                     (evil-ts-obj--apply-modifiers node thing spec))))
       (when (and finalizer range)
         (setq range (funcall finalizer evil-ts-obj--last-text-obj-spec range)))
-      (append range (when return-node (list node))))))
+      (append range (when (and range return-node) (list node))))))
 
 
 ;;; Movement
@@ -480,7 +480,8 @@ end, move to the end of the parent thing."
     ;; we step up one or more times to parent,
     ;; so it won't be use to return to previous position.
     ;; Save position to jump list
-    (evil-set-jump)))
+    (when (fboundp 'evil-set-jump)
+     (evil-set-jump))))
 
 (defun evil-ts-obj--next-thing (thing init-enclosing-node init-pos spec)
   "Return node and range that represents the next `THING'.

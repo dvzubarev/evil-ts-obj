@@ -194,6 +194,8 @@ the current indentation at the start of a place range. If its
 value is the symbol column, then column number of the start of
 the place range is used as an indentation level.")
 
+(defvar-local evil-ts-obj-conf-extract-rules nil)
+
 (defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise)
   "Do not extend upper/lower text object range for specified commands.
 Upper/lower modifiers usually extend text object range to the

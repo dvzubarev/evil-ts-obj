@@ -99,13 +99,17 @@ Return new range of the content from the RANGE."
         final-other-range
       final-range)))
 
-(defun evil-ts-obj-edit--clone-compatible? (text-first-char place-last-char)
+(defun evil-ts-obj-edit--clone-compatible? (text-last-char place-first-char)
   "Heuristic to determine whether to insert a space between texts.
-Return t if one of the chars (TEXT-FIRST-CHAR or PLACE-LAST-CHAR)
+Return t if one of the chars (TEXT-LAST-CHAR or PLACE-FIRST-CHAR)
 is newline, space or punctuation."
-  (let ((wh-chars '(?> ?\  ?.)))
-    (or (memq (char-syntax text-first-char) wh-chars)
-        (memq (char-syntax place-last-char) wh-chars))))
+  (when (and text-last-char place-first-char)
+    (let ((wh-chars '(?> ?\  ?.))
+          (chr-syn (char-syntax text-last-char))
+          (pl-syn (char-syntax place-first-char)))
+      (or (memq chr-syn wh-chars)
+          (memq pl-syn wh-chars)
+          (eq pl-syn ?\))))))
 
 (defun evil-ts-obj-edit--clone-indent (indent-ref-pos &optional start end)
   "Indent current point.
@@ -135,30 +139,43 @@ instead of point."
           (indent-region start end)
         (indent-rigidly start end (- indent (current-indentation)))))))
 
-(defun evil-ts-obj-edit--clone-after (range target-range &optional delete-range)
-  "Copy content of RANGE to the position after TARGET-RANGE.
+(defun evil-ts-obj-edit--clone-check-ranges (text-range place-range delete-range after)
+  (when delete-range
+    (if after
+        (when (< (car text-range) (cdr place-range) (cdr text-range))
+          (user-error "Teleporting of a text range that contains place point!"))
+      (when (< (car text-range) (car place-range) (cdr text-range))
+        (user-error "Teleporting of a text range that contains place point!")))))
+
+(defun evil-ts-obj-edit--clone-after (text-range place-range &optional delete-range)
+  "Copy content of TEXT-RANGE to the position after PLACE-RANGE.
 If DELETE-RANGE is t delete content of RANGE. Return new range of
 the cloned content. If the end of the TARGET-RANGE is \n and
 content does not start with newline, then new line is inserted
 and indented according to an indentation at the beginning of the
 TARGET-RANGE (see `evil-ts-obj-edit--clone-indent'). After this
 content of RANGE is inserted on the new line."
+
+  (evil-ts-obj-edit--clone-check-ranges text-range place-range delete-range t)
   (let (text text-starts-with-newline
-             text-starts-with-space text-first-char)
-    (pcase-let ((`(,start . ,end) range))
+             text-starts-with-space
+             text-first-char
+             newline-after-text)
+    (pcase-let ((`(,start . ,end) text-range))
       (with-current-buffer (marker-buffer start)
         (save-excursion
           (goto-char start)
           (setq text-first-char (char-after)
                 text-starts-with-space (eq (char-syntax text-first-char) ?\ ))
           (skip-syntax-forward " \\")
-          (setq text-starts-with-newline (eolp)))
+          (setq text-starts-with-newline (eolp))
+          (goto-char end)
+          (setq newline-after-text (eq (char-after) ?\n)))
         (setq text (if text-starts-with-space (buffer-substring-no-properties start end)
-                     (evil-ts-obj-util--extract-text start end)))
-        (when delete-range
-          (delete-region start end))))
+                     (evil-ts-obj-util--extract-text start end)))))
 
-    (pcase-let ((`(,start . ,end) target-range))
+
+    (pcase-let ((`(,start . ,end) place-range))
       (with-current-buffer (marker-buffer start)
         (let ((insert-pos (marker-position end))
               (place-last-char (char-after (1- end))))
@@ -170,25 +187,40 @@ content of RANGE is inserted on the new line."
                    (not text-starts-with-newline)
                    (or
                     (eq (char-syntax place-last-char) ?.)
-                    (not (evil-ts-obj-edit--clone-compatible? text-first-char place-last-char))))
+                    (not (evil-ts-obj-edit--clone-compatible? place-last-char text-first-char))))
               ;; insert new line and insert on it.
               ;; Use indentation of the start position.
               (newline)
               (evil-ts-obj-edit--clone-indent start)
               (end-of-line)
               (setq insert-pos (point)))
-             ((not (evil-ts-obj-edit--clone-compatible? text-first-char (char-after (1- end))))
+             ((not (evil-ts-obj-edit--clone-compatible? place-last-char text-first-char))
               (insert " ")
-              (setq insert-pos (point))))
+              (setq insert-pos (point)))
+             ((not (evil-ts-obj-edit--clone-compatible? (aref text (1- (length text)))
+                                                        (char-after end)))
+              ;; need to insert a space before the text that is next to insert point
+              (save-excursion
+                (if (not newline-after-text)
+                    (insert " ")
+                  (insert (concat "\n" (make-string (current-column) 32)))))))
 
             (let ((indented-text (if (not text-starts-with-space)
                                      (evil-ts-obj-util--indent-text-according-to-point-pos text)
                                    text)))
               (insert indented-text)
-              (list insert-pos (+ insert-pos (length indented-text))))))))))
+              ;; set inserted text range to place-range
+              (setf (car place-range) (set-marker start insert-pos)
+                    (cdr place-range) (set-marker end (+ insert-pos (length indented-text)))))))))
 
-(defun evil-ts-obj-edit--clone-before (range target-range &optional delete-range)
-  "Copy content of RANGE before the beginning of TARGET-RANGE.
+    (pcase-let ((`(,start . ,end) text-range))
+      (with-current-buffer (marker-buffer start)
+        (when delete-range (delete-region start end))))
+    (list (marker-position (car place-range))
+          (marker-position (cdr place-range)))))
+
+(defun evil-ts-obj-edit--clone-before (text-range place-range &optional delete-range)
+  "Copy content of TEXT-RANGE before the beginning of PLACE-RANGE.
 If DELETE-RANGE is t delete content of RANGE. Return new range of
 the cloned content. If beginning of the TARGET-RANGE preceded by
 only spaces and new content does not end with newline, then a new
@@ -196,15 +228,19 @@ line is inserted and indented according to an indentation at the
 beginning of the TARGET-RANGE (see
 `evil-ts-obj-edit--clone-indent'). After this content of RANGE is
 inserted on the new line."
+  (evil-ts-obj-edit--clone-check-ranges text-range place-range delete-range nil)
   (let (text text-starts-with-space
+             text-ends-with-newline
              text-last-char
              newline-after-text)
-    (pcase-let ((`(,start . ,end) range))
+    (pcase-let ((`(,start . ,end) text-range))
       (with-current-buffer (marker-buffer start)
         (save-excursion
           (goto-char end)
           (setq text-last-char (char-after (1- (point)))
                 newline-after-text (eq (char-after) ?\n))
+          (skip-chars-backward " \t")
+          (setq text-ends-with-newline (bolp))
           (goto-char start)
           (setq text-starts-with-space (eq (char-syntax (char-after)) ?\ )))
         (setq text (if text-starts-with-space
@@ -213,7 +249,7 @@ inserted on the new line."
         (when delete-range
           (delete-region start end))))
 
-    (pcase-let ((`(,start . ,end) target-range))
+    (pcase-let ((`(,start . ,end) place-range))
       (with-current-buffer (marker-buffer start)
         (let ((insert-pos (marker-position start))
               (point-mark (copy-marker (max start (point)) t))
@@ -221,10 +257,8 @@ inserted on the new line."
           (goto-char insert-pos)
           (cond
            ;; heuristics to determine whether to open a new line
-           ((and
-             (save-excursion (skip-chars-backward " \t") (bolp))
-             (or (eq (char-syntax text-last-char) ?.)
-                 (not (evil-ts-obj-edit--clone-compatible? text-last-char (char-after start)))))
+           ((and (save-excursion (skip-chars-backward " \t") (bolp))
+                 (not text-ends-with-newline))
             ;; Insert point is at the start of the line.
             ;; Insert new line with the indentation of the start position.
             (goto-char (line-beginning-position))
@@ -304,8 +338,7 @@ by `evil-ts-obj-last-range'."
             (not (buffer-live-p (marker-buffer (cadr evil-ts-obj-edit--saved-range)))))
         ;; first call with this op-type
         (progn
-          (when evil-ts-obj-edit--saved-range
-            (evil-ts-obj-edit--release-markers (cdr evil-ts-obj-edit--saved-range)))
+          (evil-ts-obj-edit--cleanup)
           (setq evil-ts-obj-edit--saved-range (cons op-type (cons start-marker end-marker)))
           (evil-ts-obj-edit--highlight-range start end))
       ;; second call
@@ -335,11 +368,16 @@ by `evil-ts-obj-last-range'."
 (defun evil-ts-obj-edit--clone-before-operator (start end)
   (evil-ts-obj-edit--save-range-or-call-op 'clone start end #'evil-ts-obj-edit--clone-before))
 
+(defun evil-ts-obj-edit--teleport-before-operator (start end)
+  (evil-ts-obj-edit--save-range-or-call-op 'teleport start end
+                                           (lambda (r or) (evil-ts-obj-edit--clone-before r or t))))
 
+
+;;;; Raise
 
 (defun evil-ts-obj-edit--raise-operator (start end)
   "Replace parent thing with the text from START END range.
-Parent thing is determined by the cdr of `evil-ts-obj-conf-raise-rules'.
+Parent thing is determined by the `evil-ts-obj-conf-raise-rules' variable.
 Actual raise is implemented via replace operator."
 
   ;; clean unfinished edit operations
@@ -377,6 +415,8 @@ Actual raise is implemented via replace operator."
         (evil-ts-obj-edit--raise-operator (car range) (cadr range)))
     (evil-ts-obj-edit--cleanup)))
 
+;;;; Drag
+
 (defun evil-ts-obj-edit--drag (dir &optional count)
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
@@ -404,6 +444,9 @@ Actual raise is implemented via replace operator."
           (goto-char (car evil-ts-obj--last-text-obj-range))))
     (evil-ts-obj-edit--cleanup)))
 
+
+;;;; Clone
+
 (defun evil-ts-obj-edit--clone-dwim-impl (after?)
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
@@ -428,6 +471,66 @@ Actual raise is implemented via replace operator."
           (if after?
               (evil-ts-obj-edit--clone-after-operator (car range) (cadr range))
             (evil-ts-obj-edit--clone-before-operator (car range) (cadr range)))))
+    (evil-ts-obj-edit--cleanup)))
+
+
+;;;; Extract
+
+(defun evil-ts-obj-edit--extract-operator-impl (start end &optional count after)
+  "Teleport text from START END range before or AFTER parent thing.
+Parent thing is determined by the cdr of `evil-ts-obj-conf-extract-rules'.
+When COUNT is set select Nth parent."
+  ;; clean unfinished edit operations
+  (evil-ts-obj-edit--cleanup)
+
+  (if after
+      (evil-ts-obj-edit--teleport-after-operator start end)
+    (evil-ts-obj-edit--teleport-before-operator start end))
+  (unwind-protect
+      (when-let* ((lang (treesit-language-at (point)))
+                  (extract-rules-func (plist-get evil-ts-obj-conf-extract-rules lang))
+                  (last-spec evil-ts-obj--last-text-obj-spec)
+                  (last-range evil-ts-obj--last-text-obj-range)
+                  (rules-alist (funcall extract-rules-func 'place last-spec))
+                  (place-thing (evil-ts-obj-edit--thing-from-rules rules-alist))
+                  (spec (evil-ts-obj--make-spec rules-alist 'op))
+                  (range (evil-ts-obj--get-text-obj-range (point)
+                                                          place-thing spec
+                                                          last-range t)))
+        (let ((count (or count 1))
+              (node (caddr range))
+              parent)
+          (catch 'break
+            (dotimes (_ (1- count))
+              (setq parent (treesit-parent-until
+                            node (lambda (n) (treesit-node-match-p n place-thing t))))
+              (if (null parent)
+                  (throw 'break node)
+                (setq node parent))))
+          (when (> count 1)
+            (setq range (evil-ts-obj--apply-modifiers node place-thing spec))))
+
+        (if after
+            (evil-ts-obj-edit--teleport-after-operator (car range) (cadr range))
+          (evil-ts-obj-edit--teleport-before-operator (car range) (cadr range)))
+
+        (when (fboundp 'evil-set-jump)
+          (evil-set-jump))
+        (goto-char (car evil-ts-obj--last-text-obj-range)))
+    (evil-ts-obj-edit--cleanup)))
+
+(defun evil-ts-obj-edit--extract-dwim-impl (count &optional after)
+  ;; clean unfinished edit operations
+  (evil-ts-obj-edit--cleanup)
+
+  (unwind-protect
+      (when-let* ((lang (treesit-language-at (point)))
+                  (raise-rules-func (plist-get evil-ts-obj-conf-extract-rules lang))
+                  (rules-alist (funcall raise-rules-func 'text ))
+                  (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
+                  (spec (evil-ts-obj--make-spec rules-alist 'op))
+                  (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
+        (evil-ts-obj-edit--extract-operator-impl (car range) (cadr range) count after))
     (evil-ts-obj-edit--cleanup)))
 
 (provide 'evil-ts-obj-edit)

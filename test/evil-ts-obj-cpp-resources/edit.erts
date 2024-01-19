@@ -462,3 +462,319 @@ if (true){
     return comp;
 }
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-extract-up-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Extract dwim up t1
+
+=-=
+void f (){
+    if (|i > 0)
+        i--;
+    else
+        i+=2;
+}
+=-=
+void f (){
+    |i > 0
+    if ()
+        i--;
+    else
+        i+=2;
+}
+=-=-=
+
+Name: Extract dwim up t2
+
+=-=
+void f (){
+    if (i > 0)
+        |i--;
+    else
+        i+=2;
+}
+=-=
+void f (){
+    |i--;
+    if (i > 0)
+
+    else
+        i+=2;
+}
+=-=-=
+
+Name: Extract dwim up t3
+
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    else
+        |i+=2;
+}
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    |i+=2;
+    else
+
+}
+=-=-=
+
+Name: Extract dwim up t4
+
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    |else
+        i+=2;
+}
+=-=
+void f (){
+    |else
+        i+=2;
+    if (i > 0)
+        i--;
+
+}
+=-=-=
+
+Name: Extract dwim up t5
+
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    else |if (i < 0){
+        i++;
+        std::cout<<"\n";
+    } else
+        i+=2;
+}
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    |if (i < 0){
+        i++;
+        std::cout<<"\n";
+    } else
+        i+=2;
+    else
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-extract-up-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Extract dwim up 2 levels t1
+
+=-=
+void f (){
+    if (|i > 0)
+        i--;
+    else
+        i+=2;
+}
+=-=
+|i > 0
+void f (){
+    if ()
+        i--;
+    else
+        i+=2;
+}
+=-=-=
+
+Name: Extract dwim up 2 levels t2
+
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    else |if (i < 0){
+        i++;
+        std::cout<<"\n";
+    } else
+        i+=2;
+}
+=-=
+void f (){
+    |if (i < 0){
+        i++;
+        std::cout<<"\n";
+    } else
+        i+=2;
+    if (i > 0)
+        i--;
+    else
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-extract-down-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Extract dwim down t1
+
+=-=
+void f (){
+    if (|i > 0)
+        i--;
+    else
+        i+=2;
+}
+=-=
+void f (){
+    if ()
+        i--;
+    else
+        i+=2;
+    |i > 0
+}
+=-=-=
+
+Name: Extract dwim down t2
+
+=-=
+void f (){
+    if (i > 0)
+        |i--;
+    else
+        i+=2;
+}
+=-=
+void f (){
+    if (i > 0)
+
+    else
+        i+=2;
+    |i--;
+}
+=-=-=
+
+Name: Extract dwim down t3
+
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    else
+        |i+=2;
+}
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    else
+
+    |i+=2;
+}
+=-=-=
+
+Name: Extract dwim down t4
+
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    |else
+        i+=2;
+}
+=-=
+void f (){
+    if (i > 0)
+        i--;
+
+    |else
+        i+=2;
+}
+=-=-=
+
+Name: Extract dwim down t5
+
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    else |if (i < 0){
+        i++;
+        std::cout<<"\n";
+    } else
+        i+=2;
+}
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    else
+    |if (i < 0){
+        i++;
+        std::cout<<"\n";
+    } else
+        i+=2;
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-extract-down-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Extract dwim down 2 levels t1
+
+=-=
+void f (){
+    if (|i > 0)
+        i--;
+    else
+        i+=2;
+}
+=-=
+void f (){
+    if ()
+        i--;
+    else
+        i+=2;
+}
+|i > 0
+=-=-=
+
+Name: Extract dwim down 2 levels t2
+
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    else
+    |if (i < 0){
+        i++;
+        std::cout<<"\n";
+    } else
+        i+=2;
+}
+=-=
+void f (){
+    if (i > 0)
+        i--;
+    else
+
+    |if (i < 0){
+        i++;
+        std::cout<<"\n";
+    } else
+        i+=2;
+}
+=-=-=
