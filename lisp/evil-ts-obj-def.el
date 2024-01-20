@@ -146,7 +146,9 @@ and FIRST-SPEC."
                                      (compound-sib-trav evil-ts-obj-def--sibling-trav)
                                      (statement-sib-trav evil-ts-obj-def--sibling-trav)
                                      (param-sib-trav evil-ts-obj-def--sibling-trav)
-                                     (clone-indent-policy 'cur-indent))
+                                     (clone-indent-policy 'cur-indent)
+                                     (compound-brackets nil)
+                                     (statement-placeholder nil))
   "Set default values for language LANG.
 THINGS are added to `treesit-thing-settings' variable.
 
@@ -210,7 +212,10 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
   (cl-callf plist-put evil-ts-obj-conf-drag-rules lang #'evil-ts-obj-def-drag-rules)
   (cl-callf plist-put evil-ts-obj-conf-clone-rules lang #'evil-ts-obj-def-clone-rules)
   (cl-callf plist-put evil-ts-obj-conf-clone-indent-policy lang clone-indent-policy)
-  (cl-callf plist-put evil-ts-obj-conf-extract-rules lang #'evil-ts-obj-def-extract-rules))
+
+  (cl-callf plist-put evil-ts-obj-conf-extract-rules lang #'evil-ts-obj-def-extract-rules)
+  (cl-callf plist-put evil-ts-obj-conf-compound-brackets lang compound-brackets)
+  (cl-callf plist-put evil-ts-obj-conf-statement-placeholder lang statement-placeholder))
 
 
 (cl-defun evil-ts-obj-def-init-conf-lang (

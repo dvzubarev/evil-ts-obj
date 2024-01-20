@@ -1410,7 +1410,7 @@ def main(v):
     |var = call(t, p)
     return call(v=v, cv=13) + call2('st')
     if True:
-
+        pass
     call()
 =-=-=
 
@@ -1431,7 +1431,7 @@ def main(v):
 def main(v):
     |var = call(t, p)
     if True:
-
+        pass
     call()
 =-=-=
 
@@ -1509,7 +1509,7 @@ def main(v):
 |var = call(t, p)
 def main(v):
     if True:
-
+        pass
     call()
 =-=-=
 
@@ -1566,16 +1566,16 @@ Name: Extract up dwim 2 levels t5
 =-=
 @dec
 def main(v):
-   if True:
-       |var = call(t, p)
-   call()
+    if True:
+        |var = call(t, p)
+    call()
 =-=
 |var = call(t, p)
 @dec
 def main(v):
-   if True:
-
-   call()
+    if True:
+        pass
+    call()
 =-=-=
 
 Code:
@@ -1595,7 +1595,7 @@ def main(v):
 |var = call(t, p)
 def main(v):
     if True:
-
+        pass
     call()
 =-=-=
 
@@ -1617,7 +1617,7 @@ def main(v):
 =-=
 def main(v):
     if True:
-
+        pass
     |var = call(t, p)
     return call(v=v, cv=13) + call2('st')
     call()
@@ -1639,7 +1639,7 @@ def main(v):
 =-=
 def main(v):
     if True:
-
+        pass
     |var = call(t, p)
     call()
 =-=-=
@@ -1717,7 +1717,7 @@ def main(v):
 =-=
 def main(v):
     if True:
-
+        pass
     call()
 |var = call(t, p)
 =-=-=

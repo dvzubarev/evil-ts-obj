@@ -147,14 +147,67 @@ instead of point."
       (when (< (car text-range) (car place-range) (cdr text-range))
         (user-error "Teleporting of a text range that contains place point!")))))
 
+(defun evil-ts-obj-edit--find-compound-brackets (brackets range)
+   (when (and (= (length brackets) 2)
+         (eq (char-syntax (aref brackets 0)) ?\()
+         (eq (char-syntax (aref brackets 1)) ?\)))
+    ;; for example {}
+    (save-excursion
+      (and (progn
+             (goto-char (car range))
+             (skip-chars-backward "\t \n")
+             (eq (char-before) (aref brackets 0)))
+           (progn
+             (goto-char (cadr range))
+             (skip-chars-forward "\t \n")
+             (eq (char-after) (aref brackets 1)))))))
+
+
+(defun evil-ts-obj-edit--delete-compound-inner (range)
+  "Delete content inside RANGE and maybe insert placeholder statement.
+Placeholder is only inserted if the deleted range is equal to
+current compound inner text object."
+
+  (when (markerp (car range))
+    (setq range (list (marker-position (car range))
+                      (marker-position (cdr range)))))
+
+
+  (let* ((lang (treesit-language-at (point)))
+         (placeholders (plist-get evil-ts-obj-conf-statement-placeholder lang))
+         (brackets (plist-get evil-ts-obj-conf-compound-brackets lang)))
+
+    (if-let* (((or placeholders brackets))
+              (spec (evil-ts-obj--make-spec 'compound 'op 'outer))
+              (temp-range (evil-ts-obj--get-text-obj-range (car range)
+                                                           'compound spec range t))
+              (compound-inner-range (evil-ts-obj--apply-modifiers (caddr temp-range) 'compound
+                                                                  (plist-put spec :mod 'inner) t))
+              ((equal range compound-inner-range)))
+        ;; delete-range and insert placeholder
+        (let ((insert-text
+               (if placeholders (car placeholders)
+                 (unless (evil-ts-obj-edit--find-compound-brackets brackets range)
+                   brackets))))
+          (delete-region (car range) (cadr range))
+          (when insert-text
+            (insert insert-text)))
+      ;; just delete region
+      (delete-region (car range) (cadr range)))))
+
 (defun evil-ts-obj-edit--clone-after (text-range place-range &optional delete-range)
   "Copy content of TEXT-RANGE to the position after PLACE-RANGE.
-If DELETE-RANGE is t delete content of RANGE. Return new range of
-the cloned content. If the end of the TARGET-RANGE is \n and
-content does not start with newline, then new line is inserted
-and indented according to an indentation at the beginning of the
-TARGET-RANGE (see `evil-ts-obj-edit--clone-indent'). After this
-content of RANGE is inserted on the new line."
+Return new range of the cloned content. If the end of the
+TARGET-RANGE is \n and content does not start with newline, then
+new line is inserted and indented according to an indentation at
+the beginning of the TARGET-RANGE (see
+`evil-ts-obj-edit--clone-indent'). After this content of RANGE is
+inserted on the new line.
+
+Possible values of DELETE-RANGE are t, nil and safe symbol. If
+DELETE-RANGE is t delete content of RANGE. If its value is safe,
+then use `evil-ts-obj-edit--delete-compound-inner' function for
+range deletion."
 
   (evil-ts-obj-edit--clone-check-ranges text-range place-range delete-range t)
   (let (text text-starts-with-newline
@@ -215,19 +268,25 @@ content of RANGE is inserted on the new line."
 
     (pcase-let ((`(,start . ,end) text-range))
       (with-current-buffer (marker-buffer start)
-        (when delete-range (delete-region start end))))
+        (pcase delete-range
+          ('safe (evil-ts-obj-edit--delete-compound-inner text-range))
+          ('t (delete-region start end)))))
     (list (marker-position (car place-range))
           (marker-position (cdr place-range)))))
 
 (defun evil-ts-obj-edit--clone-before (text-range place-range &optional delete-range)
   "Copy content of TEXT-RANGE before the beginning of PLACE-RANGE.
-If DELETE-RANGE is t delete content of RANGE. Return new range of
-the cloned content. If beginning of the TARGET-RANGE preceded by
-only spaces and new content does not end with newline, then a new
-line is inserted and indented according to an indentation at the
-beginning of the TARGET-RANGE (see
+Return new range of the cloned content. If beginning of the
+TARGET-RANGE preceded by only spaces and new content does not end
+with newline, then a new line is inserted and indented according
+to an indentation at the beginning of the TARGET-RANGE (see
 `evil-ts-obj-edit--clone-indent'). After this content of RANGE is
-inserted on the new line."
+inserted on the new line.
+
+Possible values of DELETE-RANGE are t, nil and safe symbol. If
+DELETE-RANGE is t delete content of RANGE. If its value is safe,
+then use `evil-ts-obj-edit--delete-compound-inner' function for
+range deletion."
   (evil-ts-obj-edit--clone-check-ranges text-range place-range delete-range nil)
   (let (text text-starts-with-space
              text-ends-with-newline
@@ -245,9 +304,10 @@ inserted on the new line."
           (setq text-starts-with-space (eq (char-syntax (char-after)) ?\ )))
         (setq text (if text-starts-with-space
                        (buffer-substring-no-properties start end)
-                       (evil-ts-obj-util--extract-text start end)))
-        (when delete-range
-          (delete-region start end))))
+                     (evil-ts-obj-util--extract-text start end)))
+        (pcase delete-range
+          ('safe (evil-ts-obj-edit--delete-compound-inner text-range))
+          ('t (delete-region start end)))))
 
     (pcase-let ((`(,start . ,end) place-range))
       (with-current-buffer (marker-buffer start)
@@ -361,16 +421,18 @@ by `evil-ts-obj-last-range'."
 (defun evil-ts-obj-edit--clone-after-operator (start end)
   (evil-ts-obj-edit--save-range-or-call-op 'clone start end #'evil-ts-obj-edit--clone-after))
 
-(defun evil-ts-obj-edit--teleport-after-operator (start end)
-  (evil-ts-obj-edit--save-range-or-call-op 'teleport start end
-                                           (lambda (r or) (evil-ts-obj-edit--clone-after r or t))))
+(defun evil-ts-obj-edit--teleport-after-operator (start end &optional del-type)
+  (evil-ts-obj-edit--save-range-or-call-op
+   'teleport start end
+   (lambda (r or) (evil-ts-obj-edit--clone-after r or (or del-type t)))))
 
 (defun evil-ts-obj-edit--clone-before-operator (start end)
   (evil-ts-obj-edit--save-range-or-call-op 'clone start end #'evil-ts-obj-edit--clone-before))
 
-(defun evil-ts-obj-edit--teleport-before-operator (start end)
-  (evil-ts-obj-edit--save-range-or-call-op 'teleport start end
-                                           (lambda (r or) (evil-ts-obj-edit--clone-before r or t))))
+(defun evil-ts-obj-edit--teleport-before-operator (start end &optional del-type)
+  (evil-ts-obj-edit--save-range-or-call-op
+   'teleport start end
+   (lambda (r or) (evil-ts-obj-edit--clone-before r or (or del-type t)))))
 
 
 ;;;; Raise
@@ -484,8 +546,8 @@ When COUNT is set select Nth parent."
   (evil-ts-obj-edit--cleanup)
 
   (if after
-      (evil-ts-obj-edit--teleport-after-operator start end)
-    (evil-ts-obj-edit--teleport-before-operator start end))
+      (evil-ts-obj-edit--teleport-after-operator start end 'safe)
+    (evil-ts-obj-edit--teleport-before-operator start end 'safe))
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
                   (extract-rules-func (plist-get evil-ts-obj-conf-extract-rules lang))
@@ -511,8 +573,8 @@ When COUNT is set select Nth parent."
             (setq range (evil-ts-obj--apply-modifiers node place-thing spec))))
 
         (if after
-            (evil-ts-obj-edit--teleport-after-operator (car range) (cadr range))
-          (evil-ts-obj-edit--teleport-before-operator (car range) (cadr range)))
+            (evil-ts-obj-edit--teleport-after-operator (car range) (cadr range) 'safe)
+          (evil-ts-obj-edit--teleport-before-operator (car range) (cadr range) 'safe))
 
         (when (fboundp 'evil-set-jump)
           (evil-set-jump))

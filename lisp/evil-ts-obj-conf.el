@@ -194,7 +194,40 @@ the current indentation at the start of a place range. If its
 value is the symbol column, then column number of the start of
 the place range is used as an indentation level.")
 
-(defvar-local evil-ts-obj-conf-extract-rules nil)
+(defvar-local evil-ts-obj-conf-extract-rules nil
+  "This variable maps language to a function that returns extract DWIM rules.
+This function is invoked by
+`evil-ts-obj-edit--extract-operator-impl' and
+`evil-ts-obj-edit--extract-dwim-impl' to determine what things
+they should operate on. The function should accept RANGE-TYPE and
+optionally TEXT-SPEC. RANGE-TYPE is a symbol that value is either
+text or place. If RANGE-TYPE is text then function should return
+a text object, content of which will be extracted. If RANGE-TYPE
+is place then function should return a text object that denotes
+position to insert the selected content. If extract-up then start
+of text object is the insert position, if extract-down then text
+is inserted at the end of the range. In both cases it should
+return alist, for example \\='((statement . inner) (compound .
+outer)). So it is possible to specify multiple potential text
+objects. When the RANGE-TYPE is place, TEXT-SPEC stores
+specification of previously selected text object. See
+`evil-ts-obj-def-extract-rules' and
+`evil-ts-obj-def-conf-lang-extract-rules' as examples of this
+function implementation.")
+
+(defvar-local evil-ts-obj-conf-statement-placeholder nil
+  "List of placeholder statements for each language.
+This variable is used in extract/inject operators. One of these
+statements is inserted inside compound statement, in case it
+becomes empty after the extract operation.")
+
+(defvar-local evil-ts-obj-conf-compound-brackets nil
+  "Compound brackets for each language.
+If language uses some kind of bracktet to combine statements,
+then their values shoulb set in this variable. They are set as a
+string, for example \"{}\". This variable is used by
+extract/inject operators. Purpose is the same as for
+`evil-ts-obj-conf-statement-placeholder'.")
 
 (defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise)
   "Do not extend upper/lower text object range for specified commands.

@@ -158,8 +158,14 @@ Compound is represented by a `NODE'."
     (if (member (treesit-node-type body-node) '("compound_statement"
                                                 "field_declaration_list"))
         ;; do not include enclosing braces
-        (list (treesit-node-start (treesit-node-child body-node 0 t))
-              (treesit-node-end (treesit-node-child body-node -1 t)))
+        (if-let ((first-child (treesit-node-child body-node 0 t))
+                 (last-child  (treesit-node-child body-node -1 t)))
+            (list (treesit-node-start first-child)
+                  (treesit-node-end last-child))
+          ;; empty body
+          (list (treesit-node-end (treesit-node-child body-node 0))
+                (treesit-node-start (treesit-node-child body-node 1))))
+
       (list (treesit-node-start body-node)
             (treesit-node-end body-node)))))
 
@@ -214,7 +220,8 @@ and `NODE'."
                               :fetcher (lambda (d n) (evil-ts-obj--common-get-statement-sibling
                                                       d n '("binary_expression"))))
                              :param-sib-trav (evil-ts-obj-trav-create
-                                              :seps evil-ts-obj-cpp-param-seps-regex)))
+                                              :seps evil-ts-obj-cpp-param-seps-regex)
+                             :compound-brackets "{}"))
 
 (provide 'evil-ts-obj-cpp)
 ;;; evil-ts-obj-cpp.el ends here

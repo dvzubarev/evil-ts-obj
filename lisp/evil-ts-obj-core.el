@@ -319,7 +319,7 @@ form (or thing1 thing2 ...). COMMAND is the same as for
             (_
              (list start end))))))))
 
-(defun evil-ts-obj--apply-modifiers (node thing spec)
+(defun evil-ts-obj--apply-modifiers (node thing spec &optional dont-set-last)
   "Apply modifiers for creating a text object from the `THING'.
 THING may be a symbol or a list of multiple things. If thing is a
 list then one thing that represents the NODE is kept. In case if
@@ -328,7 +328,8 @@ the current operation, otherwise it is alist that maps thing to a
 spec. `THING' is transformed to range via transformation function
 from `evil-ts-obj-conf-thing-modifiers'. NODE and SPEC are passed
 to modifiers. If no modifier is found or modifier returns nil
-fallback to `evil-ts-obj--default-range'."
+fallback to `evil-ts-obj--default-range'. If `DONT-SET-LAST' is t
+do not update `evil-ts-obj--last-text-obj-range' variable."
   (when node
     (let* ((current-thing (evil-ts-obj--current-thing node thing))
            (current-spec (if (listp thing)
@@ -341,8 +342,9 @@ fallback to `evil-ts-obj--default-range'."
                       (r (funcall modifier current-spec node)))
                 r
               (evil-ts-obj--default-range node current-spec))))
-      (setq evil-ts-obj--last-text-obj-spec current-spec
-            evil-ts-obj--last-text-obj-range (copy-sequence range))
+      (unless dont-set-last
+        (setq evil-ts-obj--last-text-obj-spec current-spec
+              evil-ts-obj--last-text-obj-range (copy-sequence range)))
       range)))
 
 

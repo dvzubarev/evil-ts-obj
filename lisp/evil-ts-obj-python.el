@@ -193,7 +193,8 @@ and `NODE'."
                               :fetcher (lambda (d n) (evil-ts-obj--common-get-statement-sibling
                                                       d n '("boolean_operator"))))
                              :param-sib-trav (evil-ts-obj-trav-create
-                                              :seps evil-ts-obj-python-param-seps-regex)))
+                                              :seps evil-ts-obj-python-param-seps-regex)
+                             :statement-placeholder '("pass" "...")))
 
 
 
