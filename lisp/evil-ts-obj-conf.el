@@ -229,7 +229,31 @@ string, for example \"{}\". This variable is used by
 extract/inject operators. Purpose is the same as for
 `evil-ts-obj-conf-statement-placeholder'.")
 
-(defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise)
+(defvar-local evil-ts-obj-conf-inject-rules nil
+  "This variable maps language to a function that returns inject DWIM rules.
+This function is invoked by
+`evil-ts-obj-edit--inject-operator-impl' and
+`evil-ts-obj-edit--inject-dwim-impl' to determine what things
+they should operate on. The function should accept RANGE-TYPE and
+optionally TEXT-SPEC. RANGE-TYPE is a symbol that value is either
+text or place. If RANGE-TYPE is text then function should return
+a text object, content of which will be injected into new place.
+If RANGE-TYPE is place then function should return a text object,
+to which text will be injected. Usually, compound inner text
+objects is used as a place for injection. If inject-up then end
+of text object is the insert position, if inject-down then text
+is inserted at the start of the range. In both cases it should
+return alist, for example \\='((statement . inner) (compound .
+outer)). So it is possible to specify multiple potential text
+objects. When the RANGE-TYPE is place, TEXT-SPEC stores
+specification of previously selected text object. See
+`evil-ts-obj-def-inject-rules' and
+`evil-ts-obj-def-conf-lang-inject-rules' as examples of this
+function implementation.")
+
+(defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise
+                                                    evil-ts-obj-inject-down
+                                                    evil-ts-obj-inject-up)
   "Do not extend upper/lower text object range for specified commands.
 Upper/lower modifiers usually extend text object range to the
 next/previous sibling. It is not desirable behavior for some

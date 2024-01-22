@@ -317,8 +317,10 @@ range deletion."
           (goto-char insert-pos)
           (cond
            ;; heuristics to determine whether to open a new line
-           ((and (save-excursion (skip-chars-backward " \t") (bolp))
+           ((and (not (eolp))
+                 (save-excursion (skip-chars-backward " \t") (bolp))
                  (not text-ends-with-newline))
+
             ;; Insert point is at the start of the line.
             ;; Insert new line with the indentation of the start position.
             (goto-char (line-beginning-position))
@@ -546,8 +548,8 @@ When COUNT is set select Nth parent."
   (evil-ts-obj-edit--cleanup)
 
   (if after
-      (evil-ts-obj-edit--teleport-after-operator start end 'safe)
-    (evil-ts-obj-edit--teleport-before-operator start end 'safe))
+      (evil-ts-obj-edit--teleport-after-operator start end)
+    (evil-ts-obj-edit--teleport-before-operator start end))
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
                   (extract-rules-func (plist-get evil-ts-obj-conf-extract-rules lang))
@@ -587,13 +589,125 @@ When COUNT is set select Nth parent."
 
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
-                  (raise-rules-func (plist-get evil-ts-obj-conf-extract-rules lang))
-                  (rules-alist (funcall raise-rules-func 'text ))
+                  (extract-rules-func (plist-get evil-ts-obj-conf-extract-rules lang))
+                  (rules-alist (funcall extract-rules-func 'text ))
                   (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
                   (spec (evil-ts-obj--make-spec rules-alist 'op))
                   (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
         (evil-ts-obj-edit--extract-operator-impl (car range) (cadr range) count after))
     (evil-ts-obj-edit--cleanup)))
+
+(defun evil-ts-obj-edit--inject-handle-placeholders (place-range place-node)
+  (let* ((lang (treesit-language-at (car place-range)))
+         (placeholders (plist-get evil-ts-obj-conf-statement-placeholder lang))
+         (brackets (plist-get evil-ts-obj-conf-compound-brackets lang))
+         (range-text (buffer-substring-no-properties (car place-range) (cadr place-range)))
+         (new-range place-range))
+
+    (when (and placeholders
+               (cl-some (lambda (p) (equal range-text p)) placeholders))
+      (delete-region (car place-range) (cadr place-range))
+      (setq new-range (list (car place-range) (car place-range))))
+    (when (and brackets
+               (not (evil-ts-obj-edit--find-compound-brackets brackets place-range)))
+      (save-excursion
+        (goto-char (treesit-node-start place-node))
+        (let* ((col (current-column))
+               (offs (+ 2 col))
+               (indent-str (make-string col 32)))
+          (goto-char (car place-range))
+          (beginning-of-line)
+          (newline)
+          (forward-line -1)
+          (insert indent-str)
+          (insert (aref brackets 0))
+          (goto-char (+ (cadr place-range) offs))
+          (insert ?\n)
+          (insert indent-str)
+          (insert (aref brackets 1))
+
+          (setq new-range (list (+ (car place-range) offs)
+                                (+ (cadr place-range) offs))))))
+    new-range))
+
+(defun evil-ts-obj-edit--inject-operator-impl (start end &optional count up?)
+  ;; clean unfinished edit operations
+  (evil-ts-obj-edit--cleanup)
+  (if up?
+      (evil-ts-obj-edit--teleport-after-operator start end)
+    (evil-ts-obj-edit--teleport-before-operator start end))
+  (unwind-protect
+      (when-let* ((lang (treesit-language-at (point)))
+                  (inject-rules-func (plist-get evil-ts-obj-conf-inject-rules lang))
+                  (last-spec evil-ts-obj--last-text-obj-spec)
+                  (last-range evil-ts-obj--last-text-obj-range)
+                  (rules-alist (funcall inject-rules-func 'place last-spec))
+                  (place-spec (evil-ts-obj--make-spec rules-alist 'op))
+                  (place-thing (evil-ts-obj-edit--thing-from-rules rules-alist))
+                  (dir (if up? 'prev 'next))
+                  (last-thing (plist-get last-spec :thing))
+                  (last-node (evil-ts-obj--thing-around (point) last-thing))
+                  ;; find next/prev place node
+                  (place-node (evil-ts-obj--find-matching-sibling last-node last-thing
+                                                                  dir place-thing))
+                  (range (evil-ts-obj--apply-modifiers place-node place-thing place-spec)))
+
+        ;; dip down inside the node
+        (let ((count (or count 1))
+              (text-thing (evil-ts-obj-edit--thing-from-rules
+                           (funcall inject-rules-func 'text)))
+              child
+              child-thing)
+          (catch 'break
+            (dotimes (_ (1- count))
+
+              (setq child (evil-ts-obj--thing-around (car range) text-thing)
+                    child-thing (evil-ts-obj--current-thing child text-thing))
+              (if (> (treesit-node-start child) (cadr range))
+                  (setq child nil)
+
+                (if up?
+                    (let (sibling)
+                      (setq sibling (evil-ts-obj--find-matching-sibling child child-thing
+                                                                        'next place-thing 999))
+                      (if sibling
+                          (setq child sibling)
+                        (unless (treesit-node-match-p child place-thing t)
+                          (setq child nil))))
+
+                  (when (not (treesit-node-match-p child place-thing t))
+                    (setq child (evil-ts-obj--find-matching-sibling child child-thing
+                                                                    'next place-thing)))))
+              (if (null child)
+                  (throw 'break place-node)
+                (setq place-node child
+                      range (evil-ts-obj--apply-modifiers place-node place-thing place-spec))))))
+
+
+        (setq range (evil-ts-obj-edit--inject-handle-placeholders range place-node))
+        (if up?
+            (evil-ts-obj-edit--teleport-after-operator (car range) (cadr range))
+          (evil-ts-obj-edit--teleport-before-operator (car range) (cadr range)))
+
+        (when (fboundp 'evil-set-jump)
+          (evil-set-jump))
+        (goto-char (car evil-ts-obj--last-text-obj-range)))
+    (evil-ts-obj-edit--cleanup)))
+
+(defun evil-ts-obj-edit--inject-dwim-impl (count &optional up?)
+  ;; clean unfinished edit operations
+  (evil-ts-obj-edit--cleanup)
+
+  (unwind-protect
+      (when-let* ((lang (treesit-language-at (point)))
+                  (inject-rules-func (plist-get evil-ts-obj-conf-inject-rules lang))
+                  (rules-alist (funcall inject-rules-func 'text ))
+                  (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
+                  (spec (evil-ts-obj--make-spec rules-alist 'op))
+                  (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
+        (evil-ts-obj-edit--inject-operator-impl (car range) (cadr range) count up?))
+    (evil-ts-obj-edit--cleanup)))
+
 
 (provide 'evil-ts-obj-edit)
 ;;; evil-ts-obj-edit.el ends here

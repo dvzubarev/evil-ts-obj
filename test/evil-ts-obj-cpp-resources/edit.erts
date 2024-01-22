@@ -773,7 +773,7 @@ Code:
     (evil-ts-obj-extract-down-dwim 2)
     (delete-trailing-whitespace))
 
-Name: Extract dwim down 2 levels t1
+Name: Extract dwim down two levels t1
 
 =-=
 void f (){
@@ -792,7 +792,7 @@ void f (){
 |i > 0
 =-=-=
 
-Name: Extract dwim down 2 levels t2
+Name: Extract dwim down two levels t2
 
 =-=
 void f (){
@@ -816,5 +816,272 @@ void f (){
         std::cout<<"\n";
     } else
         i+=2;
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-inject-down-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Inject down dwim  t1
+
+=-=
+void f (){
+    |i = 3;
+    if (i > 0){
+        i--;
+    }
+    if (true){}
+}
+=-=
+void f (){
+
+    if (i > 0){
+        |i = 3;
+        i--;
+    }
+    if (true){}
+}
+=-=-=
+
+Name: Inject down dwim  t2
+
+=-=
+void f (){
+    |i = 3;
+    i++;
+
+    if (i > 0){
+        i--;
+    }
+}
+=-=
+void f (){
+
+    i++;
+
+    if (i > 0){
+        |i = 3;
+        i--;
+    }
+}
+=-=-=
+
+Name: Inject down dwim  t3
+
+=-=
+void f (){
+    |i = 3;
+    if (i > 0)
+        i--;
+}
+=-=
+void f (){
+
+    if (i > 0)
+    {
+        |i = 3;
+        i--;
+    }
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-inject-down-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Inject down dwim two levels t1
+
+=-=
+void f (){
+    |i = 3;
+    if (i > 0)
+        while (i)
+        {}
+}
+=-=
+void f (){
+
+    if (i > 0)
+        while (i)
+        {|i = 3;
+         }
+}
+=-=-=
+
+Name: Inject down dwim two levels t2
+
+=-=
+void f (){
+    |i = 3;
+    if (i > 0){
+        i=call(i);
+        while (i){
+            auto j=3;
+            auto jj=3;
+        }
+    }
+}
+=-=
+void f (){
+
+    if (i > 0){
+        i=call(i);
+        while (i){
+            |i = 3;
+            auto j=3;
+            auto jj=3;
+        }
+    }
+}
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-inject-up-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Inject up dwim  t1
+
+=-=
+void f (){
+    i++;
+    if (i > 0){
+        i--;
+    }
+    |i = 3;
+}
+=-=
+void f (){
+    i++;
+    if (i > 0){
+        i--;
+        |i = 3;
+    }
+
+}
+=-=-=
+
+Name: Inject up dwim  t2
+
+=-=
+void f (){
+    if (i > 3){
+        i--;
+    }
+    i++;
+    if (i > 0){
+        i--;
+    }
+    i++;
+    |i = 3;
+}
+=-=
+void f (){
+    if (i > 3){
+        i--;
+    }
+    i++;
+    if (i > 0){
+        i--;
+        |i = 3;
+    }
+    i++;
+
+}
+=-=-=
+
+Name: Inject up dwim  t3
+
+=-=
+void f (){
+    i++;
+    if (i > 0)
+        i--;
+    i++;
+    |i = 3;
+}
+=-=
+void f (){
+    i++;
+    if (i > 0)
+    {
+        i--;
+        |i = 3;
+    }
+    i++;
+
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-inject-up-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Inject up dwim two levels t1
+
+=-=
+void f (){
+    if (i > 0){
+        i--;
+        if (i > 3){
+            i--;
+            i--;
+        }
+    }
+    i++;
+    |i = 3;
+}
+=-=
+void f (){
+    if (i > 0){
+        i--;
+        if (i > 3){
+            i--;
+            i--;
+            |i = 3;
+        }
+    }
+    i++;
+
+}
+=-=-=
+
+Name: Inject up dwim two levels t2
+
+=-=
+void f (){
+    i++;
+    if (i > 0){
+        if (i > 3)
+            i--;
+    }
+    if (i)
+        if (i > 3)
+           i++;
+    |i = 3;
+}
+=-=
+void f (){
+    i++;
+    if (i > 0){
+        if (i > 3)
+            i--;
+    }
+    if (i)
+        if (i > 3)
+        {
+           i++;
+           |i = 3;
+        }
+
 }
 =-=-=

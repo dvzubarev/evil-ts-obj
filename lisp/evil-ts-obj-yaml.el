@@ -34,14 +34,29 @@
   :type '(repeat string)
   :group 'evil-ts-obj)
 
-
+(defun evil-ts-obj-yaml--param-compound-node (node)
+  "Return compound part of a param-compound thing represented by NODE.
+Param-compound thing is an item of a list or a mapping, which
+value is another compound. It is useful for some edit
+operators (inject ,slurp ,barf)."
+  (when-let* ((value-node (pcase (treesit-node-type node)
+                            ("block_mapping_pair" (treesit-node-child-by-field-name node "value"))
+                            ("block_sequence_item" (treesit-node-child node 0 t))))
+              ((equal (treesit-node-type value-node) "block_node"))
+              (compound-node (treesit-node-child value-node 0 t))
+              ((member (treesit-node-type compound-node) evil-ts-obj-yaml-compound-nodes)))
+    compound-node))
 
 (defcustom evil-ts-obj-yaml-things
   `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-yaml-compound-nodes))
-    (param ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-yaml-param-nodes)))
+    (param ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-yaml-param-nodes))
+    (param-compound evil-ts-obj-yaml--param-compound-node))
+
   "Things for yaml."
   :type 'plist
   :group 'evil-ts-obj)
+
+
 
 (defun evil-ts-obj-yaml-param-mod (node)
   (when-let* ((is-list (equal (treesit-node-type node) "block_sequence_item"))
@@ -57,12 +72,18 @@ See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
 
   (pcase spec
+    ((pmap (:thing 'param-compound) (:mod 'inner))
+     (when-let ((comp-node (evil-ts-obj-yaml--param-compound-node node)))
+       (list (treesit-node-start comp-node)
+             (treesit-node-end comp-node))))
     ((pmap (:thing 'param) (:mod 'inner) (:act 'op)
            (:command (pred (not (lambda (e) (memq e '(evil-ts-obj-raise-dwim
                                                       evil-ts-obj-extract-up-dwim
                                                       evil-ts-obj-extract-down-dwim
                                                       evil-ts-obj-drag-down
-                                                      evil-ts-obj-drag-up)))))))
+                                                      evil-ts-obj-drag-up
+                                                      evil-ts-obj-inject-down-dwim
+                                                      evil-ts-obj-inject-up-dwim)))))))
      (evil-ts-obj-yaml-param-mod node))))
 
 (defcustom evil-ts-obj-yaml-ext-func

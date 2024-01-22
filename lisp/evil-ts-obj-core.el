@@ -864,15 +864,15 @@ By default return first sibling. COUNT may be positive integer
 specifying the number of a sibling to return. For description of
 NODE-THING, DIR, MATCH-THING see `evil-ts-obj--iter-siblings'."
   (let ((iter (evil-ts-obj--iter-siblings node node-thing dir match-thing))
-        (count (or count 1)))
+        (count (or count 1))
+        result)
     (condition-case nil
-        (prog1
-            (let (result)
-              (dotimes (_ count)
-                (setq result (iter-next iter)))
-              result)
+        (progn
+          (dotimes (_ count)
+            (setq result (iter-next iter)))
           (iter-close iter))
-      (iter-end-of-sequence nil))))
+      (iter-end-of-sequence nil))
+    result))
 
 
 ;;; Modifiers

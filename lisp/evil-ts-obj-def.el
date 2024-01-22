@@ -101,14 +101,14 @@ and FIRST-SPEC."
 ;;;;; extract rules
 
 (defun evil-ts-obj-def-extract-rules (_range-type &optional _text-spec)
-  "Return default clone rules.
+  "Return default extract rules.
 See `evil-ts-obj-conf-extract-rules' for description of RANGE-TYPE
 and FIRST-SPEC."
   '((statement . inner)
     (compound . outer)))
 
 (defun evil-ts-obj-def-conf-lang-extract-rules (range-type &optional _text-spec)
-  "Return default clone rules for configuration languages like YAML.
+  "Return default extract rules for configuration languages like YAML.
 See `evil-ts-obj-conf-extract-rules' for description of RANGE-TYPE
 and FIRST-SPEC."
 
@@ -118,6 +118,30 @@ and FIRST-SPEC."
        (compound . outer)))
     ('place
      '((param . inner)))))
+
+;;;;; inject rules
+
+(defun evil-ts-obj-def-inject-rules (range-type &optional _text-spec)
+  "Return default inject rules.
+See `evil-ts-obj-conf-inject-rules' for description of RANGE-TYPE
+and FIRST-SPEC."
+  (pcase range-type
+    ('text
+     '((statement . inner)
+       (compound . outer)))
+    ('place
+     '((compound . inner)))))
+
+(defun evil-ts-obj-def-conf-lang-inject-rules (range-type &optional _text-spec)
+  "Return default inject rules for configuration languages like YAML.
+See `evil-ts-obj-conf-inject-rules' for description of RANGE-TYPE
+and FIRST-SPEC."
+
+  (pcase range-type
+    ('text
+     '((param . inner)))
+    ('place
+     '((param-compound . inner)))))
 
 
 ;;;; sibling traverse helpers
@@ -215,7 +239,8 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
 
   (cl-callf plist-put evil-ts-obj-conf-extract-rules lang #'evil-ts-obj-def-extract-rules)
   (cl-callf plist-put evil-ts-obj-conf-compound-brackets lang compound-brackets)
-  (cl-callf plist-put evil-ts-obj-conf-statement-placeholder lang statement-placeholder))
+  (cl-callf plist-put evil-ts-obj-conf-statement-placeholder lang statement-placeholder)
+  (cl-callf plist-put evil-ts-obj-conf-inject-rules lang #'evil-ts-obj-def-inject-rules))
 
 
 (cl-defun evil-ts-obj-def-init-conf-lang (
@@ -279,7 +304,9 @@ This function also adds `evil-ts-obj-def-raise-rules' to
     lang #'evil-ts-obj-def-conf-lang-clone-rules)
   (cl-callf plist-put evil-ts-obj-conf-clone-indent-policy lang clone-indent-policy)
   (cl-callf plist-put evil-ts-obj-conf-extract-rules lang
-            #'evil-ts-obj-def-conf-lang-extract-rules))
+            #'evil-ts-obj-def-conf-lang-extract-rules)
+  (cl-callf plist-put evil-ts-obj-conf-inject-rules lang
+            #'evil-ts-obj-def-conf-lang-inject-rules))
 
 
 (provide 'evil-ts-obj-def)

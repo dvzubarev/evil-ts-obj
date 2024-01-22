@@ -798,7 +798,7 @@ Code:
     (evil-ts-obj-extract-down-dwim 2)
     (delete-trailing-whitespace))
 
-Name: Extract down dwim 2 levels t1
+Name: Extract down dwim two levels t1
 =-=
 ---
 - |a: t
@@ -816,7 +816,7 @@ Name: Extract down dwim 2 levels t1
 - aa
 =-=-=
 
-Name: Extract down dwim 2 levels t2
+Name: Extract down dwim two levels t2
 =-=
 ---
 - t
@@ -836,7 +836,7 @@ Name: Extract down dwim 2 levels t2
 - aa
 =-=-=
 
-Name: Extract down dwim 2 levels t3
+Name: Extract down dwim two levels t3
 =-=
 ---
 xmas-fifth-day:
@@ -854,7 +854,7 @@ xmas-fifth-day:
 location: 2
 =-=-=
 
-Name: Extract down dwim 2 levels t4
+Name: Extract down dwim two levels t4
 =-=
 ---
 xmas-fifth-day:
@@ -870,4 +870,285 @@ xmas-fifth-day:
     location: 2
   a:
 |count: 1
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-inject-down)
+    (apply #'evil-ts-obj-inject-down (evil-ts-obj-param-upper))
+    (delete-trailing-whitespace))
+
+Name: Inject down param upper t1
+=-=
+---
+c: 4
+|t: tt
+par:
+  co: 1
+  l: 2
+a:
+=-=
+---
+
+par:
+  |c: 4
+  t: tt
+  co: 1
+  l: 2
+a:
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-inject-up-dwim)
+    (evil-ts-obj-inject-up-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Inject up dwim t1
+=-=
+---
+- bb:
+    t1: 1
+    t2: 2
+  |a: t
+- aa
+=-=
+---
+- bb:
+    t1: 1
+    t2: 2
+    |a: t
+
+- aa
+=-=-=
+
+Name: Inject up dwim t2
+=-=
+---
+- t
+- a:
+    t1: 2
+  |bb:
+    - temp2
+    - temp1
+- aa
+=-=
+---
+- t
+- a:
+    t1: 2
+    |bb:
+      - temp2
+      - temp1
+
+- aa
+=-=-=
+
+Name: Inject up dwim t3
+=-=
+---
+- a: t
+  bb:
+    - - 1
+      - 2
+    - temp2
+    - |temp1
+- aa
+=-=
+---
+- a: t
+  bb:
+    - - 1
+      - 2
+      |- temp1
+    - temp2
+
+- aa
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-inject-up-dwim)
+    (evil-ts-obj-inject-up-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Inject up dwim two levels t1
+=-=
+---
+- bb:
+    t1:
+      t11: 11
+    t2:
+      t22: 22
+  |a: t
+- aa
+=-=
+---
+- bb:
+    t1:
+      t11: 11
+    t2:
+      t22: 22
+      |a: t
+
+- aa
+=-=-=
+
+Name: Inject up dwim two levels t2
+=-=
+---
+- a: t
+  bb:
+    - temp2
+    - temp1
+|- aa
+=-=
+---
+- a: t
+  bb:
+    - temp2
+    - temp1
+    |- aa
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-inject-down-dwim)
+    (evil-ts-obj-inject-down-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Inject down dwim t1
+=-=
+---
+- |a: t
+  bb:
+    - temp2
+    - temp1
+- aa
+=-=
+---
+-
+  bb:
+    |a: t
+    - temp2
+    - temp1
+- aa
+=-=-=
+
+Name: Inject down dwim t3
+=-=
+---
+- a: t
+  |bb:
+    - temp2
+    - temp1
+  c:
+    v: 1
+- aa
+=-=
+---
+- a: t
+
+  c:
+    |bb:
+      - temp2
+      - temp1
+    v: 1
+- aa
+=-=-=
+
+Name: Inject down dwim t4
+=-=
+---
+- a: t
+  bb:
+    - |temp2
+    - temp1
+    - - 1
+      - 2
+- aa
+=-=
+---
+- a: t
+  bb:
+
+    - temp1
+    - |- temp2
+      - 1
+      - 2
+- aa
+=-=-=
+
+Name: Inject down dwim t5
+=-=
+---
+|- n: st
+  cm: ec
+
+- n: deb
+  cm: 11
+=-=
+---
+
+
+- - n: st
+    cm: ec
+  n: deb
+  cm: 11
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-inject-down-dwim)
+    (evil-ts-obj-inject-down-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Inject down dwim two levels t1
+=-=
+---
+- bb:
+  |a: t
+  t1:
+    - t11: 11
+      t12: 12
+    - e
+  t2:
+    t22: 22
+- aa
+=-=
+---
+- bb:
+
+  t1:
+    - |a: t
+      t11: 11
+      t12: 12
+    - e
+  t2:
+    t22: 22
+- aa
+=-=-=
+
+Name: Inject down dwim two levels t2
+=-=
+---
+|- aa
+- a: t
+  bb:
+    - temp2
+    - temp1
+=-=
+---
+
+- a: t
+  bb:
+    |- aa
+    - temp2
+    - temp1
 =-=-=

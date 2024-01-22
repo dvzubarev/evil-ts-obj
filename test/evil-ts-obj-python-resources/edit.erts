@@ -657,7 +657,7 @@ Name: Swap drag down with count arg t2
 def main(par1, |par2, par3,):
     pass
 =-=
-def main(par1, |par2, par3,):
+def main(par1, par3, |par2,):
     pass
 =-=-=
 
@@ -1707,7 +1707,7 @@ Code:
     (evil-ts-obj-extract-down-dwim 2)
     (delete-trailing-whitespace))
 
-Name: Extract down dwim 2 levels t1
+Name: Extract down dwim two levels t1
 
 =-=
 def main(v):
@@ -1723,7 +1723,7 @@ def main(v):
 =-=-=
 
 
-Name: Extract down dwim 2 levels t2
+Name: Extract down dwim two levels t2
 
 =-=
 def main(v):
@@ -1738,7 +1738,7 @@ def main(v):
     call()
 =-=-=
 
-Name: Extract down dwim 2 levels t3
+Name: Extract down dwim two levels t3
 
 =-=
 def main(v):
@@ -1766,4 +1766,244 @@ def main(v):
         var = call(t, p)
     |False
     call()
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-inject-down-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Inject down dwim  t1
+
+=-=
+|i = 3
+def main():
+    while True:
+        call(i)
+=-=
+
+def main():
+    |i = 3
+    while True:
+        call(i)
+=-=-=
+
+Name: Inject down dwim  t2
+
+=-=
+def main():
+    |i = 3
+    while True:
+        call(i)
+=-=
+def main():
+
+    while True:
+        |i = 3
+        call(i)
+=-=-=
+
+Name: Inject down dwim  t3
+
+=-=
+def main():
+    |i = 3
+    while True:
+        pass
+    i = 0
+=-=
+def main():
+
+    while True:
+        |i = 3
+    i = 0
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-inject-down-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Inject down dwim two levels t1
+
+=-=
+|i = 3
+def main():
+    while True:
+        call(i)
+=-=
+
+def main():
+    while True:
+        |i = 3
+        call(i)
+=-=-=
+
+Name: Inject down dwim two levels t2
+
+=-=
+|i = 3
+def main():
+    i = 0
+    while True:
+        call(i)
+=-=
+
+def main():
+    i = 0
+    while True:
+        |i = 3
+        call(i)
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-inject-up-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Inject up dwim  t1
+
+=-=
+def main():
+    while True:
+        call(i)
+|i = 3
+=-=
+def main():
+    while True:
+        call(i)
+    |i = 3
+=-=-=
+
+Name: Inject up dwim  t2
+
+=-=
+def main():
+    while True:
+        call(i)
+    |i = 3
+=-=
+def main():
+    while True:
+        call(i)
+        |i = 3
+=-=-=
+
+Name: Inject up dwim  t3
+
+=-=
+def main():
+    while True:
+        ...
+    |i = 3
+=-=
+def main():
+    while True:
+        |i = 3
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-inject-up-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Inject up dwim two levels t1
+
+=-=
+def main():
+    while True:
+        call(i)
+|i = 3
+=-=
+def main():
+    while True:
+        call(i)
+        |i = 3
+=-=-=
+
+Name: Inject up dwim two levels t2
+
+=-=
+def main():
+    while True:
+        call(i)
+    i = -1
+|i = 3
+=-=
+def main():
+    while True:
+        call(i)
+        |i = 3
+    i = -1
+=-=-=
+
+Name: Inject up dwim two levels t3
+
+=-=
+def main():
+    i = 0
+    while True:
+        call(i)
+    i = -1
+|i = 3
+=-=
+def main():
+    i = 0
+    while True:
+        call(i)
+        |i = 3
+    i = -1
+=-=-=
+
+Name: Inject up dwim two levels t4
+
+=-=
+def main():
+    while True:
+        call(i)
+    while False:
+        call(i+1)
+    i = -1
+|i = 3
+=-=
+def main():
+    while True:
+        call(i)
+    while False:
+        call(i+1)
+        |i = 3
+    i = -1
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-inject-up)
+    (apply #'evil-ts-obj-inject-up (evil-ts-obj-statement-lower))
+    (delete-trailing-whitespace))
+
+Name: Inject up statement lower t1
+
+=-=
+def main():
+    while True:
+        call(i)
+    i = 0
+    while False:
+        pass
+    |v = call(i+1)
+    i = -1
+=-=
+def main():
+    while True:
+        call(i)
+    i = 0
+    while False:
+        |v = call(i+1)
+        i = -1
 =-=-=

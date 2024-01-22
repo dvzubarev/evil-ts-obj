@@ -255,6 +255,24 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (interactive "<c>")
   (evil-ts-obj-edit--extract-dwim-impl count t))
 
+(evil-define-operator evil-ts-obj-inject-up (beg end type count)
+  :move-point nil
+  (interactive "<R><c>")
+  (evil-ts-obj-edit--inject-operator-impl beg end count t))
+
+(evil-define-operator evil-ts-obj-inject-up-dwim (count)
+  (interactive "<c>")
+  (evil-ts-obj-edit--inject-dwim-impl count t))
+
+(evil-define-operator evil-ts-obj-inject-down (beg end type count)
+  :move-point nil
+  (interactive "<R><c>")
+  (evil-ts-obj-edit--inject-operator-impl beg end count))
+
+(evil-define-operator evil-ts-obj-inject-down-dwim (count)
+  (interactive "<c>")
+  (evil-ts-obj-edit--inject-dwim-impl count))
+
 
 ;;; default keybindings and minor mode
 
