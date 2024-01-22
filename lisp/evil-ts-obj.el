@@ -218,16 +218,16 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (interactive)
   (evil-ts-obj-edit--clone-dwim-impl nil))
 
-(evil-define-operator evil-ts-obj-raise (beg end type)
+(evil-define-operator evil-ts-obj-raise (beg end type count)
   "Replace parent thing with the specified range."
   :move-point nil
   :repeat t
-  (interactive "<R>")
-  (evil-ts-obj-edit--raise-operator beg end))
+  (interactive "<R><c>")
+  (evil-ts-obj-edit--raise-operator beg end count))
 
-(evil-define-operator evil-ts-obj-raise-dwim ()
-  (interactive)
-  (evil-ts-obj-edit--raise-dwim))
+(evil-define-operator evil-ts-obj-raise-dwim (count)
+  (interactive "<c>")
+  (evil-ts-obj-edit--raise-dwim count))
 
 (evil-define-operator evil-ts-obj-drag-up (count)
   (interactive "<c>")

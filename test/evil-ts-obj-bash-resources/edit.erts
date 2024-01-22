@@ -3,7 +3,7 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-raise-dwim))
+    (evil-ts-obj-raise-dwim 1))
 
 Name: Raise dwim t1
 
@@ -47,6 +47,32 @@ Name: Raise dwim t4
 echo |"three, four"
 =-=
 |"three, four"
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (evil-ts-obj-raise-dwim 2))
+
+Name: Raise dwim two levels t1
+
+=-=
+if [[ $v -eq 1 ]]; then
+    echo e; echo t
+elif [[ $v -eq 0 ]]; then
+    if [[ true ]]; then
+        |echo t
+    fi
+elif [[ $v -eq 0 ]]; then
+    echo t
+fi
+=-=
+if [[ $v -eq 1 ]]; then
+    echo e; echo t
+|echo t
+elif [[ $v -eq 0 ]]; then
+    echo t
+fi
 =-=-=
 
 Point-Char: @

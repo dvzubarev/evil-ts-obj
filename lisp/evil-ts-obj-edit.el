@@ -439,10 +439,11 @@ by `evil-ts-obj-last-range'."
 
 ;;;; Raise
 
-(defun evil-ts-obj-edit--raise-operator (start end)
+(defun evil-ts-obj-edit--raise-operator (start end &optional count)
   "Replace parent thing with the text from START END range.
-Parent thing is determined by the `evil-ts-obj-conf-raise-rules' variable.
-Actual raise is implemented via replace operator."
+Parent thing is determined by the `evil-ts-obj-conf-raise-rules'
+variable. When COUNT is set select Nth parent. Actual raise is
+implemented via replace operator."
 
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
@@ -460,12 +461,23 @@ Actual raise is implemented via replace operator."
                   (spec (evil-ts-obj--make-spec rules-alist 'op))
                   (range (evil-ts-obj--get-text-obj-range (point)
                                                           parent-thing spec
-                                                          last-range)))
+                                                          last-range t)))
+        (when-let* ((count (or count 1))
+                    ((> count 1))
+                    (node (caddr range))
+                    (parent node))
+          (cl-dotimes (_ (1- count))
+            (if (setq parent (treesit-parent-until
+                              node (lambda (n) (treesit-node-match-p n parent-thing t))))
+                (setq node parent)
+              (cl-return node)))
+          (setq range (evil-ts-obj--get-text-obj-range node parent-thing spec)))
+
         (evil-ts-obj-edit--save-range-or-call-op 'raise (car range) (cadr range)
                                                  #'evil-ts-obj-edit--replace))
     (evil-ts-obj-edit--cleanup)))
 
-(defun evil-ts-obj-edit--raise-dwim ()
+(defun evil-ts-obj-edit--raise-dwim (&optional count)
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
 
@@ -476,7 +488,7 @@ Actual raise is implemented via replace operator."
                   (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
                   (spec (evil-ts-obj--make-spec rules-alist 'op))
                   (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
-        (evil-ts-obj-edit--raise-operator (car range) (cadr range)))
+        (evil-ts-obj-edit--raise-operator (car range) (cadr range) count))
     (evil-ts-obj-edit--cleanup)))
 
 ;;;; Drag
@@ -561,18 +573,16 @@ When COUNT is set select Nth parent."
                   (range (evil-ts-obj--get-text-obj-range (point)
                                                           place-thing spec
                                                           last-range t)))
-        (let ((count (or count 1))
-              (node (caddr range))
-              parent)
-          (catch 'break
-            (dotimes (_ (1- count))
-              (setq parent (treesit-parent-until
-                            node (lambda (n) (treesit-node-match-p n place-thing t))))
-              (if (null parent)
-                  (throw 'break node)
-                (setq node parent))))
-          (when (> count 1)
-            (setq range (evil-ts-obj--apply-modifiers node place-thing spec))))
+        (when-let* ((count (or count 1))
+                    ((> count 1))
+                    (node (caddr range))
+                    (parent node))
+          (cl-dotimes (_ (1- count))
+            (if (setq parent (treesit-parent-until
+                              node (lambda (n) (treesit-node-match-p n place-thing t))))
+                (setq node parent)
+              (cl-return node)))
+          (setq range (evil-ts-obj--get-text-obj-range node place-thing spec)))
 
         (if after
             (evil-ts-obj-edit--teleport-after-operator (car range) (cadr range) 'safe)
@@ -596,6 +606,8 @@ When COUNT is set select Nth parent."
                   (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
         (evil-ts-obj-edit--extract-operator-impl (car range) (cadr range) count after))
     (evil-ts-obj-edit--cleanup)))
+
+;;;; Inject
 
 (defun evil-ts-obj-edit--inject-handle-placeholders (place-range place-node)
   (let* ((lang (treesit-language-at (car place-range)))
@@ -650,38 +662,37 @@ When COUNT is set select Nth parent."
                   ;; find next/prev place node
                   (place-node (evil-ts-obj--find-matching-sibling last-node last-thing
                                                                   dir place-thing))
-                  (range (evil-ts-obj--apply-modifiers place-node place-thing place-spec)))
+                  (range (evil-ts-obj--get-text-obj-range place-node place-thing place-spec)))
 
-        ;; dip down inside the node
+        ;; dip down inside the place node count-1 times
         (let ((count (or count 1))
               (text-thing (evil-ts-obj-edit--thing-from-rules
                            (funcall inject-rules-func 'text)))
               child
               child-thing)
-          (catch 'break
-            (dotimes (_ (1- count))
 
-              (setq child (evil-ts-obj--thing-around (car range) text-thing)
-                    child-thing (evil-ts-obj--current-thing child text-thing))
-              (if (> (treesit-node-start child) (cadr range))
-                  (setq child nil)
+          (cl-dotimes (_ (1- count))
+            (setq child (evil-ts-obj--thing-around (car range) text-thing)
+                  child-thing (evil-ts-obj--current-thing child text-thing))
+            (if (> (treesit-node-start child) (cadr range))
+                (setq child nil)
 
-                (if up?
-                    (let (sibling)
-                      (setq sibling (evil-ts-obj--find-matching-sibling child child-thing
-                                                                        'next place-thing 999))
-                      (if sibling
-                          (setq child sibling)
-                        (unless (treesit-node-match-p child place-thing t)
-                          (setq child nil))))
+              (if up?
+                  (let (sibling)
+                    (setq sibling (evil-ts-obj--find-matching-sibling child child-thing
+                                                                      'next place-thing 999))
+                    (if sibling
+                        (setq child sibling)
+                      (unless (treesit-node-match-p child place-thing t)
+                        (setq child nil))))
 
-                  (when (not (treesit-node-match-p child place-thing t))
-                    (setq child (evil-ts-obj--find-matching-sibling child child-thing
-                                                                    'next place-thing)))))
-              (if (null child)
-                  (throw 'break place-node)
-                (setq place-node child
-                      range (evil-ts-obj--apply-modifiers place-node place-thing place-spec))))))
+                (when (not (treesit-node-match-p child place-thing t))
+                  (setq child (evil-ts-obj--find-matching-sibling child child-thing
+                                                                  'next place-thing)))))
+            (if (null child)
+                (cl-return place-node)
+              (setq place-node child
+                    range (evil-ts-obj--get-text-obj-range place-node place-thing place-spec)))))
 
 
         (setq range (evil-ts-obj-edit--inject-handle-placeholders range place-node))

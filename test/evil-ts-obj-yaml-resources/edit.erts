@@ -4,7 +4,7 @@ Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
     (setq-local evil-this-operator 'evil-ts-obj-raise-dwim)
-    (evil-ts-obj-raise-dwim))
+    (evil-ts-obj-raise-dwim 1))
 
 Name: raise dwim t1
 
