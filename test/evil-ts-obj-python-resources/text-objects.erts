@@ -161,6 +161,23 @@ finally:
     |
 =-=-=
 
+Name: Delete match inner t1
+
+=-=
+def main():
+    |match t:
+        case ok:
+            pass
+        case "t":
+            pass
+    i = 3
+=-=
+def main():
+    match t:
+        |
+    i = 3
+=-=-=
+
 
 Code:
   (lambda ()

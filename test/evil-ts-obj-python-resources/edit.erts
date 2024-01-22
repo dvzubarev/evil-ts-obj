@@ -1906,6 +1906,26 @@ def main():
         |i = 3
 =-=-=
 
+Name: Inject up dwim  t3
+
+=-=
+def main():
+    while True:
+        ...
+    |i = 3
+
+    while False:
+        i = 3
+=-=
+def main():
+    while True:
+        |i = 3
+
+
+    while False:
+        i = 3
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
@@ -1978,6 +1998,50 @@ def main():
         call(i+1)
         |i = 3
     i = -1
+=-=-=
+
+Name: Inject up dwim  t5
+
+=-=
+def main():
+    while True:
+        if False:
+            ...
+    |i = 3
+
+    while False:
+        i = 3
+=-=
+def main():
+    while True:
+        if False:
+            |i = 3
+
+
+    while False:
+        i = 3
+=-=-=
+
+Name: Inject up dwim  t6
+
+=-=
+def main():
+    match t:
+        case ok:
+            pass
+    |i = 3
+
+    while False:
+        i = 0
+=-=
+def main():
+    match t:
+        case ok:
+            |i = 3
+
+
+    while False:
+        i = 0
 =-=-=
 
 Code:

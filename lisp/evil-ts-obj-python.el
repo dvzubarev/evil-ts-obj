@@ -158,11 +158,15 @@ Compound is represented by a `NODE'."
                   (thread-first node
                                 (treesit-node-child-by-field-name "definition")
                                 (treesit-node-child-by-field-name "body")))
-                (_
-                 (treesit-node-child-by-field-name node "body"))))
+                 (_
+                  (treesit-node-child-by-field-name node "body"))))
               ((equal (treesit-node-type block-node) "block")))
-    (list (treesit-node-start block-node)
-          (treesit-node-end block-node))))
+
+    (let ((start (treesit-node-start block-node))
+          (end (treesit-node-end block-node)))
+      (when (equal (treesit-node-type node) "match_statement")
+        (setq start (treesit-node-start (treesit-node-child block-node 0 t))))
+      (list start end))))
 
 (defun evil-ts-obj-python-ext (spec node)
   "Main extension function for python.
