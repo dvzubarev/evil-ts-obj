@@ -1085,3 +1085,93 @@ void f (){
 
 }
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-slurp 1)
+    (delete-trailing-whitespace))
+
+Name: Slurp t1
+
+=-=
+void f (){
+    i++;
+    if (i > 0){
+       | i--;
+    }
+    i = 3;
+}
+=-=
+void f (){
+    i++;
+    if (i > 0){
+       | i--;
+        i = 3;
+    }
+
+}
+=-=-=
+
+Name: Slurp t2
+
+=-=
+void f (){
+    i++;
+    if (i > 0)
+        |i--;
+    i = 3;
+}
+=-=
+void f (){
+    i++;
+    if (i > 0)
+    {
+        |i--;
+        i = 3;
+    }
+
+}
+=-=-=
+
+Name: Slurp t3
+
+=-=
+void f (){
+    i++;
+    |if (i > 0){
+        i--;
+    }
+    i = 3;
+}
+=-=
+void f (){
+
+    |if (i > 0){
+        i++;
+        i--;
+    }
+    i = 3;
+}
+=-=-=
+
+Name: Slurp t4
+
+=-=
+void f (){
+    i++;
+    |if (i > 0)
+        i--;
+    i = 3;
+}
+=-=
+void f (){
+
+    |if (i > 0)
+    {
+        i++;
+        i--;
+    }
+    i = 3;
+}
+=-=-=

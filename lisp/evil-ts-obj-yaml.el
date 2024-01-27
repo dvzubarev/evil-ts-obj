@@ -83,7 +83,8 @@ and `NODE'."
                                                       evil-ts-obj-drag-down
                                                       evil-ts-obj-drag-up
                                                       evil-ts-obj-inject-down-dwim
-                                                      evil-ts-obj-inject-up-dwim)))))))
+                                                      evil-ts-obj-inject-up-dwim
+                                                      evil-ts-obj-slurp)))))))
      (evil-ts-obj-yaml-param-mod node))))
 
 (defcustom evil-ts-obj-yaml-ext-func

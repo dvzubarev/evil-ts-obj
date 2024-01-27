@@ -251,6 +251,25 @@ specification of previously selected text object. See
 `evil-ts-obj-def-conf-lang-inject-rules' as examples of this
 function implementation.")
 
+(defvar-local evil-ts-obj-conf-slurp-rules nil
+  "This variable maps language to a function that returns slurp rules.
+This function is invoked by `evil-ts-obj-edit--slurp' to
+determine what text objects it should operate on. It should
+return alist, for example \\='((statement . inner) (compound .
+outer)). So it is possible to specify multiple potential text
+objects. The function should accept RANGE-TYPE. RANGE-TYPE is a
+symbol that value is either text or place. Place text object
+defines two aspects. Treesit node that represents text object,
+siblings of that node will be \"slurped\". Start and end of a
+text object determines the insert positions for slurped siblings.
+Concrete insert position depends on the point position. Usually,
+compound inner text objects is used as a place text object. If
+RANGE-TYPE is text then function should return a text object,
+content of which will be injected into new place. See
+`evil-ts-obj-def-slurp-rules' and
+`evil-ts-obj-def-conf-lang-slurp-rules' as examples of this
+function implementation.")
+
 (defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise
                                                     evil-ts-obj-inject-down
                                                     evil-ts-obj-inject-up)

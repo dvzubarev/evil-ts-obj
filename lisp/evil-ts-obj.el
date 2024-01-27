@@ -273,6 +273,10 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (interactive "<c>")
   (evil-ts-obj-edit--inject-dwim-impl count))
 
+(evil-define-operator evil-ts-obj-slurp (count)
+  (interactive "<c>")
+  (evil-ts-obj-edit--slurp count))
+
 
 ;;; default keybindings and minor mode
 

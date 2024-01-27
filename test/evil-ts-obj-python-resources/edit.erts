@@ -2071,3 +2071,77 @@ def main():
         |v = call(i+1)
         i = -1
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-slurp 1)
+    (delete-trailing-whitespace))
+
+Name: Slurp t1
+
+=-=
+def |main():
+    while True:
+        call(i)
+i = 3
+=-=
+def |main():
+    while True:
+        call(i)
+    i = 3
+=-=-=
+
+Name: Slurp t2
+
+=-=
+def main():
+    while| True:
+        pass
+    i = 3
+=-=
+def main():
+    while| True:
+        i = 3
+=-=-=
+
+Name: Slurp t3
+
+=-=
+def main():
+    i = 9
+    |while True:
+        pass
+    i = 3
+=-=
+def main():
+
+    |while True:
+        i = 9
+    i = 3
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-slurp 2)
+    (delete-trailing-whitespace))
+
+Name: Slurp two siblings t1
+
+=-=
+def |main():
+    while True:
+        call(i)
+i = 3
+call(3)
+v = 2
+=-=
+def |main():
+    while True:
+        call(i)
+    i = 3
+    call(3)
+
+v = 2
+=-=-=

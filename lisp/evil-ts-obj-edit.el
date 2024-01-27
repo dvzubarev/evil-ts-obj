@@ -719,6 +719,70 @@ When COUNT is set select Nth parent."
         (evil-ts-obj-edit--inject-operator-impl (car range) (cadr range) count up?))
     (evil-ts-obj-edit--cleanup)))
 
+(defun evil-ts-obj--slurp-point-position (place-node place-thing)
+  (pcase-let* ((nav-spec (evil-ts-obj--make-nav-spec place-thing))
+               (`(,start ,end) (evil-ts-obj--apply-modifiers place-node place-thing nav-spec t)))
+    (cond
+     ((= (point) start) 'beg)
+     ((= (point) (1- end)) 'end)
+     (t 'mid))))
+
+(defun evil-ts-obj-edit--slurp (&optional count)
+  "Extend current compound with sibling statements COUNT times.
+When inside the compound or at the end of compound slurp on the right.
+If point is at the beginning slurp to the left."
+  ;; clean unfinished edit operations
+  (evil-ts-obj-edit--cleanup)
+  (unwind-protect
+      (when-let* ((count (or count 1))
+                  (lang (treesit-language-at (point)))
+                  (slurp-rules-func (plist-get evil-ts-obj-conf-slurp-rules lang))
+                  (place-rules-alist (funcall slurp-rules-func 'place))
+                  (place-candidate-thing (evil-ts-obj-edit--thing-from-rules place-rules-alist))
+                  (place-spec (evil-ts-obj--make-spec place-rules-alist 'op))
+                  (place-range (evil-ts-obj--get-text-obj-range (point) place-candidate-thing
+                                                                place-spec nil t))
+                  (place-thing (plist-get evil-ts-obj--last-text-obj-spec :thing))
+                  (place-node (caddr place-range))
+                  (point-pos (evil-ts-obj--slurp-point-position place-node place-thing))
+                  (text-rules-alist (funcall slurp-rules-func 'text))
+                  (text-thing (evil-ts-obj-edit--thing-from-rules text-rules-alist))
+                  (text-spec (evil-ts-obj--make-spec text-rules-alist 'op)))
+
+        (let ((dir (if (eq point-pos 'beg) 'prev 'next))
+              text-start-node
+              text-end-node)
+          (setq text-start-node
+                (evil-ts-obj--find-matching-sibling place-node place-thing
+                                                    dir text-thing 1)
+                text-end-node
+                (if (= count 1) text-start-node
+                  (evil-ts-obj--find-matching-sibling place-node place-thing
+                                                      dir text-thing count)))
+          (when (eq point-pos 'beg)
+              (cl-rotatef text-start-node text-end-node))
+
+          (when (and text-start-node text-end-node)
+            (let* ((start-range (evil-ts-obj--get-text-obj-range text-start-node text-thing text-spec))
+                   (end-range (if (treesit-node-eq text-start-node text-end-node)
+                                  start-range
+                                (evil-ts-obj--get-text-obj-range text-end-node text-thing text-spec)))
+                   (text-start (car start-range))
+                   (text-end (cadr end-range)))
+
+              ;; first teleport invocation may be after or before it does not matter.
+              (evil-ts-obj-edit--teleport-after-operator text-start text-end)
+              (setq place-range
+                    (evil-ts-obj-edit--inject-handle-placeholders place-range place-node))
+              (save-excursion
+                (pcase point-pos
+                  ((or 'end 'mid)
+                   (evil-ts-obj-edit--teleport-after-operator (car place-range) (cadr place-range)))
+                  ('beg
+                   (evil-ts-obj-edit--teleport-before-operator (car place-range) (cadr place-range)))))))))
+
+    (evil-ts-obj-edit--cleanup)))
+
 
 (provide 'evil-ts-obj-edit)
 ;;; evil-ts-obj-edit.el ends here
