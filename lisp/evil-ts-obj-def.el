@@ -86,7 +86,7 @@ and TEXT-SPEC."
 (defun evil-ts-obj-def-clone-rules (_range-type &optional _text-spec)
   "Return default clone rules.
 See `evil-ts-obj-conf-clone-rules' for description of RANGE-TYPE
-and FIRST-SPEC."
+and TEXT-SPEC."
   '((param . outer)
     (statement . outer)
     (compound . outer)))
@@ -94,7 +94,7 @@ and FIRST-SPEC."
 (defun evil-ts-obj-def-conf-lang-clone-rules (_range-type &optional _text-spec)
   "Return default clone rules for configuration languages like YAML.
 See `evil-ts-obj-conf-clone-rules' for description of RANGE-TYPE
-and FIRST-SPEC."
+and TEXT-SPEC."
   '((param . outer)
     (compound . outer)))
 
@@ -103,14 +103,14 @@ and FIRST-SPEC."
 (defun evil-ts-obj-def-extract-rules (_range-type &optional _text-spec)
   "Return default extract rules.
 See `evil-ts-obj-conf-extract-rules' for description of RANGE-TYPE
-and FIRST-SPEC."
+and TEXT-SPEC."
   '((statement . inner)
     (compound . outer)))
 
 (defun evil-ts-obj-def-conf-lang-extract-rules (range-type &optional _text-spec)
   "Return default extract rules for configuration languages like YAML.
 See `evil-ts-obj-conf-extract-rules' for description of RANGE-TYPE
-and FIRST-SPEC."
+and TEXT-SPEC."
 
   (pcase range-type
     ('text
@@ -124,7 +124,7 @@ and FIRST-SPEC."
 (defun evil-ts-obj-def-inject-rules (range-type &optional _text-spec)
   "Return default inject rules.
 See `evil-ts-obj-conf-inject-rules' for description of RANGE-TYPE
-and FIRST-SPEC."
+and TEXT-SPEC."
   (pcase range-type
     ('text
      '((statement . inner)
@@ -135,7 +135,7 @@ and FIRST-SPEC."
 (defun evil-ts-obj-def-conf-lang-inject-rules (range-type &optional _text-spec)
   "Return default inject rules for configuration languages like YAML.
 See `evil-ts-obj-conf-inject-rules' for description of RANGE-TYPE
-and FIRST-SPEC."
+and TEXT-SPEC."
 
   (pcase range-type
     ('text
@@ -147,8 +147,7 @@ and FIRST-SPEC."
 
 (defun evil-ts-obj-def-slurp-rules (range-type)
   "Return default slurp rules.
-See `evil-ts-obj-conf-slurp-rules' for description of RANGE-TYPE
-and FIRST-SPEC."
+See `evil-ts-obj-conf-slurp-rules' for description of RANGE-TYPE."
   (pcase range-type
     ('place
      '((compound . inner)))
@@ -156,16 +155,37 @@ and FIRST-SPEC."
      '((statement . inner)
        (compound . outer)))))
 
-(defun evil-ts-obj-def-conf-lang-slurp-rules (range-type &optional _text-spec)
+(defun evil-ts-obj-def-conf-lang-slurp-rules (range-type)
   "Return default slurp rules for configuration languages like YAML.
-See `evil-ts-obj-conf-slurp-rules' for description of RANGE-TYPE
-and FIRST-SPEC."
+See `evil-ts-obj-conf-slurp-rules' for description of RANGE-TYPE."
 
   (pcase range-type
-    ('text
-     '((param . inner)))
     ('place
-     '((param-compound . inner)))))
+     '((param-compound . inner)))
+    ('text
+     '((param . inner)))))
+
+;;;;; barf rules
+
+(defun evil-ts-obj-def-barf-rules (range-type)
+  "Return default barf rules.
+See `evil-ts-obj-conf-barf-rules' for description of RANGE-TYPE."
+  (pcase range-type
+    ('place
+     '((compound . outer)))
+    ('text
+     '((statement . inner)
+       (compound . outer)))))
+
+(defun evil-ts-obj-def-conf-lang-barf-rules (range-type)
+  "Return default barf rules for configuration languages like YAML.
+See `evil-ts-obj-conf-barf-rules' for description of RANGE-TYPE."
+
+  (pcase range-type
+    ('place
+     '((param-compound . outer)))
+    ('text
+     '((param . inner)))))
 
 
 ;;;; sibling traverse helpers
@@ -265,7 +285,8 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
   (cl-callf plist-put evil-ts-obj-conf-compound-brackets lang compound-brackets)
   (cl-callf plist-put evil-ts-obj-conf-statement-placeholder lang statement-placeholder)
   (cl-callf plist-put evil-ts-obj-conf-inject-rules lang #'evil-ts-obj-def-inject-rules)
-  (cl-callf plist-put evil-ts-obj-conf-slurp-rules lang #'evil-ts-obj-def-slurp-rules))
+  (cl-callf plist-put evil-ts-obj-conf-slurp-rules lang #'evil-ts-obj-def-slurp-rules)
+  (cl-callf plist-put evil-ts-obj-conf-barf-rules lang #'evil-ts-obj-def-barf-rules))
 
 
 (cl-defun evil-ts-obj-def-init-conf-lang (
@@ -333,7 +354,9 @@ This function also adds `evil-ts-obj-def-raise-rules' to
   (cl-callf plist-put evil-ts-obj-conf-inject-rules lang
             #'evil-ts-obj-def-conf-lang-inject-rules)
   (cl-callf plist-put evil-ts-obj-conf-slurp-rules lang
-            #'evil-ts-obj-def-conf-lang-slurp-rules))
+            #'evil-ts-obj-def-conf-lang-slurp-rules)
+  (cl-callf plist-put evil-ts-obj-conf-barf-rules lang
+            #'evil-ts-obj-def-conf-lang-barf-rules))
 
 
 (provide 'evil-ts-obj-def)

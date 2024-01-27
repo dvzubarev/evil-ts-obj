@@ -64,7 +64,9 @@ level decorated_definition node as thing."
     "list_comprehension"
     "for_in_clause"
     "if_clause"
-    "dictionary_comprehension")
+    "dictionary_comprehension"
+    "break_statement"
+    "continue_statement")
   "Nodes that designate simple statement in python."
   :type '(repeat string)
   :group 'evil-ts-obj

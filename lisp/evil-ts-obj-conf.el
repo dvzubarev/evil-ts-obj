@@ -259,7 +259,7 @@ return alist, for example \\='((statement . inner) (compound .
 outer)). So it is possible to specify multiple potential text
 objects. The function should accept RANGE-TYPE. RANGE-TYPE is a
 symbol that value is either text or place. Place text object
-defines two aspects. Treesit node that represents text object,
+defines two aspects. Treesit node that represents text object:
 siblings of that node will be \"slurped\". Start and end of a
 text object determines the insert positions for slurped siblings.
 Concrete insert position depends on the point position. Usually,
@@ -268,6 +268,25 @@ RANGE-TYPE is text then function should return a text object,
 content of which will be injected into new place. See
 `evil-ts-obj-def-slurp-rules' and
 `evil-ts-obj-def-conf-lang-slurp-rules' as examples of this
+function implementation.")
+
+(defvar-local evil-ts-obj-conf-barf-rules nil
+  "This variable maps language to a function that returns barf rules.
+This function is invoked by `evil-ts-obj-edit--barf' to determine
+what text objects it should operate on. It should return alist,
+for example \\='((statement . inner) (compound . outer)). So it
+is possible to specify multiple potential text objects. The
+function should accept RANGE-TYPE. RANGE-TYPE is a symbol that
+value is either text or place. Place text object defines two
+aspects. Start and end of a text object determines the insert
+positions for barfed siblings. Concrete insert position depends
+on the point position. Inner text object is used to find text
+objects that will be \"barfed\". Usually, compound outer text
+objects is used as a place text object. If RANGE-TYPE is text
+then function should return a text object, content of which will
+be extracted from the place place. See
+`evil-ts-obj-def-barf-rules' and
+`evil-ts-obj-def-conf-lang-barf-rules' as examples of this
 function implementation.")
 
 (defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise

@@ -2145,3 +2145,109 @@ def |main():
 
 v = 2
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-barf 1)
+    (delete-trailing-whitespace))
+
+Name: Barf t1
+
+=-=
+|def main():
+    i = 3
+    while True:
+        i = call(i)
+=-=
+i = 3
+|def main():
+
+    while True:
+        i = call(i)
+=-=-=
+
+Name: Barf t2
+
+=-=
+def main():
+    |i = 3
+    while True:
+        i = call(i)
+=-=
+def main():
+    |i = 3
+
+while True:
+    i = call(i)
+=-=-=
+
+Name: Barf t3
+
+=-=
+def main():
+    i = 3
+    |while True:
+        i = call(i)
+=-=
+def main():
+    i = 3
+    i = call(i)
+    |while True:
+        pass
+=-=-=
+
+Name: Barf t4
+
+=-=
+def main():
+    i = 3
+    while True:
+        |i = call(i)
+=-=
+def main():
+    i = 3
+    while True:
+        |pass
+    i = call(i)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-barf 2)
+    (delete-trailing-whitespace))
+
+Name: Barf 2 statements t1
+
+=-=
+def main():
+    while True:
+        i = 3
+        |i = call(i)
+        j = call(i)
+=-=
+def main():
+    while True:
+        i = 3
+|
+    i = call(i)
+    j = call(i)
+=-=-=
+
+Name: Barf 2 statements t2
+
+=-=
+def main():
+    |while True:
+        i = 3
+        i = call(i)
+        j = call(i)
+=-=
+def main():
+    i = 3
+    i = call(i)
+    |while True:
+
+        j = call(i)
+=-=-=

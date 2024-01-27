@@ -1223,3 +1223,74 @@ Name: Slurp dwim many siblings t1
   - 3
   - 4
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (evil-ts-obj-barf 1)
+    (delete-trailing-whitespace))
+
+Name: Barf dwim t1
+=-=
+---
+- bb:
+    t|1: 1
+    t2: 2
+    a1: 3
+  a2: 4
+
+- aa
+=-=
+---
+- bb:
+    t|1: 1
+    t2: 2
+
+  a1: 3
+  a2: 4
+
+- aa
+=-=-=
+
+Name: Barf dwim t2
+=-=
+---
+- b: st
+  |bb:
+    t1: 1
+    t2: 2
+- aa
+=-=
+---
+- b: st
+  t1: 1
+  |bb:
+
+    t2: 2
+- aa
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-barf)
+    (evil-ts-obj-barf 8)
+    (delete-trailing-whitespace))
+
+Name: Barf dwim many siblings t1
+=-=
+---
+- aa
+- -| 1
+  - 2
+  - 3
+- ab
+=-=
+---
+- aa
+-|
+- 1
+- 2
+- 3
+- ab
+=-=-=

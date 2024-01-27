@@ -1175,3 +1175,89 @@ void f (){
     i = 3;
 }
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-barf 1)
+    (delete-trailing-whitespace))
+
+Name: Barf t1
+
+=-=
+void f (){
+    i++;
+    if (i > 0){
+       |i--;
+       i = 3;
+    }
+}
+=-=
+void f (){
+    i++;
+    if (i > 0){
+       |i--;
+
+    }
+    i = 3;
+}
+=-=-=
+
+Name: Barf t2
+
+=-=
+void f (){
+    i++;
+    if (i > 0)
+        |i--;
+    i = 3;
+}
+=-=
+void f (){
+    i++;
+    if (i > 0)
+        |{}
+    i--;
+    i = 3;
+}
+=-=-=
+
+Name: Barf t3
+
+=-=
+void f (){
+    |if (i > 0){
+        i++;
+        i--;
+    }
+    i = 3;
+}
+=-=
+void f (){
+    i++;
+    |if (i > 0){
+
+        i--;
+    }
+    i = 3;
+}
+=-=-=
+
+Name: Barf t4
+
+=-=
+void f (){
+    i++;
+    |if (i > 0)
+        i--;
+    i = 3;
+}
+=-=
+void f (){
+    i++;
+    i--;
+    |if (i > 0)
+        {}
+    i = 3;
+}
+=-=-=
