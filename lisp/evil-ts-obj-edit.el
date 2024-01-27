@@ -664,7 +664,7 @@ When COUNT is set select Nth parent."
                   ;; find next/prev place node
                   (place-node (evil-ts-obj--find-matching-sibling last-node last-thing
                                                                   dir place-thing))
-                  (range (evil-ts-obj--get-text-obj-range place-node place-thing place-spec)))
+                  (place-range (evil-ts-obj--get-text-obj-range place-node place-thing place-spec)))
 
         ;; dip down inside the place node count-1 times
         (let ((count (or count 1))
@@ -674,19 +674,17 @@ When COUNT is set select Nth parent."
               child-thing)
 
           (cl-dotimes (_ (1- count))
-            (setq child (evil-ts-obj--thing-around (car range) text-thing)
+            (setq child (evil-ts-obj--thing-around (car place-range) text-thing)
                   child-thing (evil-ts-obj--current-thing child text-thing))
-            (if (> (treesit-node-start child) (cadr range))
+            (if (> (treesit-node-start child) (cadr place-range))
                 (setq child nil)
 
               (if up?
-                  (let (sibling)
-                    (setq sibling (evil-ts-obj--find-matching-sibling child child-thing
-                                                                      'next place-thing 999))
-                    (if sibling
-                        (setq child sibling)
-                      (unless (treesit-node-match-p child place-thing t)
-                        (setq child nil))))
+                  (if-let ((last-sibling (evil-ts-obj--find-matching-sibling child child-thing
+                                                                             'next place-thing 999)))
+                      (setq child last-sibling)
+                    (unless (treesit-node-match-p child place-thing t)
+                      (setq child nil)))
 
                 (when (not (treesit-node-match-p child place-thing t))
                   (setq child (evil-ts-obj--find-matching-sibling child child-thing
@@ -694,13 +692,13 @@ When COUNT is set select Nth parent."
             (if (null child)
                 (cl-return place-node)
               (setq place-node child
-                    range (evil-ts-obj--get-text-obj-range place-node place-thing place-spec)))))
+                    place-range (evil-ts-obj--get-text-obj-range place-node place-thing place-spec)))))
 
 
-        (setq range (evil-ts-obj-edit--inject-handle-placeholders range place-node))
+        (setq place-range (evil-ts-obj-edit--inject-handle-placeholders place-range place-node))
         (if up?
-            (evil-ts-obj-edit--teleport-after-operator (car range) (cadr range))
-          (evil-ts-obj-edit--teleport-before-operator (car range) (cadr range)))
+            (evil-ts-obj-edit--teleport-after-operator (car place-range) (cadr place-range))
+          (evil-ts-obj-edit--teleport-before-operator (car place-range) (cadr place-range)))
 
         (when (fboundp 'evil-set-jump)
           (evil-set-jump))
