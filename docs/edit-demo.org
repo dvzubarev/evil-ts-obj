@@ -1,0 +1,970 @@
+#+title: Edit operators in action
+** Drag operator
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-k (drag-up)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def main(p=call2(n,
+                 m), |t=call(nest1,
+                            nest2,
+                            nest3), par3,):
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def main(|t=call(nest1,
+                nest2,
+                nest3), p=call2(n,
+                                m), par3,):
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-k (drag up)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src cpp
+template<typename TTraits> //comment1
+template<class T, typename U> //comment2
+float
+some_struct_t<TTraits>::
+func1(T t, U u){
+    return t + u;
+}
+
+float some_struct_t<TTraits>::|func2(T t, U u){
+    return t + u;
+}
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src cpp
+|float some_struct_t<TTraits>::func2(T t, U u){
+    return t + u;
+}
+
+template<typename TTraits> //comment1
+template<class T, typename U> //comment2
+float
+some_struct_t<TTraits>::
+func1(T t, U u){
+    return t + u;
+}
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-k (drag up)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+echo --pr=setm --var temp \
+     --kwarg2 \
+     --kwarg3|="value with space"
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+echo --pr=setm --var temp \
+     |--kwarg3="value with space" \
+     --kwarg2
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>2 M-j (drag down)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+if |i < 8 and i > 0 and #comm
+   i is not None:
+   pass
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+if i is not None and i > 0 and #comm
+   |i < 8:
+   pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Raise DWIM
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-r (raise)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+    for i in range(3, 10):
+        |a = 3
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+    |a = 3
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-r (raise)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+if (val := |d.get('k')) is not None:
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+if (|d.get('k')) is not None:
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-r (raise)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src yaml
+---
+partridges:
+  count: 1
+  |location: a pear tree
+  ecount: 1
+t: t
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src yaml
+---
+partridges:
+  |location: a pear tree
+t: t
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-r (raise)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src yaml
+---
+partridges:
+  |location: a pear tree
+t: t
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src yaml
+---
+|location: a pear tree
+t: t
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+** Raise operator
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>zros(raise lower statements)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def main():
+    for stream_key, records in resp:
+        test = resp
+        |batch = Batch()
+        client = bytes(stream_key[8:])
+
+    return 2 * a
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def main():
+    |batch = Batch()
+    client = bytes(stream_key[8:])
+
+    return 2 * a
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>zrua (raise upper param)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src yaml
+---
+k1: two
+k2:
+  n1: 1
+  |n2: 2
+  n3: 3
+k3: t
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src yaml
+---
+k1: two
+k2:
+  |n1: 1
+  n2: 2
+k3: t
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>zrua (raise upper param)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src yaml
+k1: two
+k2:
+  n1: 1
+  |n2: 2
+k3: t
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src yaml
+---
+k1: two
+|n1: 1
+n2: 2
+k3: t
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+** Clone DWIM
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-c (clone after)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+if True or |call():
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+if True or |call() or call():
+    pass
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-C (clone before)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src cpp
+template <class S, |class B  = base_t<S>>
+struct cnt_t : public B{};
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+template <class S, class B  = base_t<S>, |class B  = base_t<S>>
+struct cnt_t : public B{};
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-c (clone after)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src bash
+echo he \
+    ll \
+    |o
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src bash
+echo he \
+    ll \
+    |o \
+    o
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-c (clone after)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src yaml
+---
+- a: 1
+- |l:
+    - my
+    - list
+- b: 2
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src yaml
+---
+- a: 1
+- |l:
+    - my
+    - list
+  l:
+    - my
+    - list
+- b: 2
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+** Extract DWIM
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-h (extract up)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def main(v):
+    if True:
+        |var = call(t, p)
+    call()
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def main(v):
+    |var = call(t, p)
+    if True:
+        pass
+    call()
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-l (extract down)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src cpp
+void f (){
+    if (i > 0)
+        |i--;
+    else
+        i+=2;
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src cpp
+void f (){
+    if (i > 0)
+        {}
+    else
+        i+=2;
+    |i--;
+}
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>2 M-h (extract up)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src yaml
+- t
+- a: t
+  bb:
+    - temp2
+    - |temp1
+- aa
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src yaml
+- t
+|- temp1
+- a: t
+  bb:
+    - temp2
+
+- aa
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>2 M-l (extract down)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src yaml
+xmas-fifth-day:
+  partridges:
+   | count: 1
+    location: 2
+  a:
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src yaml
+xmas-fifth-day:
+  partridges:
+
+  a:
+|count: 1
+location: 2
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+** Extract operator
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>zEie (extract up)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def main(v):
+    if True:
+        |var = call(t, p)
+        return call(v=v, cv=13) + call2('st')
+    call()
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def main(v):
+    |var = call(t, p)
+    return call(v=v, cv=13) + call2('st')
+    if True:
+        pass
+    call()
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Inject DWIM
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-s (inject down)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def main():
+    |i = 3
+    while True:
+        pass
+    i = 0
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def main():
+
+    while True:
+        |i = 3
+    i = 0
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-S (inject up)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src cpp
+void f (){
+    i++;
+    if (i > 0)
+        i--;
+    i++;
+    |i = 3;
+}
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+void f (){
+    i++;
+    if (i > 0)
+    {
+        i--;
+        |i = 3;
+    }
+    i++;
+
+}
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>2 M-S (inject up)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src yaml
+---
+- bb:
+    t1:
+      t11: 11
+    t2:
+      t22: 22
+  |a:
+    - 1
+    - >-
+      step
+      3
+- aa
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src yaml
+---
+- bb:
+    t1:
+      t11: 11
+    t2:
+      t22: 22
+      |a:
+        - 1
+        - >-
+          step
+          3
+
+- aa
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Inject operator
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>zSos (inject up)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def main():
+    i = 0
+    while False:
+        pass
+    |v = call(i+1)
+    i = -1
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def main():
+    i = 0
+    while False:
+        |v = call(i+1)
+        i = -1
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Slurp
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>2 M-> (slurp)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def |main():
+    while True:
+        call(i)
+i = 3
+call(3)
+v = 2
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def |main():
+    while True:
+        call(i)
+    i = 3
+    call(3)
+
+v = 2
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-> (slurp)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def main():
+    i = 9
+    |while True:
+        pass
+    i = 3
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def main():
+
+    |while True:
+        i = 9
+    i = 3
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>8 M-> (slurp)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src yaml
+---
+- aa
+- -| 1
+  - 2
+- 3
+- 4
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src yaml
+---
+- aa
+- -| 1
+  - 2
+  - 3
+  - 4
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+** Barf
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-< (barf)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def main():
+    |i = 3
+    while True:
+        i = call(i)
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def main():
+    |i = 3
+
+while True:
+    i = call(i)
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>2 M-< (barf)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+def main():
+    |while True:
+        i = 3
+        i = call(i)
+        j = call(i)
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+def main():
+    i = 3
+    i = call(i)
+    |while True:
+
+        j = call(i)
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-< (barf)</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src yaml
+- bb:
+    t|1: 1
+    t2: 2
+    a1: 3
+  a2: 4
+
+- aa
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src yaml
+- bb:
+    t|1: 1
+    t2: 2
+
+  a1: 3
+  a2: 4
+
+- aa
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML

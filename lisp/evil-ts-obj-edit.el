@@ -480,6 +480,10 @@ implemented via replace operator."
     (evil-ts-obj-edit--cleanup)))
 
 (defun evil-ts-obj-edit--raise-dwim (&optional count)
+  "Replace parent text object with the current text object at point.
+Current and parent text objects are determined by the
+`evil-ts-obj-conf-raise-rules' variable. When COUNT is set select
+Nth parent."
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
 
@@ -496,6 +500,11 @@ implemented via replace operator."
 ;;;; Drag
 
 (defun evil-ts-obj-edit--drag (dir &optional count)
+  "Drag a current text object in DIR direction.
+Text objects is determined based on rules from
+`evil-ts-obj-conf-drag-rules'. When COUNT is greater then 1, swap
+current text object with the Nth sibling."
+
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
   (unwind-protect
@@ -555,9 +564,10 @@ implemented via replace operator."
 ;;;; Extract
 
 (defun evil-ts-obj-edit--extract-operator-impl (start end &optional count after)
-  "Teleport text from START END range before or AFTER parent thing.
-Parent thing is determined by the cdr of `evil-ts-obj-conf-extract-rules'.
-When COUNT is set select Nth parent."
+  "Teleport text from START END range before or AFTER parent text object.
+Parent text object is determined by the
+`evil-ts-obj-conf-extract-rules' variable. When COUNT is set
+select Nth parent."
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
 
@@ -596,13 +606,17 @@ When COUNT is set select Nth parent."
     (evil-ts-obj-edit--cleanup)))
 
 (defun evil-ts-obj-edit--extract-dwim-impl (count &optional after)
+  "Teleport current text object before or AFTER parent text object.
+Current and parent text object are determined by the
+`evil-ts-obj-conf-extract-rules' variable. When COUNT is set
+select Nth parent."
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
 
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
                   (extract-rules-func (plist-get evil-ts-obj-conf-extract-rules lang))
-                  (rules-alist (funcall extract-rules-func 'text ))
+                  (rules-alist (funcall extract-rules-func 'text))
                   (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
                   (spec (evil-ts-obj--make-spec rules-alist 'op))
                   (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
@@ -645,6 +659,12 @@ When COUNT is set select Nth parent."
     new-range))
 
 (defun evil-ts-obj-edit--inject-operator-impl (start end &optional count up?)
+  "Teleport text from START END range inside next text object.
+If UP? is set teleport text inside previous text object.
+Next/previous text objects are determined by the
+`evil-ts-obj-conf-inject-rules' variable. Usually inner compounds
+are used as place for injection. When COUNT is set select N-1th
+child of next/previous text object."
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
   (if up?
@@ -706,13 +726,19 @@ When COUNT is set select Nth parent."
     (evil-ts-obj-edit--cleanup)))
 
 (defun evil-ts-obj-edit--inject-dwim-impl (count &optional up?)
+  "Teleport current text object inside next text object.
+If UP? is set teleport text inside previous text object.
+Next/previous text objects are determined by the
+`evil-ts-obj-conf-inject-rules' variable. Usually inner compounds
+are used as place for injection. When COUNT is set select N-1th
+child of next/previous text object."
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
 
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
                   (inject-rules-func (plist-get evil-ts-obj-conf-inject-rules lang))
-                  (rules-alist (funcall inject-rules-func 'text ))
+                  (rules-alist (funcall inject-rules-func 'text))
                   (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
                   (spec (evil-ts-obj--make-spec rules-alist 'op))
                   (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
@@ -729,8 +755,9 @@ When COUNT is set select Nth parent."
 
 (defun evil-ts-obj-edit--slurp (&optional count)
   "Extend current compound with sibling statements COUNT times.
-When inside the compound or at the end of compound slurp lower statements.
-If point is at the beginning slurp upper statements."
+When point is inside the compound or at the end of the compound
+slurp lower statements. If point is at the beginning slurp upper
+statements."
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
   (unwind-protect
@@ -785,8 +812,9 @@ If point is at the beginning slurp upper statements."
 
 (defun evil-ts-obj-edit--barf (&optional count)
   "Shrink current compound extracting inner statements COUNT times.
-When inside the compound or at the end of compound barf bottommost statements.
-If point is at the beginning barf topmost statments."
+When point is inside the compound or at the end of the compound
+barf bottommost statements. If point is at the beginning barf
+topmost statments."
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
   (unwind-protect

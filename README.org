@@ -14,8 +14,11 @@ When it comes to movement, this package does not try to extend or enrich the exi
 It provides opinionated set of movement commands that I find useful in day to day work.
 
 Key features:
-- Concise UX - a few text objects to operate and movement commands, but yet quite powerful
-- Support of remote text objects using avy
+- Few text objects, but they allow to operate on many code structures ([[docs/things-demo.org][examples]])
+- Set of movement commands
+- Set of edit commands/operators ([[docs/edit-demo.org][examples]])
+- Support of remote text objects using avy ([[docs/avy-demo.org][examples]])
+
 - Expand region by repeating selection of the same text object
 - Easy customization of existing language settings
 
@@ -141,6 +144,12 @@ Combination of modifiers with things produces set of text objects, that you can 
 The described behavior may differ from language to language.
 It is just common conventions that one should try to follow, when creating settings for a language.
 
+*** Special text objects
+**** Last text object
+There is special text object that stores last modified range (=evil-ts-obj-last-text-obj=).
+It may be useful in combination with edit operators.
+For example, after executing extract operator extracted text may be accessed via last text object.
+
 
 ** Movement
 Currently movement commands are using only things as is, without applying modifiers listed above.
@@ -174,10 +183,86 @@ They are bound to its own prefixes.
 | next-largest-thing     | }          |
 | previous-largest-thing | {          |
 ** Evil operators
-*** Replace operator
-TODO
-*** Swap operator
-TODO
+There are set of operators for editing text objects. There are DWIM commands
+that do not require user inputs, operators that expect one text object and
+operators that should be provided with two text objects in a row. Nearly all
+DWIM commands have some use for numeric argument.
+See examples in the [[docs/edit-demo.org][file]].
+
+
+- drag-{down,up} ::
+  Commands: =evil-ts-obj-drag-down=, =evil-ts-obj-drag-up=
+  Swap a current text object with the previous/next sibling.
+  When numeric argument is provided, swap current text object with
+  the Nth sibling.
+
+  Default keys: =M-j=, =M-k=
+
+- raise ::
+  Dwim command: =evil-ts-obj-raise-dwim=
+  Replace parent text object with the current text object.
+  When numeric argument is set replace Nth parent.
+  Default key: =M-r=
+
+  Operator: =evil-ts-obj-raise=
+  Replace parent text object with the content from provided text object.
+  Default keys: =zr=
+
+- clone-{before,after} ::
+  Clone current text object at point and paste it before/after the current one.
+
+  Commands: =evil-ts-obj-clone-before-dwim=, =evil-ts-obj-clone-after-dwim=
+  Default keys: =M-C=, =M-c=
+
+- extract-{down,up} ::
+  Also known as =move-{right,left}= in lispy.
+  Dwim commands: =evil-ts-obj-extract-down-dwim=, =evil-ts-obj-extract-up-dwim=
+  Teleport current text object after/before parent text object.
+  When numeric argument is set select Nth parent.
+  Default keys: =M-l=, =M-h=
+
+  Operators: =evil-ts-obj-extract-down=, =evil-ts-obj-extract-up=
+  Teleport provided text object after/before parent text object.
+  Default keys: =ze=, =zE=
+
+- inject-{down,up} ::
+  Also known as =lispy-{down,up}-slurp= in lispy.
+  Dwim Commands: =evil-ts-obj-inject-down-dwim=, =evil-ts-obj-inject-up-dwim=
+  Teleport current text object inside next/previous text object.
+  Usually inner compounds are used as place for injection.
+  When numeric argument is set select N-1th child of next/previous text object.
+  Default keys: =M-s=, =M-S=
+
+  Operators: =evil-ts-obj-inject-down=, =evil-ts-obj-inject-up=
+  Teleport provided text object inside next/previous text object.
+
+- slurp ::
+  Command: =evil-ts-obj-slurp=
+  Extend current compound with sibling statements COUNT times.
+  Count is provided via numeric argument.
+  When point is inside the compound or at the end of compound slurp lower statements.
+  If point is at the beginning slurp upper statements.
+  Default key: =M->=
+
+- barf ::
+  Command: =evil-ts-obj-barf=
+  Shrink current compound extracting inner statements COUNT times.
+  Count is provided via numeric argument.
+  When point is inside the compound or at the end of the compound
+  barf bottommost statements. If point is at the beginning barf
+  topmost statments.
+  Default key: =M-<=
+
+- low-level operators ::
+  These operators expect that user provide two text objects in a row (inspired by evil-exchange).
+
+  Operators:
+  - =evil-ts-obj-swap= (=zx=)
+  - =evil-ts-obj-replace= (=zR=)
+  - =evil-ts-obj-clone-after= (=zc=)
+  - =evil-ts-obj-teleport-after= (=zt=)
+  - =evil-ts-obj-clone-before= (=zC=)
+  - =evil-ts-obj-teleport-before= (=zT=)
 
 ** Selecting overlapping things
 
@@ -248,7 +333,7 @@ and also corresponding keymaps: =evil-ts-obj-avy-inner-paste-map=, =evil-ts-obj-
 (use-package! evil-ts-obj
   :init
 
-  (setq evil-ts-obj-navigation-keys-prefix
+  (setopt evil-ts-obj-navigation-keys-prefix
         '((beginning-of . nil)
           (end-of . nil)
           (previous . "(")
@@ -256,9 +341,9 @@ and also corresponding keymaps: =evil-ts-obj-avy-inner-paste-map=, =evil-ts-obj-
           (previous-largest . "{")
           (next-largest . "}")))
 
-  (setq evil-ts-obj-avy-key-prefix "C-j")
+  (setopt evil-ts-obj-avy-key-prefix "C-j")
 
-  (setq evil-ts-obj-compound-thing-key "d")
+  (setopt evil-ts-obj-compound-thing-key "d")
   :config
 
   (evil-define-key 'normal 'evil-ts-obj-mode

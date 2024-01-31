@@ -620,7 +620,7 @@ Name: Swap drag down t4
 =-=
 def m():
     i = 0
-    |if i is not None and i < 8 and |i > 0:
+    |if i is not None and i < 8 and i > 0:
         pass
     #comm
     i *= 3
@@ -629,7 +629,7 @@ def m():
     i = 0
     i *= 3
     #comm
-    |if i is not None and i < 8 and |i > 0:
+    |if i is not None and i < 8 and i > 0:
         pass
 =-=-=
 

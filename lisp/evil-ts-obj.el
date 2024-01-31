@@ -206,6 +206,7 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (evil-ts-obj-edit--teleport-after-operator beg end))
 
 (evil-define-operator evil-ts-obj-clone-after-dwim ()
+  "Clone current text object at point and paste it after the current one."
   (interactive)
   (evil-ts-obj-edit--clone-dwim-impl t))
 
@@ -214,7 +215,13 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   :move-point nil
   (evil-ts-obj-edit--clone-before-operator beg end))
 
+(evil-define-operator evil-ts-obj-teleport-before (beg end type)
+  "Move content of range to the position before BEG."
+  :move-point nil
+  (evil-ts-obj-edit--teleport-after-operator beg end))
+
 (evil-define-operator evil-ts-obj-clone-before-dwim ()
+  "Clone current text object at point and paste it after the current one."
   (interactive)
   (evil-ts-obj-edit--clone-dwim-impl nil))
 
@@ -230,54 +237,105 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (evil-ts-obj-edit--raise-dwim count))
 
 (evil-define-operator evil-ts-obj-drag-up (count)
+  "Swap a current text object with the previous sibling.
+When COUNT is greater then 1, swap current text object with the
+Nth sibling."
+
   (interactive "<c>")
   (evil-ts-obj-edit--drag 'prev count))
 
 (evil-define-operator evil-ts-obj-drag-down (count)
+  "Swap a current text object with the next sibling.
+When COUNT is greater then 1, swap current text object with the
+Nth sibling."
   (interactive "<c>")
   (evil-ts-obj-edit--drag 'next count))
 
 (evil-define-operator evil-ts-obj-extract-up (beg end type count)
+  "Teleport text from BEG END range before parent text object.
+Parent text object is determined by the
+`evil-ts-obj-conf-extract-rules' variable. When COUNT is set
+select Nth parent."
   :move-point nil
   (interactive "<R><c>")
   (evil-ts-obj-edit--extract-operator-impl beg end count))
 
 (evil-define-operator evil-ts-obj-extract-up-dwim (count)
+  "Teleport current text object before parent text object.
+Current and parent text object are determined by the
+`evil-ts-obj-conf-extract-rules' variable. When COUNT is set
+select Nth parent."
   (interactive "<c>")
   (evil-ts-obj-edit--extract-dwim-impl count))
 
 (evil-define-operator evil-ts-obj-extract-down (beg end type count)
+  "Teleport text from BEG END range after parent text object.
+Parent text object is determi by the
+`evil-ts-obj-conf-extract-rules' variable. When COUNT is set
+select Nth parent."
   :move-point nil
   (interactive "<R><c>")
   (evil-ts-obj-edit--extract-operator-impl beg end count t))
 
 (evil-define-operator evil-ts-obj-extract-down-dwim (count)
+  "Teleport current text object after parent text object.
+Current and parent text object are determined by the
+`evil-ts-obj-conf-extract-rules' variable. When COUNT is set
+select Nth parent."
   (interactive "<c>")
   (evil-ts-obj-edit--extract-dwim-impl count t))
 
 (evil-define-operator evil-ts-obj-inject-up (beg end type count)
+  "Teleport text from BEG END range inside previous text object.
+Previous text object is determined by the
+`evil-ts-obj-conf-inject-rules' variable. Usually inner compounds
+are used as place for injection. When COUNT is set select N-1th
+child of next/previous text object."
   :move-point nil
   (interactive "<R><c>")
   (evil-ts-obj-edit--inject-operator-impl beg end count t))
 
 (evil-define-operator evil-ts-obj-inject-up-dwim (count)
+  "Teleport current text object inside previous text object.
+Previous text object is determined by the
+`evil-ts-obj-conf-inject-rules' variable. Usually inner compounds
+are used as place for injection. When COUNT is set select N-1th
+child of next/previous text object."
   (interactive "<c>")
   (evil-ts-obj-edit--inject-dwim-impl count t))
 
 (evil-define-operator evil-ts-obj-inject-down (beg end type count)
+  "Teleport text from BEG END range inside next text object.
+Previous text object is determined by the
+`evil-ts-obj-conf-inject-rules' variable. Usually inner compounds
+are used as place for injection. When COUNT is set select N-1th
+child of next/previous text object."
   :move-point nil
   (interactive "<R><c>")
   (evil-ts-obj-edit--inject-operator-impl beg end count))
 
 (evil-define-operator evil-ts-obj-inject-down-dwim (count)
+  "Teleport current text object inside next text object.
+Next text object is determined by the
+`evil-ts-obj-conf-inject-rules' variable. Usually inner compounds
+are used as place for injection. When COUNT is set select N-1th
+child of next/previous text object."
   (interactive "<c>")
   (evil-ts-obj-edit--inject-dwim-impl count))
 
 (evil-define-operator evil-ts-obj-slurp (count)
+  "Extend current compound with sibling statements COUNT times.
+When point is inside the compound or at the end of the compound
+slurp lower statements. If point is at the beginning slurp upper
+statements."
   (interactive "<c>")
   (evil-ts-obj-edit--slurp count))
 
 (evil-define-operator evil-ts-obj-barf (count)
+  "Shrink current compound extracting inner statements COUNT times.
+When point is inside the compound or at the end of the compound
+barf bottommost statements. If point is at the beginning barf
+topmost statments."
   (interactive "<c>")
   (evil-ts-obj-edit--barf count))
 
@@ -359,10 +417,36 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
     "u" evil-ts-obj-upper-text-objects-map
     "o" evil-ts-obj-lower-text-objects-map))
 
+(defun evil-ts-obj--bind-edit-keys ()
+  (evil-define-key 'normal 'evil-ts-obj-mode
+    "zx" #'evil-ts-obj-swap
+    "zR" #'evil-ts-obj-replace
+    "zr" #'evil-ts-obj-raise
+    (kbd "M-r") #'evil-ts-obj-raise-dwim
+    (kbd "M-j") #'evil-ts-obj-drag-down
+    (kbd "M-k") #'evil-ts-obj-drag-up
+    "zc" #'evil-ts-obj-clone-after
+    (kbd "M-c") #'evil-ts-obj-clone-after-dwim
+    "zC" #'evil-ts-obj-clone-before
+    (kbd "M-C") #'evil-ts-obj-clone-before-dwim
+    "zt" #'evil-ts-obj-teleport-after
+    "zT" #'evil-ts-obj-teleport-before
+    "zE" #'evil-ts-obj-extract-up
+    (kbd "M-h") #'evil-ts-obj-extract-up-dwim
+    "ze" #'evil-ts-obj-extract-down
+    (kbd "M-l") #'evil-ts-obj-extract-down-dwim
+    "zs" #'evil-ts-obj-inject-down
+    (kbd "M-s") #'evil-ts-obj-inject-down-dwim
+    "zS" #'evil-ts-obj-inject-up
+    (kbd "M-S") #'evil-ts-obj-inject-up-dwim
+    (kbd "M->") #'evil-ts-obj-slurp
+    (kbd "M-<") #'evil-ts-obj-barf))
+
 (defun evil-ts-obj--bind-keys ()
   (evil-ts-obj--set-generic-nav-bindings)
   (evil-ts-obj--bind-movement)
   (evil-ts-obj--bind-text-objects)
+  (evil-ts-obj--bind-edit-keys)
   (evil-ts-obj-avy--bind-text-objects)
   ;; Without that call keybinding won't activate until a state transition
   ;; see https://github.com/emacs-evil/evil/issues/301
