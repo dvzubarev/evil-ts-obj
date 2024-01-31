@@ -192,6 +192,7 @@ See examples in the [[docs/edit-demo.org][file]].
 
 - drag-{down,up} ::
   Commands: =evil-ts-obj-drag-down=, =evil-ts-obj-drag-up=
+
   Swap a current text object with the previous/next sibling.
   When numeric argument is provided, swap current text object with
   the Nth sibling.
@@ -200,57 +201,75 @@ See examples in the [[docs/edit-demo.org][file]].
 
 - raise ::
   Dwim command: =evil-ts-obj-raise-dwim=
+
   Replace parent text object with the current text object.
   When numeric argument is set replace Nth parent.
+
   Default key: =M-r=
 
   Operator: =evil-ts-obj-raise=
+
   Replace parent text object with the content from provided text object.
+
   Default keys: =zr=
 
 - clone-{before,after} ::
+  Commands: =evil-ts-obj-clone-before-dwim=, =evil-ts-obj-clone-after-dwim=
+
   Clone current text object at point and paste it before/after the current one.
 
-  Commands: =evil-ts-obj-clone-before-dwim=, =evil-ts-obj-clone-after-dwim=
   Default keys: =M-C=, =M-c=
 
 - extract-{down,up} ::
   Also known as =move-{right,left}= in lispy.
+
   Dwim commands: =evil-ts-obj-extract-down-dwim=, =evil-ts-obj-extract-up-dwim=
+
   Teleport current text object after/before parent text object.
   When numeric argument is set select Nth parent.
+
   Default keys: =M-l=, =M-h=
 
   Operators: =evil-ts-obj-extract-down=, =evil-ts-obj-extract-up=
+
   Teleport provided text object after/before parent text object.
+
   Default keys: =ze=, =zE=
 
 - inject-{down,up} ::
   Also known as =lispy-{down,up}-slurp= in lispy.
+
   Dwim Commands: =evil-ts-obj-inject-down-dwim=, =evil-ts-obj-inject-up-dwim=
+
   Teleport current text object inside next/previous text object.
   Usually inner compounds are used as place for injection.
   When numeric argument is set select N-1th child of next/previous text object.
+
   Default keys: =M-s=, =M-S=
 
   Operators: =evil-ts-obj-inject-down=, =evil-ts-obj-inject-up=
+
   Teleport provided text object inside next/previous text object.
 
 - slurp ::
   Command: =evil-ts-obj-slurp=
+
   Extend current compound with sibling statements COUNT times.
   Count is provided via numeric argument.
   When point is inside the compound or at the end of compound slurp lower statements.
   If point is at the beginning slurp upper statements.
+
   Default key: =M->=
 
 - barf ::
   Command: =evil-ts-obj-barf=
+
   Shrink current compound extracting inner statements COUNT times.
   Count is provided via numeric argument.
   When point is inside the compound or at the end of the compound
   barf bottommost statements. If point is at the beginning barf
   topmost statments.
+
   Default key: =M-<=
 
 - low-level operators ::
