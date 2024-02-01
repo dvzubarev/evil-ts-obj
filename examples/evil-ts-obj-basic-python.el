@@ -119,11 +119,10 @@ and `NODE'."
 ;;;###autoload
 (defun evil-ts-obj-python-setup-things ()
   "Set all variables needed by evil-ts-obj-core."
-
   (evil-ts-obj-def-init-lang 'python evil-ts-obj-python-things
                              :ext-func evil-ts-obj-python-ext-func
                              :param-seps evil-ts-obj-python-param-seps
-                             :stmnt-add-sibl-rules nil))
+                             :statement-placeholder '("pass" "...")))))
 
 
 (provide 'evil-ts-obj-basic-python)
