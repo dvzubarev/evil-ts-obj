@@ -103,12 +103,8 @@ traverse structures `evil-ts-obj-trav'.
 For example:
 \\=`(python
   (param ,(evil-ts-obj-trav-create
-           :seps evil-ts-obj-python-param-seps-regex
            :fetcher #\\='evil-ts-obj--get-sibling-simple
            :kind-func #\\='evil-ts-obj--get-node-kind))))
-
-`evil-ts-obj-trav-create' expects regexp as :seps keyword, to
-match separators that delimit sibling things.
 
 :fetcher is a function that accepts two arguments:
 direction (next or prev) and node. It should return the immediate
@@ -126,14 +122,17 @@ current-node is the last node in the sequence. See
 `evil-ts-obj--get-node-kind' or
 `evil-ts-obj--get-node-kind-strict'.")
 
-(defvar-local evil-ts-obj-conf-sep-regexps nil
-  "Plist that holds separator regexps for each language in the buffer.
-Some outer text objects may extend to the nearest separator.
-Special handling of separators is needed since they usually are
-siblings to the node that represent a thing. Also there is
-special behavior when two things are separated and the point is
-on a separator. We prefer the previous thing in this case. Should
-be set for each language in the appropriate file.")
+(defvar-local evil-ts-obj-conf-seps nil
+  "Plist that holds separators for each language in the buffer.
+There is nested plist that maps thing symbol to a list of
+separators. Also there should be special key all, which stores
+list with all possible separators for a current language. Some
+things may be extended to the nearest separator using outer
+modifier. Special handling of separators is needed since they
+usually are siblings to the node that represent a thing. Also
+there is special behavior when two things are separated and the
+point is on a separator. We prefer the previous thing in this
+case. Should be set for each language in the appropriate file.")
 
 (defvar-local evil-ts-obj-conf-raise-rules nil
   "This is a plist that maps language to a function that returns raise rules.

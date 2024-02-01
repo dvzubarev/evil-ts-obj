@@ -79,9 +79,9 @@
 
 
 (defcustom evil-ts-obj-python-param-seps
-  ","
+  '(",")
   "Separators for python params."
-  :type '(choice (repeat string) string)
+  :type '(repeat string)
   :group 'evil-ts-obj)
 
 
@@ -122,7 +122,7 @@ and `NODE'."
 
   (evil-ts-obj-def-init-lang 'python evil-ts-obj-python-things
                              :ext-func evil-ts-obj-python-ext-func
-                             :seps-reg evil-ts-obj-python-param-seps
+                             :param-seps evil-ts-obj-python-param-seps
                              :stmnt-add-sibl-rules nil))
 
 

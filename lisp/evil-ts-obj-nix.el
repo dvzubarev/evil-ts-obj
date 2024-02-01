@@ -47,7 +47,7 @@ it returns t only for the furthest parent of the same type."
       t)))
 
 (defvar evil-ts-obj-nix-param-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
+  "Regex is composed from `evil-ts-obj-nix-param-nodes'.")
 
 (defcustom evil-ts-obj-nix-param-nodes
   '("formal" "ellipses")
@@ -58,7 +58,7 @@ it returns t only for the furthest parent of the same type."
 
 
 (defvar evil-ts-obj-nix-param-parent-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
+  "Regex is composed from `evil-ts-obj-nix-param-parent-nodes'.")
 
 (defcustom evil-ts-obj-nix-param-parent-nodes
   '("list_expression")
@@ -92,15 +92,11 @@ Return t if `NODE' is named and it is matching against
   :type 'plist
   :group 'evil-ts-obj)
 
-(defvar evil-ts-obj-nix-param-seps-regex nil
-  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
-
 (defcustom evil-ts-obj-nix-param-seps
   '("," ":")
   "Separators for nix params."
   :type '(choice (repeat string) string)
-  :group 'evil-ts-obj
-  :set #'evil-ts-obj-conf-seps-setter)
+  :group 'evil-ts-obj)
 
 (defun evil-ts-obj-nix-extract-compound-inner (node)
   "Return range for a compound inner text object.
@@ -130,11 +126,9 @@ and `NODE'."
 
   (evil-ts-obj-def-init-lang 'nix evil-ts-obj-nix-things
                              :ext-func evil-ts-obj-nix-ext-func
-                             :seps-reg evil-ts-obj-nix-param-seps-regex
+                             :param-seps evil-ts-obj-nix-param-seps
                              :compound-sib-trav nil
-                             :statement-sib-trav nil
-                             :param-sib-trav (evil-ts-obj-trav-create
-                                              :seps evil-ts-obj-nix-param-seps-regex)))
+                             :statement-sib-trav nil))
 
 
 

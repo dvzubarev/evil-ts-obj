@@ -76,7 +76,7 @@
                  (point))))
     (cons prev-pos next-pos)))
 
-(defun evil-ts-obj--get-nearest-words-pos (pos sep-regex)
+(defun evil-ts-obj--get-nearest-words-pos (pos seps)
 
   (if (memq (char-after pos) '(32 9 10 nil))
       ;; pos at whitespace
@@ -86,7 +86,7 @@
     (pcase-let* ((`(,cur-word-start . ,cur-word-end) (evil-ts-obj--text-bounds-at-pos pos))
                  (cur-word (buffer-substring-no-properties cur-word-start cur-word-end)))
 
-      (if (and sep-regex (string-match-p sep-regex cur-word))
+      (if (member cur-word seps)
           (pcase-let ((`(,prev-pos . ,next-pos)
                        (evil-ts-obj--find-next-prev-non-space cur-word-start cur-word-end)))
 
@@ -99,15 +99,15 @@ If `POS' is inside some leaf node (node-start <= pos < node-end),
 then return this node. If `POS' is on a whitespace, examine
 previous and next nodes that are on the same line. Prefer named
 nodes over anonymous ones. If both nodes are named select the
-next one. If both nodes are anonymous prefer node, which text
-matches against `evil-ts-obj-conf-sep-regexps' otherwise the
-next one. If the pos is on a node that matches against
-`evil-ts-obj-conf-sep-regexps' select the previous named
-node, if it exists. Return nil if no node can be found."
+next one. If both nodes are anonymous prefer node, which text is
+a member of `evil-ts-obj-conf-seps' otherwise the next one. If
+the pos is on a node that has text that is a member of
+`evil-ts-obj-conf-seps' select the previous named node, if it
+exists. Return nil if no node can be found."
 
-  (pcase-let* ((sep-regex (plist-get evil-ts-obj-conf-sep-regexps
-                                     (treesit-language-at pos)))
-               (`(,pos-at ,prev-pos ,next-pos) (evil-ts-obj--get-nearest-words-pos pos sep-regex))
+  (pcase-let* ((seps (plist-get (plist-get evil-ts-obj-conf-seps (treesit-language-at pos))
+                                'all))
+               (`(,pos-at ,prev-pos ,next-pos) (evil-ts-obj--get-nearest-words-pos pos seps))
                (prefer-previous))
 
     (pcase pos-at
@@ -141,10 +141,10 @@ node, if it exists. Return nil if no node can be found."
 
                  ;; no named nodes on both sides
                  ((and
-                   prev-node sep-regex (string-match-p sep-regex (treesit-node-type prev-node)))
+                   prev-node (member (treesit-node-type prev-node) seps))
                   (setq node (evil-ts-obj--node-at-or-around (treesit-node-start prev-node))))
                  ((and
-                   next-node sep-regex (string-match-p sep-regex (treesit-node-type next-node)))
+                   next-node (member (treesit-node-type next-node) seps))
                   (if prev-node
                       (setq node prev-node)
                     (setq node (evil-ts-obj--node-at-or-around (treesit-node-start next-node)))))
@@ -280,7 +280,9 @@ form (or thing1 thing2 ...). COMMAND is the same as for
                 (fetcher (evil-ts-obj-trav-fetcher trav))
                 (kind-func (evil-ts-obj-trav-kind-func trav))
                 (kind-lambda (lambda (cn ck n)
-                               (funcall kind-func cn ck n (evil-ts-obj-trav-seps trav))))
+                               (funcall kind-func cn ck n (plist-get
+                                                           (plist-get evil-ts-obj-conf-seps lang)
+                                                           thing))))
                 (upper-lower-extend (cond
                                      ((memq (plist-get spec :command)
                                             evil-ts-obj-conf-dont-extend-to-next-cmds)
@@ -677,19 +679,19 @@ If `CURRENT' is t, detect current thing at point and return this thing."
 ;;; Common predicates
 
 
-(defun evil-ts-obj--bool-expr? (node bool-op-regex)
+(defun evil-ts-obj--bool-expr? (node bool-ops)
   "Return t if NODE is boolean expression.
-BOOL-OP-REGEX is regexp that is matched against NODE operator:
-field."
-  (string-match-p bool-op-regex
-                  (treesit-node-type
-                   (treesit-node-child-by-field-name node "operator"))))
+BOOL-OPS is a list of possible valid boolean operators. If
+node\\='s operator: field is a member of bool-ops list, then this
+function returns t."
+  (member (treesit-node-type
+           (treesit-node-child-by-field-name node "operator"))
+          bool-ops))
 
-(defun evil-ts-obj--common-bool-expr-pred (node bool-op-type bool-op-regex)
+(defun evil-ts-obj--common-bool-expr-pred (node bool-op-type bool-ops)
   "Return t if NODE is a part of a boolean expression.
-BOOL-OP-TYPE is a type of boolean expression node. BOOL-OP-REGEX
-is regexp that is matched against boolean expression operator:
-field."
+BOOL-OP-TYPE is a type of boolean expression node. BOOL-OPS is a
+list of possible boolean operators."
   (when-let* ((parent (treesit-node-parent node))
               (parent-type (treesit-node-type parent))
               ((and (equal parent-type bool-op-type)
@@ -698,11 +700,11 @@ field."
                     ;; (e.g. binary_expression).
                     ;; We do not want to match parts of comparison operators,
                     ;; only the whole operator; see condition below
-                    (evil-ts-obj--bool-expr? parent bool-op-regex))))
+                    (evil-ts-obj--bool-expr? parent bool-ops))))
 
     (or (not (equal (treesit-node-type node) bool-op-type))
         ;; match only comparison operator, not boolean expressions
-        (not (evil-ts-obj--bool-expr? node bool-op-regex)))))
+        (not (evil-ts-obj--bool-expr? node bool-ops)))))
 
 (defun evil-ts-obj-common-param-pred (parent-regex node)
   "Predicate for detecting param thing.
@@ -719,13 +721,12 @@ Return t if `NODE' is named and its parent is matching against
 (cl-defstruct (evil-ts-obj-trav (:constructor evil-ts-obj-trav-create)
                                 (:copier nil))
   "Structure that holds all information for traversing siblings.
-SEPS field stores a regexp for separators that may delimit
-siblings. FETCHER is a function that accepts DIR and NODE
+FETCHER is a function that accepts DIR and NODE
 parameters. It should return the immediate sibling of the NODE.
 For example, see `evil-ts-obj--get-sibling-simple'.
 KIND-FUNC is a function that classifies the passed node and returns its kind.
 See `evil-ts-obj-conf-sibling-trav' for more information."
-  seps fetcher kind-func)
+  fetcher kind-func)
 
 
 (defun evil-ts-obj--get-sibling-simple (dir node)
@@ -787,24 +788,24 @@ expression."
        (<= other-end (line-end-position))
        (>= other-end (line-beginning-position))))))
 
-(defun evil-ts-obj--get-node-kind-strict (cur-node cur-kind node &optional sep-regex)
+(defun evil-ts-obj--get-node-kind-strict (cur-node cur-kind node &optional seps)
   "Return sibling kind for `NODE'.
 Implementation of a kind-func for
 `evil-ts-obj-conf-sibling-trav'. The main difference from
 `evil-ts-obj--get-node-kind' - this function returns sibling
 symbol only if `NODE' is preceded by the separator.
 
-Return sep if `NODE' matches against `SEP-REGEX'.
+Return sep if `NODE' type is a member of `SEPS'.
 Otherwise return sibling if `NODE' is named and current node is
 separator (`CUR-KIND'). Return term if `NODE' is anonymous and on
 the same line as `CUR-NODE' (examples of possible termination
 nodes: \) ,\] ,end ,fi, etc.)."
 
 
-  (when (null sep-regex)
-    (user-error "You must pass sep-regex to this function!"))
+  (when (null seps)
+    (user-error "You must pass seps to this function!"))
 
-  (if (string-match-p sep-regex (treesit-node-type node))
+  (if (member (treesit-node-type node) seps)
       'sep
     (let ((named (treesit-node-check node 'named)))
       (pcase (cons named cur-kind)
@@ -813,19 +814,18 @@ nodes: \) ,\] ,end ,fi, etc.)."
               (guard (evil-ts-obj--nodes-on-the-same-line node cur-node)))
          'term)))))
 
-(defun evil-ts-obj--get-node-kind (cur-node _cur-kind node &optional sep-regex)
+(defun evil-ts-obj--get-node-kind (cur-node _cur-kind node &optional seps)
   "Return sibling kind for `NODE'.
 Implementation of a kind-func for
 `evil-ts-obj-conf-sibling-trav'.
 
-Return sep if `NODE' matches against `SEP-REGEX'. Otherwise
+Return sep if `NODE' type is a member of `SEPS'. Otherwise
 return sibling if `NODE' is named. Return term if `NODE' is
 anonymous and on the same line as `CUR-NODE' (examples of
 possible termination nodes: \) ,\] ,end ,fi, etc.)."
 
   (cond
-   ((and sep-regex
-         (string-match-p sep-regex (treesit-node-type node)))
+   ((member (treesit-node-type node) seps)
     'sep)
    ((treesit-node-check node 'named)
     'sibling)
@@ -844,9 +844,9 @@ thing specified in MATCH-THING."
                     #'evil-ts-obj--get-sibling-simple))
          (kind-func (if trav (evil-ts-obj-trav-kind-func trav)
                       #'evil-ts-obj--get-node-kind))
-         (sep-regex (if trav (evil-ts-obj-trav-seps trav)
-                      (plist-get evil-ts-obj-conf-sep-regexps lang)))
-         (kind-lambda (lambda (cn ck n) (funcall kind-func cn ck n sep-regex)))
+         (seps (plist-get (plist-get evil-ts-obj-conf-seps lang)
+                          node-thing))
+         (kind-lambda (lambda (cn ck n) (funcall kind-func cn ck n seps)))
          (cur-node node)
          (cur-kind 'sibling))
 
@@ -958,17 +958,17 @@ separators were found."
                (setq start-pos (treesit-node-end prev-sep))))))
     (list start-pos end-pos)))
 
-(defun evil-ts-obj-thing-with-sep-outer (node sep-regex &optional strict extend-to-term)
+(defun evil-ts-obj-thing-with-sep-outer (node seps &optional strict extend-to-term)
   "Create a range for an outer text object that is associated with the `NODE'.
 It uses `evil-ts-obj-generic-thing-with-sep-outer'
 underneath (examine this function for an explanation of `STRICT'
 and `EXTEND-TO-TERM'). It uses `evil-ts-obj--get-node-kind' as
-node-kind-func. See this function description for `SEP-REGEX'
+node-kind-func. See this function description for `SEPS'
 meaning."
 
   (evil-ts-obj-generic-thing-with-sep-outer
    node
-   (lambda (cn ck n) (evil-ts-obj--get-node-kind cn ck n sep-regex))
+   (lambda (cn ck n) (evil-ts-obj--get-node-kind cn ck n seps))
    #'evil-ts-obj--get-sibling-simple
    strict
    extend-to-term))
@@ -1020,14 +1020,14 @@ sibling node returned by the `NODE-FETCHER'."
 
     (list start-pos end-pos)))
 
-(defun evil-ts-obj-param-upper-mod (node sep-regex)
+(defun evil-ts-obj-param-upper-mod (node seps)
 "Create parameter upper text object.
 This function invokes `evil-ts-obj-generic-thing-upper' with
 extend-to-next set to t. See `evil-ts-obj--get-node-kind' for
-information about `NODE' and `SEP-REGEX'."
+information about `NODE' and `SEPS'."
  (evil-ts-obj-generic-thing-upper
    node
-   (lambda (cn ck n) (evil-ts-obj--get-node-kind cn ck n sep-regex))
+   (lambda (cn ck n) (evil-ts-obj--get-node-kind cn ck n seps))
    #'evil-ts-obj--get-sibling-simple
    t))
 
@@ -1078,14 +1078,14 @@ node returned by the `NODE-FETCHER'."
 
     (list start-pos end-pos)))
 
-(defun evil-ts-obj-param-lower-mod (node sep-regex)
+(defun evil-ts-obj-param-lower-mod (node seps)
   "Create parameter lower text object.
 This function invokes `evil-ts-obj-generic-thing-lower' with
 extend-to-prev set to t. See `evil-ts-obj--get-node-kind' for
-information about `NODE' and `SEP-REGEX'."
+information about `NODE' and `SEPS'."
   (evil-ts-obj-generic-thing-lower
    node
-   (lambda (cn ck n) (evil-ts-obj--get-node-kind cn ck n sep-regex))
+   (lambda (cn ck n) (evil-ts-obj--get-node-kind cn ck n seps))
    #'evil-ts-obj--get-sibling-simple
    t))
 

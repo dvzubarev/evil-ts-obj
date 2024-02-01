@@ -33,7 +33,7 @@
 
 
 (defvar evil-ts-obj-bash-statement-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
+  "Regex is composed from `evil-ts-obj-bash-statement-nodes'.")
 
 (defcustom evil-ts-obj-bash-statement-nodes
   '("command"
@@ -49,15 +49,11 @@
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-nodes-setter)
 
-(defvar evil-ts-obj-bash-statement-seps-regex nil
-  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
-
 (defcustom evil-ts-obj-bash-statement-seps
   '("|" ";" "||" "&&")
   "Separators for bash statements."
   :type '(repeat string)
-  :group 'evil-ts-obj
-  :set #'evil-ts-obj-conf-seps-setter)
+  :group 'evil-ts-obj)
 
 (defun evil-ts-obj-bash-statement-pred (node)
   "Predicate for detecting statement thing, represented by `NODE'.
@@ -75,7 +71,7 @@ same type."
        (or
         (and (equal parent-type "test_command") (treesit-node-check node 'named))
         (evil-ts-obj--common-bool-expr-pred node "binary_expression"
-                                            evil-ts-obj-bash-statement-seps-regex)
+                                            evil-ts-obj-bash-statement-seps)
         (string-match-p evil-ts-obj-bash-statement-regex (treesit-node-type node)))))))
 
 (defun evil-ts-obj-bash-param-pred (node)
@@ -174,9 +170,8 @@ and `NODE'."
 
   (evil-ts-obj-def-init-lang 'bash evil-ts-obj-bash-things
                              :ext-func evil-ts-obj-bash-ext-func
-                             :seps-reg evil-ts-obj-bash-statement-seps
+                             :statement-seps evil-ts-obj-bash-statement-seps
                              :statement-sib-trav (evil-ts-obj-trav-create
-                                                  :seps evil-ts-obj-bash-statement-seps-regex
                                                   :fetcher #'evil-ts-obj-bash-statement-get-sibling)
                              :param-sib-trav (evil-ts-obj-trav-create
                                               :kind-func #'evil-ts-obj-bash-param-sibling-kind)))

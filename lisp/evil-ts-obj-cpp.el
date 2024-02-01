@@ -47,7 +47,7 @@ This is useful if NODE represents struct, class or function."
     t))
 
 (defvar evil-ts-obj-cpp-statement-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
+  "Regex is composed from `evil-ts-obj-cpp-statement-nodes'.")
 
 (defcustom evil-ts-obj-cpp-statement-nodes
   '("type_definition"
@@ -65,18 +65,11 @@ This is useful if NODE represents struct, class or function."
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-nodes-setter)
 
-(defvar evil-ts-obj-cpp-all-seps-regex nil
-  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
-
-(defvar evil-ts-obj-cpp-statement-seps-regex nil
-  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
-
 (defcustom evil-ts-obj-cpp-statement-seps
   '("&&" "||" "and" "or")
   "Separators for cpp statements."
-  :type '(choice (repeat string) string)
-  :group 'evil-ts-obj
-  :set #'evil-ts-obj-conf-seps-setter)
+  :type '(repeat string)
+  :group 'evil-ts-obj)
 
 (defun evil-ts-obj-cpp-statement-pred (node)
   "Return t if NODE is a statement thing.
@@ -87,12 +80,12 @@ its type is matched against `evil-ts-obj-cpp-statement-regex'."
   (or (and (equal (treesit-node-type (treesit-node-parent node)) "condition_clause")
            (equal (treesit-node-field-name node) "value"))
       (evil-ts-obj--common-bool-expr-pred node "binary_expression"
-                                          evil-ts-obj-cpp-statement-seps-regex)
+                                          evil-ts-obj-cpp-statement-seps)
       (string-match-p evil-ts-obj-cpp-statement-regex (treesit-node-type node))))
 
 
 (defvar evil-ts-obj-cpp-param-parent-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
+  "Regex is composed from `evil-ts-obj-cpp-param-parent-nodes'.")
 
 (defcustom evil-ts-obj-cpp-param-parent-nodes
   '("parameter_list"
@@ -107,15 +100,11 @@ its type is matched against `evil-ts-obj-cpp-statement-regex'."
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-nodes-setter)
 
-(defvar evil-ts-obj-cpp-param-seps-regex nil
-  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
-
 (defcustom evil-ts-obj-cpp-param-seps
-  ","
+  '(",")
   "Separators for cpp params."
-  :type '(choice (repeat string) string)
-  :group 'evil-ts-obj
-  :set #'evil-ts-obj-conf-seps-setter)
+  :type '(repeat string)
+  :group 'evil-ts-obj)
 
 (defcustom evil-ts-obj-cpp-things
   `((compound ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-cpp-compound-nodes)
@@ -213,14 +202,12 @@ and `NODE'."
   "Set all variables needed by evil-ts-obj-core."
   (evil-ts-obj-def-init-lang 'cpp evil-ts-obj-cpp-things
                              :ext-func evil-ts-obj-cpp-ext-func
-                             :seps-reg evil-ts-obj-cpp-all-seps-regex
+                             :param-seps evil-ts-obj-cpp-param-seps
+                             :statement-seps evil-ts-obj-cpp-statement-seps
                              :statement-sib-trav
                              (evil-ts-obj-trav-create
-                              :seps evil-ts-obj-cpp-statement-seps-regex
                               :fetcher (lambda (d n) (evil-ts-obj--common-get-statement-sibling
                                                       d n '("binary_expression"))))
-                             :param-sib-trav (evil-ts-obj-trav-create
-                                              :seps evil-ts-obj-cpp-param-seps-regex)
                              :compound-brackets "{}"))
 
 (provide 'evil-ts-obj-cpp)

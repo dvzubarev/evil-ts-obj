@@ -40,8 +40,9 @@
   :group 'evil-ts-obj)
 
 (defun evil-ts-obj-python-compound-pred (node)
-  "When NODE is a function and it has decorator, match only top
-level decorated_definition node as thing."
+  "Predicate for a compound thing.
+When NODE is a function and it has decorator, match only top
+level decorated_definition node as a thing."
   (if-let* (((equal (treesit-node-type node) "function_definition"))
             (parent (treesit-node-parent node))
             ((equal (treesit-node-type parent) "decorated_definition")))
@@ -49,7 +50,7 @@ level decorated_definition node as thing."
     t))
 
 (defvar evil-ts-obj-python-statement-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
+  "Regex is composed from `evil-ts-obj-python-statement-nodes'.")
 
 (defcustom evil-ts-obj-python-statement-nodes
   '("return_statement"
@@ -75,7 +76,7 @@ level decorated_definition node as thing."
 
 (defun evil-ts-obj-python-statement-pred (node)
   "Return t if NODE is a statement thing.
-Consider NODE to be a statement if it is used as condition in a
+Consider NODE to be a statement if it is used as a condition in a
 compound statement or it is a part of a boolean expression, or if
 its type is matched against `evil-ts-obj-python-statement-regex'."
   (or (equal (treesit-node-field-name node) "condition")
@@ -85,7 +86,7 @@ its type is matched against `evil-ts-obj-python-statement-regex'."
       (string-match-p evil-ts-obj-python-statement-regex (treesit-node-type node))))
 
 (defvar evil-ts-obj-python-param-parent-regex nil
-  "This variable should be set by `evil-ts-obj-conf-nodes-setter'.")
+  "Regex is composed from `evil-ts-obj-python-param-parent-nodes'.")
 
 (defcustom evil-ts-obj-python-param-parent-nodes
   '("parameters"
@@ -113,34 +114,24 @@ its type is matched against `evil-ts-obj-python-statement-regex'."
   :type 'plist
   :group 'evil-ts-obj)
 
-(defvar evil-ts-obj-python-all-seps-regex nil
-  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
-
-(defvar evil-ts-obj-python-statement-seps-regex nil
-  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
 
 (defcustom evil-ts-obj-python-statement-seps
   '(";" "and" "or")
   "Separators for python statements."
-  :type '(choice (repeat string) string)
-  :group 'evil-ts-obj
-  :set #'evil-ts-obj-conf-seps-setter)
+  :type '(repeat string)
+  :group 'evil-ts-obj)
 
-
-(defvar evil-ts-obj-python-param-seps-regex nil
-  "This variable should be set by `evil-ts-obj-conf-seps-setter'.")
 
 (defcustom evil-ts-obj-python-param-seps
-  ","
+  '(",")
   "Separators for python params."
-  :type '(choice (repeat string) string)
-  :group 'evil-ts-obj
-  :set #'evil-ts-obj-conf-seps-setter)
+  :type '(repeat string)
+  :group 'evil-ts-obj)
 
 
 (defun evil-ts-obj-python-compound-nav-mod (node)
   "Skip decorator header when navigating to decorated function.
-If NODE has type decorated_definition find function_definition
+If NODE has type decorated_definition, find function_definition
 child and jump to its beginning."
   (when (equal (treesit-node-type node) "decorated_definition")
     (when-let (func-node (treesit-node-child-by-field-name node "definition"))
@@ -192,14 +183,12 @@ and `NODE'."
 
   (evil-ts-obj-def-init-lang 'python evil-ts-obj-python-things
                              :ext-func evil-ts-obj-python-ext-func
-                             :seps-reg evil-ts-obj-python-all-seps-regex
+                             :param-seps evil-ts-obj-python-param-seps
+                             :statement-seps evil-ts-obj-python-statement-seps
                              :statement-sib-trav
                              (evil-ts-obj-trav-create
-                              :seps evil-ts-obj-python-statement-seps-regex
                               :fetcher (lambda (d n) (evil-ts-obj--common-get-statement-sibling
                                                       d n '("boolean_operator"))))
-                             :param-sib-trav (evil-ts-obj-trav-create
-                                              :seps evil-ts-obj-python-param-seps-regex)
                              :statement-placeholder '("pass" "...")))
 
 

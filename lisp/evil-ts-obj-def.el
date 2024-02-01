@@ -198,7 +198,6 @@ See `evil-ts-obj-conf-barf-rules' for description of RANGE-TYPE."
 (defun evil-ts-obj-def--create-sibling-trav (user-trav)
   "Create sibling traversing object combining USER-TRAV with the default one."
   (evil-ts-obj-trav-create
-   :seps (evil-ts-obj-trav-seps user-trav)
    :fetcher (or (evil-ts-obj-trav-fetcher user-trav)
                 (evil-ts-obj-trav-fetcher evil-ts-obj-def--sibling-trav))
    :kind-func (or (evil-ts-obj-trav-kind-func user-trav)
@@ -209,7 +208,8 @@ See `evil-ts-obj-conf-barf-rules' for description of RANGE-TYPE."
 (cl-defun evil-ts-obj-def-init-lang (
                                      lang things &optional &key
                                      (ext-func nil)
-                                     (seps-reg nil)
+                                     (param-seps nil)
+                                     (statement-seps nil)
                                      (nav-thing '(or param statement compound))
                                      (compound-sib-trav evil-ts-obj-def--sibling-trav)
                                      (statement-sib-trav evil-ts-obj-def--sibling-trav)
@@ -224,9 +224,10 @@ THINGS are added to `treesit-thing-settings' variable.
 Possible keyword values: If EXT-FUNC is not nil, it is added
 `evil-ts-obj-conf-thing-modifiers' variable.
 
-SEPS-REG is regexp for language separators, it is added to
-`evil-ts-obj-conf-sep-regexps'. If SEPS-REG is a list, then it is
-converted to regexp via `evil-ts-obj-conf--make-nodes-regex'.
+PARAM-SEPS and STATEMENT-SEPS are lists of separators for current
+language. They are added to `evil-ts-obj-conf-seps', along with
+new list with key \\='all that is concatenation of provided
+separator lists.
 
 NAV-THING - added to `evil-ts-obj-conf-nav-things', default
 value: (or param statement compound).
@@ -234,8 +235,7 @@ value: (or param statement compound).
 COMPOUND-SIB-TRAV, STATEMENT-SIB-TRAV, PARAM-SIB-TRAV define
 sibling traversing. They are objects of type `evil-ts-obj-trav'.
 An object can be instantiated using `evil-ts-obj-trav-create'. It
-accepts following arguments: :seps - regexp for text object
-separators (default nil), :fetcher - a function for fetching
+accepts following arguments: :fetcher - a function for fetching
 next/previous sibling (default
 `evil-ts-obj--get-sibling-simple'), :kind-func - a function for
 labeling a fetched node (default `evil-ts-obj--get-node-kind').
@@ -246,7 +246,8 @@ variable for more information about functions.
 
 This function also adds `evil-ts-obj--finalize-text-obj-range' to
 `evil-ts-obj-conf-range-finalizers',
-`evil-ts-obj-def-raise-rules' to `evil-ts-obj-conf-raise-rules'."
+`evil-ts-obj-def-raise-rules' to `evil-ts-obj-conf-raise-rules'.
+And other default rules to its corresponding variables."
 
 
   (make-local-variable 'treesit-thing-settings)
@@ -255,10 +256,11 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
   (when ext-func
     (cl-callf plist-put evil-ts-obj-conf-thing-modifiers lang ext-func))
 
-  (when seps-reg
-    (when (listp seps-reg)
-      (setq seps-reg (evil-ts-obj-conf--make-nodes-regex seps-reg)))
-    (cl-callf plist-put evil-ts-obj-conf-sep-regexps lang seps-reg))
+  (when-let ((all-seps (append param-seps statement-seps)))
+    (cl-callf plist-put evil-ts-obj-conf-seps lang
+              `(all ,all-seps
+                param ,param-seps
+                statement ,statement-seps)))
 
   (cl-callf plist-put evil-ts-obj-conf-nav-things lang nav-thing)
 
@@ -292,7 +294,7 @@ This function also adds `evil-ts-obj--finalize-text-obj-range' to
 (cl-defun evil-ts-obj-def-init-conf-lang (
                                           lang things &optional &key
                                           (ext-func nil)
-                                          (seps-reg nil)
+                                          (param-seps nil)
                                           (nav-thing '(or param compound))
                                           (compound-sib-trav evil-ts-obj-def--sibling-trav)
                                           (param-sib-trav evil-ts-obj-def--sibling-trav)
@@ -305,9 +307,7 @@ THINGS are added to `treesit-thing-settings' variable.
 Possible keyword values: If EXT-FUNC is not nil, it is added
 `evil-ts-obj-conf-thing-modifiers' variable.
 
-SEPS-REG is regexp for language separators, it is added to
-`evil-ts-obj-conf-sep-regexps'. If SEPS-REG is a list, then it is
-converted to regexp via `evil-ts-obj-conf--make-nodes-regex'.
+PARAM-SEPS are separators for current language.
 
 NAV-THING - added to `evil-ts-obj-conf-nav-things', default
 value: (or param compound).
@@ -324,10 +324,10 @@ This function also adds `evil-ts-obj-def-raise-rules' to
   (when ext-func
     (cl-callf plist-put evil-ts-obj-conf-thing-modifiers lang ext-func))
 
-  (when seps-reg
-    (when (listp seps-reg)
-      (setq seps-reg (evil-ts-obj-conf--make-nodes-regex seps-reg)))
-    (cl-callf plist-put evil-ts-obj-conf-sep-regexps lang seps-reg))
+  (when param-seps
+    (cl-callf plist-put evil-ts-obj-conf-seps lang
+              `(all ,param-seps
+                param ,param-seps)))
 
   (let (sibl-trav-plist)
     (when compound-sib-trav
