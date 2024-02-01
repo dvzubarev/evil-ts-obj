@@ -37,6 +37,20 @@ func1(T t, U u){
 }
 =-=-=
 
+Name: drag up t2
+
+=-=
+void func () {
+   auto i = 3;
+   |call(i);
+}
+=-=
+void func () {
+   |call(i);
+   auto i = 3;
+}
+=-=-=
+
 
 Code:
   (lambda ()
@@ -217,7 +231,8 @@ if (true){
 =-=
 if (true){
     auto comp = true && false;
-    |call(comp) call(comp);
+    |call(comp);
+    call(comp);
 }
 =-=-=
 
@@ -429,7 +444,7 @@ if (true){
 =-=
 if (true){
     auto comp = true && false;
-    call(comp)
+    call(comp);
     |call(comp);
 }
 =-=-=

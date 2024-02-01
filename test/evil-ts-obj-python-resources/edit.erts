@@ -571,6 +571,20 @@ def main():
     pass
 =-=-=
 
+
+Name: Swap drag up t5
+
+=-=
+def func(**kwargs):
+    i =3
+    |call(i)
+=-=
+def func(**kwargs):
+    |call(i)
+    i =3
+=-=-=
+
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)

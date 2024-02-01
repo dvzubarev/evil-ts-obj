@@ -134,6 +134,13 @@ there is special behavior when two things are separated and the
 point is on a separator. We prefer the previous thing in this
 case. Should be set for each language in the appropriate file.")
 
+(defvar-local evil-ts-obj-conf-terms nil
+  "Plist that maps holds statement termination symbols for each language.
+Example for cpp: \\='(\";\"). This used in
+`evil-ts-obj--find-parent-with-same-range' to propagate thing to
+the identical parent node. Two things are considered identical if
+they differ only by the termination symbol.")
+
 (defvar-local evil-ts-obj-conf-raise-rules nil
   "This is a plist that maps language to a function that returns raise rules.
 This function is invoked by `evil-ts-obj-edit--raise-operator'

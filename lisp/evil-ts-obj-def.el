@@ -214,6 +214,7 @@ See `evil-ts-obj-conf-barf-rules' for description of RANGE-TYPE."
                                      (compound-sib-trav evil-ts-obj-def--sibling-trav)
                                      (statement-sib-trav evil-ts-obj-def--sibling-trav)
                                      (param-sib-trav evil-ts-obj-def--sibling-trav)
+                                     (terms nil)
                                      (clone-indent-policy 'cur-indent)
                                      (compound-brackets nil)
                                      (statement-placeholder nil))
@@ -229,7 +230,7 @@ language. They are added to `evil-ts-obj-conf-seps', along with
 new list with key \\='all that is concatenation of provided
 separator lists.
 
-NAV-THING - added to `evil-ts-obj-conf-nav-things', default
+NAV-THING is added to `evil-ts-obj-conf-nav-things', default
 value: (or param statement compound).
 
 COMPOUND-SIB-TRAV, STATEMENT-SIB-TRAV, PARAM-SIB-TRAV define
@@ -243,6 +244,15 @@ It is possible to leave some slots undefined. In that case the
 default values will be used. An object will be added to
 `evil-ts-obj-conf-sibling-trav' variable, see description of this
 variable for more information about functions.
+
+TERMS is added to `evil-ts-obj-conf-terms', default value is nil.
+CLONE-INDENT-POLICY is used to populate
+`evil-ts-obj-conf-clone-indent-policy', default value is
+cur-indent. COMPOUND-BRACKETS and STATEMENT-PLACEHOLDER are used
+by extract and inject operators. They populate
+`evil-ts-obj-conf-compound-brackets' and
+`evil-ts-obj-conf-statement-placeholder' respectively. Both
+values are nil by default.
 
 This function also adds `evil-ts-obj--finalize-text-obj-range' to
 `evil-ts-obj-conf-range-finalizers',
@@ -276,6 +286,7 @@ And other default rules to its corresponding variables."
                 (evil-ts-obj-def--create-sibling-trav param-sib-trav)))
     (cl-callf plist-put evil-ts-obj-conf-sibling-trav lang sibl-trav-plist))
 
+  (cl-callf plist-put evil-ts-obj-conf-terms lang terms)
 
   (cl-callf plist-put evil-ts-obj-conf-range-finalizers lang #'evil-ts-obj--finalize-text-obj-range)
   (cl-callf plist-put evil-ts-obj-conf-raise-rules lang #'evil-ts-obj-def-raise-rules)

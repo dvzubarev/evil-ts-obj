@@ -154,6 +154,29 @@ exists. Return nil if no node can be found."
                   (setq node next-node))))
          node)))))
 
+(defun evil-ts-obj--find-parent-with-same-range (node thing)
+  "Handle edge case when the parent is identical to a child NODE.
+Parent should also match with THING. They are concidered
+identical if their RANGEs are the same or if the only difference
+between parent and NODE is the termination symbol. To obtain
+termination symbols for current language variable
+`evil-ts-obj-conf-terms' is consulted. In that case return only
+top level node."
+
+  (let ((init-start (treesit-node-start node))
+        (init-end (treesit-node-end node)))
+    (while-let ((parent (treesit-node-parent node))
+                ((= (treesit-node-start parent) init-start))
+                ((treesit-node-match-p parent thing t))
+                ((or (= (treesit-node-end parent) init-end)
+                     (and (= (treesit-node-child-count parent) 2)
+                          (when-let* ((terms (plist-get evil-ts-obj-conf-terms
+                                                        (treesit-language-at init-start)))
+                                      (last-child (treesit-node-child parent -1)))
+                            (member (treesit-node-type last-child) terms))))))
+      (setq node parent))
+    node))
+
 
 (defun evil-ts-obj--thing-around (pos thing &optional dont-step-forward)
   "Return the node that represents thing, which encloses `POS' or is near it.
@@ -197,11 +220,13 @@ if no thing can be found (e.g. empty line)."
                        (treesit-node-end cursor))
                 (setq enclosing-node cursor))))))
 
-    (if enclosing-node
-        enclosing-node
-      ;; try to find next node
-      (unless dont-step-forward
-        (treesit--thing-next (point) thing)))))
+    (evil-ts-obj--find-parent-with-same-range
+     (if enclosing-node
+         enclosing-node
+       ;; try to find next node
+       (unless dont-step-forward
+         (treesit--thing-next (point) thing)))
+     thing)))
 
 (defun evil-ts-obj--current-thing (node nav-thing)
   "If `NAV-THING' is symbol or string it is returned as is.

@@ -204,6 +204,7 @@ and `NODE'."
                              :ext-func evil-ts-obj-cpp-ext-func
                              :param-seps evil-ts-obj-cpp-param-seps
                              :statement-seps evil-ts-obj-cpp-statement-seps
+                             :terms '(";")
                              :statement-sib-trav
                              (evil-ts-obj-trav-create
                               :fetcher (lambda (d n) (evil-ts-obj--common-get-statement-sibling
