@@ -57,3 +57,53 @@ if [[ @-n "$send_mode" && move || "$A" == "$B" ]] ; then
     buffer=${buffer//\"/\\\"}
 fi
 =-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (evil-ts-obj-end-of-thing))
+
+Name: Move to end of thing t1
+
+=-=
+@if [[ true ]] ; then
+    v=1
+fi
+=-=
+if [[ true ]] ; then
+    v=1
+f@i
+=-=-=
+
+Name: Move to end of thing t2
+
+=-=
+if [[ true ]] ; then
+    v=1
+e@lif [[ -n "$s" ]]; then
+    echo "$s"
+fi
+=-=
+if [[ true ]] ; then
+    v=1
+elif [[ -n "$s" ]]; then
+    echo "$s@"
+fi
+=-=-=
+
+Name: Move to end of thing t3
+
+=-=
+if [[ true ]] ; then
+    v=1
+elif [[ -n "$s" ]]; then
+    echo "$s@"
+fi
+=-=
+if [[ true ]] ; then
+    v=1
+elif [[ -n "$s" ]]; then
+    echo "$s"
+f@i
+=-=-=

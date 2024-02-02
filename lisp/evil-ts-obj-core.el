@@ -420,7 +420,8 @@ If `RETURN-NODE' is t, return cons of range and the treesit node."
 
   (when-let ((node (if (treesit-node-p pos-or-node)
                        pos-or-node
-                     (evil-ts-obj--thing-around pos-or-node thing))))
+                     (when (integerp pos-or-node)
+                       (evil-ts-obj--thing-around pos-or-node thing)))))
     (let* ((pos (treesit-node-start node))
            (lang (treesit-language-at pos))
            (finalizer (plist-get evil-ts-obj-conf-range-finalizers lang))
@@ -455,16 +456,14 @@ to nav, so all nav modifiers affect it (see
 beginning, move to the beginning of the parent thing."
   (when-let* ((spec (evil-ts-obj--make-nav-spec thing))
               (node (evil-ts-obj--thing-around (point) thing))
-              (range (evil-ts-obj--apply-modifiers node thing spec)))
-    (while (and range
-                (<= (point) (car range)))
-      ;; jump to beginning of a parent.
-      ;; Take into consideration that parent may start on the same position as the child.
-      (if-let ((parent-node (treesit-parent-until
-                             node (lambda (n) (treesit-node-match-p n thing t)))))
-          (setq node parent-node
-                range (evil-ts-obj--apply-modifiers parent-node thing spec))
-        (setq range nil)))
+              (range (evil-ts-obj--get-text-obj-range node thing spec)))
+    ;; jump to beginning of a parent.
+    ;; Take into consideration that parent may start on the same position as the child.
+    (while-let (((<= (point) (car range)))
+                (parent-node (treesit-parent-until
+                              node (lambda (n) (treesit-node-match-p n thing t)))))
+      (setq node parent-node
+            range (evil-ts-obj--get-text-obj-range parent-node thing spec)))
     (when range
       (goto-char (car range)))))
 
@@ -476,14 +475,12 @@ nav, so all nav modifiers affect it (see
 end, move to the end of the parent thing."
   (when-let* ((spec (evil-ts-obj--make-nav-spec thing))
               (node (evil-ts-obj--thing-around (point) thing))
-              (range (evil-ts-obj--apply-modifiers node thing spec)))
-    (while (and range
-                (<= (1- (cadr range)) (point)))
-      (if-let (parent-node (treesit-parent-until
-                            node (lambda (n) (treesit-node-match-p n thing t))))
-          (setq node parent-node
-                range (evil-ts-obj--apply-modifiers parent-node thing spec))
-        (setq range nil)))
+              (range (evil-ts-obj--get-text-obj-range node thing spec)))
+    (while-let (((<= (1- (cadr range)) (point)))
+                (parent-node (treesit-parent-until
+                              node (lambda (n) (treesit-node-match-p n thing t)))))
+      (setq node parent-node
+            range (evil-ts-obj--get-text-obj-range parent-node thing spec)))
 
     (when range
       (goto-char (1- (cadr range))))))
@@ -527,18 +524,18 @@ range according to provided `SPEC'."
         ;; it seems we are outside of any thing at the top level
         ;; just try to move forward
         (setq next (treesit--thing-next init-pos thing)
-              range (evil-ts-obj--apply-modifiers next thing spec))
+              range (evil-ts-obj--get-text-obj-range next thing spec))
 
-      ;; try to move to next sibling from there and go to parent for next
-      ;; iteration
+      ;; Try to move to next thing from pos.
+      ;; Just in case if no next thing is found, go to parent for
+      ;; so we can make a progress in the next iteration.
       (while (and (or (null range)
                       ;; have to find a range that will move us to the right from
                       ;; the current position
                       (<= (car range) init-pos))
-                  parent
                   (< pos (point-max)))
         (setq next (treesit--thing-next pos thing)
-              range (evil-ts-obj--apply-modifiers next thing spec)
+              range (evil-ts-obj--get-text-obj-range next thing spec)
               parent (treesit-node-parent parent)
               pos (treesit-node-end parent))))
 
@@ -580,7 +577,7 @@ a THING exists jump to a parent THING."
         ;; it seems we are outside of any thing at the top level
         ;; just try to move backward
         (setq prev (treesit--thing-prev init-pos thing)
-              range (evil-ts-obj--apply-modifiers prev thing spec))
+              range (evil-ts-obj--get-text-obj-range prev thing spec))
 
       (while (and (or (null range)
                       (equal init-enclosing-node prev)
@@ -600,7 +597,7 @@ a THING exists jump to a parent THING."
                 pos (or (treesit-node-start prev) 0)))
 
 
-        (setq range (evil-ts-obj--apply-modifiers prev thing spec))))
+        (setq range (evil-ts-obj--get-text-obj-range prev thing spec))))
 
 
     (when range
@@ -640,14 +637,14 @@ If `CURRENT' is t, detect current thing at point and return this thing."
 (defun evil-ts-obj--search-subtree-forward (start-node thing spec init-pos)
   (let ((filter (lambda (c) (< init-pos (treesit-node-end c))))
         (match-pred (lambda (n) (and (treesit-node-match-p n thing t)
-                                     (let ((range (evil-ts-obj--apply-modifiers n thing spec)))
+                                     (let ((range (evil-ts-obj--get-text-obj-range n thing spec)))
                                        (< init-pos (car range)))))))
     (evil-ts-obj--search-subtree start-node thing filter nil match-pred)))
 
 (defun evil-ts-obj--search-subtree-backward (start-node thing spec init-pos)
   (let ((filter (lambda (c) (< (treesit-node-start c) init-pos)))
         (match-pred (lambda (n) (and (treesit-node-match-p n thing t)
-                                     (let ((range (evil-ts-obj--apply-modifiers n thing spec)))
+                                     (let ((range (evil-ts-obj--get-text-obj-range n thing spec)))
                                        (< (car range) init-pos)))))
         (node start-node)
         child)
@@ -663,7 +660,7 @@ If `CURRENT' is t, detect current thing at point and return this thing."
          range)
     (if-let ((node init-enclosing-node)
              (next (evil-ts-obj--search-subtree-forward node thing spec init-pos)))
-        (setq range (evil-ts-obj--apply-modifiers next thing spec))
+        (setq range (evil-ts-obj--get-text-obj-range next thing spec))
       (pcase-setq `(,next . ,range)
                   (evil-ts-obj--next-thing thing init-enclosing-node init-pos spec)))
     (when range
@@ -679,7 +676,7 @@ If `CURRENT' is t, detect current thing at point and return this thing."
     ;; search backwardly inside current thing
     (if-let ((node enclosing-node)
              (prev (evil-ts-obj--search-subtree-backward node thing spec init-pos)))
-        (setq range (evil-ts-obj--apply-modifiers prev thing spec))
+        (setq range (evil-ts-obj--get-text-obj-range prev thing spec))
 
       ;; no matching things inside the current thing
       ;; search backwardly starting from  enclosing node
@@ -694,7 +691,7 @@ If `CURRENT' is t, detect current thing at point and return this thing."
                     (lambda (n) (treesit-node-match-p n thing t))
                     t)
               cursor prev
-              range (evil-ts-obj--apply-modifiers prev thing spec))))
+              range (evil-ts-obj--get-text-obj-range prev thing spec))))
 
 
     (when range
