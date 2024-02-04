@@ -596,8 +596,8 @@ select Nth parent."
                   (place-thing (evil-ts-obj-edit--thing-from-rules rules-alist))
                   (place-spec (evil-ts-obj--make-spec rules-alist 'op))
                   (place-range (evil-ts-obj--get-text-obj-range (point)
-                                                          place-thing place-spec
-                                                          text-range t)))
+                                                                place-thing place-spec
+                                                                text-range t)))
         (when-let* ((count (or count 1))
                     ((> count 1))
                     (node (caddr place-range))

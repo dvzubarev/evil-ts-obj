@@ -1697,6 +1697,28 @@ def main(v):
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
+    (setq evil-this-operator 'evil-ts-obj-extract-down)
+    (apply #'evil-ts-obj-extract-down (evil-ts-obj-statement-lower))
+    (delete-trailing-whitespace))
+
+Name: Extract down lower statements t1
+
+=-=
+def tempf():
+    i = 3
+    var[iiii] = 3; |t.var[i] = 3
+    i = 0
+=-=
+def tempf():
+    i = 3
+    var[iiii] = 3;
+|t.var[i] = 3
+    i = 0
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
     (evil-ts-obj-extract-down-dwim 1)
     (delete-trailing-whitespace))
 

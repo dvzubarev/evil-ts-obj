@@ -297,6 +297,8 @@ be extracted from the place place. See
 function implementation.")
 
 (defvar evil-ts-obj-conf-dont-extend-to-next-cmds '(evil-ts-obj-raise
+                                                    evil-ts-obj-extract-down
+                                                    evil-ts-obj-extract-up
                                                     evil-ts-obj-inject-down
                                                     evil-ts-obj-inject-up)
   "Do not extend upper/lower text object range for specified commands.
