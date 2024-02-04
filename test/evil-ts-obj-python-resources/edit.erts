@@ -242,6 +242,7 @@ if |and b >3:
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-raise)
     (apply #'evil-ts-obj-raise (evil-ts-obj-statement-lower)))
 
 Name: Raise statement lower t1
@@ -277,6 +278,17 @@ def |main():
 batch = Batch()
 client = bytes(stream_key[8:])
 =-=-=
+
+Name: Raise statement lower t3
+
+=-=
+if i and |i < 8 and i > 0:
+   pass
+=-=
+if |i < 8 and i > 0:
+   pass
+=-=-=
+
 
 Code:
   (lambda ()
