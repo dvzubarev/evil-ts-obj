@@ -168,7 +168,7 @@ Also bind `KEY' to defined commands in all appropriate keymaps."
 Also bind `KEY' to defined text objects in all appropriate keymaps."
   `(progn
      ,@(let (result)
-         (dolist (mod '(outer inner upper lower))
+         (dolist (mod '(outer inner upper UPPER lower LOWER))
            (let ((map-name (intern (format "evil-ts-obj-%s-text-objects-map" mod)))
                  (command (intern (format "evil-ts-obj-%s-%s" thing mod))))
              (push `(evil-ts-obj-define-text-obj ,thing ,mod) result)
@@ -377,7 +377,9 @@ topmost statments."
 (defvar evil-ts-obj-inner-text-objects-map (make-sparse-keymap "Inner text objects"))
 (defvar evil-ts-obj-outer-text-objects-map (make-sparse-keymap "Outer text objects"))
 (defvar evil-ts-obj-upper-text-objects-map (make-sparse-keymap "Upper text objects"))
+(defvar evil-ts-obj-UPPER-text-objects-map (make-sparse-keymap "UPPER text objects"))
 (defvar evil-ts-obj-lower-text-objects-map (make-sparse-keymap "Lower text objects"))
+(defvar evil-ts-obj-LOWER-text-objects-map (make-sparse-keymap "LOWER text objects"))
 
 (evil-ts-obj-setup-all-text-objects compound evil-ts-obj-compound-thing-key)
 (evil-ts-obj-setup-all-text-objects statement evil-ts-obj-statement-thing-key)
@@ -447,7 +449,9 @@ topmost statments."
     "i" evil-ts-obj-inner-text-objects-map
     "a" evil-ts-obj-outer-text-objects-map
     "u" evil-ts-obj-upper-text-objects-map
-    "o" evil-ts-obj-lower-text-objects-map))
+    "U" evil-ts-obj-UPPER-text-objects-map
+    "o" evil-ts-obj-lower-text-objects-map
+    "O" evil-ts-obj-LOWER-text-objects-map))
 
 (defun evil-ts-obj--bind-edit-keys ()
   (evil-define-key '(visual normal) 'evil-ts-obj-mode

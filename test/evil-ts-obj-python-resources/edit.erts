@@ -959,10 +959,10 @@ var = call(arg1, |kw1=[],
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-upper))
-    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-upper)))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-UPPER))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-UPPER)))
 
-Name: Clone after param upper t1
+Name: Clone after param UPPER t1
 
 =-=
 func(k, |func(k), *args, **kwargs)
@@ -974,10 +974,10 @@ func(k, |func(k), k, func(k), *args, **kwargs)
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-lower))
-    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-lower)))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-LOWER))
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-LOWER)))
 
-Name: Clone after param lower t1
+Name: Clone after param LOWER t1
 
 =-=
 var = call(arg1, |kw1=1,
@@ -1260,10 +1260,10 @@ var = call(arg1, arg2,
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-upper))
-    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-upper)))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-UPPER))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-UPPER)))
 
-Name: Clone before param upper t1
+Name: Clone before param UPPER t1
 
 =-=
 func(k, |func(k), *args, **kwargs)
@@ -1275,10 +1275,10 @@ func(k, func(k), k, |func(k), *args, **kwargs)
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-lower))
-    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-lower)))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-LOWER))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-LOWER)))
 
-Name: Clone before param lower t1
+Name: Clone before param LOWER t1
 
 =-=
 var = call(arg1, |kw1=1,

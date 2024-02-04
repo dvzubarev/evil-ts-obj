@@ -121,7 +121,9 @@ The implemented modifiers are:
 | outer    | May extend thing bounds to the next or previous sibling       | a   |
 | inner    | May shrink thing bounds                                       | i   |
 | upper    | Select a thing under point and also all its previous siblings | u   |
+| UPPER    | The same as upper + extends to the next sibling               | U   |
 | lower    | Select a thing under point and also all its next siblings     | o   |
+| LOWER    | The same as lower + extends to the previous sibling           | O   |
 
 ** Text objects
 
@@ -138,9 +140,11 @@ Combination of modifiers with things produces set of text objects, that you can 
 - (*outer*, *param*) - bounds are extended to the next sibling or to the closing parenthesis.
    If this is the last parameter, bounds are extended to the previous sibling or to the opening parenthesis.
 - (*inner*, *param*) - thing without changes.
-- (*upper*, *_*) - right bound is extended as if for *outer* modifier, left bound is determined by the furthest previous sibling
-- (*lower*, *_*) - left bound is extended as if it is last thing according to *outer* rules,
-   right bound is determined by the furthest next sibling
+- (*upper*, *_*) - given the thing under point; its left bound is determined by the furthest previous sibling.
+- (*UPPER*, *_*) - the same as upper, but right bound is extended to the next sibling.
+- (*lower*, *_*) - given the thing under point; right bound is determined by the furthest next sibling
+- (*LOWER*, *_*) - the same as lower, but left bound is extended to the previous sibling
+
 The described behavior may differ from language to language.
 It is just common conventions that one should try to follow, when creating settings for a language.
 

@@ -774,6 +774,22 @@ def func(a, e):
                    te|mp1=TempC([1], [3]), ab='83, 8',)
 =-=
 def func(a, e):
+    this_is = func(|, ab='83, 8',)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-UPPER)))
+
+Name: Delete param UPPER t1
+
+=-=
+def func(a, e):
+    this_is = func(1, temp={'1':1, '2':2},
+                   te|mp1=TempC([1], [3]), ab='83, 8',)
+=-=
+def func(a, e):
     this_is = func(|ab='83, 8',)
 =-=-=
 
@@ -790,7 +806,7 @@ def func(a, e):
                    ab='83, 8',)
 =-=
 def func(a, e):
-    this_is = func(1|)
+    this_is = func(1 , |)
 =-=-=
 
 Name: Delete param lower t2
@@ -801,6 +817,22 @@ def func(a, e):
 =-=
 def func(a, e):
     this_is = func(|)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-param-LOWER)))
+
+Name: Delete param LOWER t1
+
+=-=
+def func(a, e):
+    this_is = func(1 , |temp={'1':1, '2':2},
+                   ab='83, 8',)
+=-=
+def func(a, e):
+    this_is = func(1|)
 =-=-=
 
 Code:

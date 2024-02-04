@@ -307,35 +307,34 @@ form (or thing1 thing2 ...). COMMAND is the same as for
                 (kind-lambda (lambda (cn ck n)
                                (funcall kind-func cn ck n (plist-get
                                                            (plist-get evil-ts-obj-conf-seps lang)
-                                                           thing)))))
+                                                           thing))))
+                (upper-lower-extend (or (eq thing 'param) 'if-sep-found)))
           ;; handle upper/lower using traverse functions
-          (let ((upper-lower-extend (cond
-                                     ((memq (plist-get spec :command)
-                                            evil-ts-obj-conf-dont-extend-to-next-cmds)
-                                      nil)
-                                     ((eq thing 'param) t)
-                                     (t 'if-sep-found))))
-            (pcase spec
-              ((pmap (:mod 'outer))
-               (evil-ts-obj-generic-thing-with-sep-outer node kind-lambda fetcher
-                                                         (not (eq thing 'param))
-                                                         (eq thing 'param)))
-              ((pmap (:mod 'upper))
-               (evil-ts-obj-generic-thing-upper node kind-lambda fetcher upper-lower-extend))
-              ((pmap (:mod 'lower))
-               (evil-ts-obj-generic-thing-lower node kind-lambda fetcher upper-lower-extend))
-              ((pmap (:mod 'all))
-               (list (car (evil-ts-obj-generic-thing-upper node kind-lambda fetcher nil))
-                     (cadr (evil-ts-obj-generic-thing-lower node kind-lambda fetcher nil))))
-              (_
-               (list start end))))
+          (pcase spec
+            ((pmap (:mod 'outer))
+             (evil-ts-obj-generic-thing-with-sep-outer node kind-lambda fetcher
+                                                       (not (eq thing 'param))
+                                                       (eq thing 'param)))
+            ((pmap (:mod 'upper))
+             (evil-ts-obj-generic-thing-upper node kind-lambda fetcher))
+            ((pmap (:mod 'UPPER))
+             (evil-ts-obj-generic-thing-upper node kind-lambda fetcher upper-lower-extend))
+            ((pmap (:mod 'lower))
+             (evil-ts-obj-generic-thing-lower node kind-lambda fetcher))
+            ((pmap (:mod 'LOWER))
+             (evil-ts-obj-generic-thing-lower node kind-lambda fetcher upper-lower-extend))
+            ((pmap (:mod 'all))
+             (list (car (evil-ts-obj-generic-thing-upper node kind-lambda fetcher nil))
+                   (cadr (evil-ts-obj-generic-thing-lower node kind-lambda fetcher nil))))
+            (_
+             (list start end)))
         ;; default handling of upper/lower text objects
         (let ((parent (treesit-node-parent node)))
           (pcase spec
-            ((pmap (:mod 'upper))
+            ((pmap (:mod (or 'upper 'UPPER)))
              (let ((final-sibling (treesit-node-child parent 0 t)))
                (list (treesit-node-start final-sibling) end)))
-            ((pmap (:mod 'lower))
+            ((pmap (:mod (or 'lower 'LOWER)))
              (let ((final-sibling (treesit-node-child parent -1 t)))
                (list start (treesit-node-end final-sibling))))
             ((pmap (:mod 'all))

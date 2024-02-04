@@ -491,7 +491,7 @@ Name: Delete statement upper t2
     fi
 =-=
     if [[ $v -eq 1 ]]; then
-        |echo t
+        |; echo t
         exit
     fi
 =-=-=
@@ -504,7 +504,7 @@ case $key in
 esac
 =-=
 case $key in
-    -s) |shift  ;;
+    -s) | ; shift  ;;
 esac
 =-=-=
 
@@ -556,6 +556,60 @@ Name: Delete statement upper t6
 =-=-=
 
 Name: Delete statement upper t7
+
+=-=
+[[ -z "$e" ]] && read -ra files| && echo e && echo t
+=-=
+| && echo e && echo t
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-statement-UPPER)))
+
+
+Name: Delete statement UPPER t1
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        e|cho e; echo t
+        exit
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        |echo t
+        exit
+    fi
+=-=-=
+
+Name: Delete statement UPPER t2
+
+=-=
+case $key in
+    -s) send_mode="1"; echo t| ; shift  ;;
+esac
+=-=
+case $key in
+    -s) |shift  ;;
+esac
+=-=-=
+
+Name: Delete statement UPPER t3
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        e|cho e
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        |
+    fi
+=-=-=
+
+Name: Delete statement UPPER t4
 
 =-=
 [[ -z "$e" ]] && read -ra files| && echo e && echo t
@@ -617,7 +671,7 @@ Name: Delete statement lower t2
 =-=
     if [[ $v -eq 1 ]]; then
         test
-        echo e|
+        echo e; |
     elif [[ $v -eq 0 ]]; then
         echo t
     fi
@@ -631,7 +685,7 @@ case $key in
 esac
 =-=
 case $key in
-    -s) send_mode="1"|  ;;
+    -s) send_mode="1"; |  ;;
 esac
 =-=-=
 
@@ -670,6 +724,50 @@ Name: Delete statement lower t6
 =-=
 [[ -z "$e" ]] && read -ra files && |echo e && echo t
 =-=
+[[ -z "$e" ]] && read -ra files && |
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-statement-LOWER)))
+
+Name: Delete statement LOWER t1
+
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        echo e; |echo t
+        exit
+    elif [[ $v -eq 0 ]]; then
+        echo t
+    fi
+=-=
+    if [[ $v -eq 1 ]]; then
+        test
+        echo e|
+    elif [[ $v -eq 0 ]]; then
+        echo t
+    fi
+=-=-=
+
+Name: Delete statement LOWER t2
+
+=-=
+case $key in
+    -s) send_mode="1"; echo t| ; shift  ;;
+esac
+=-=
+case $key in
+    -s) send_mode="1"|  ;;
+esac
+=-=-=
+
+Name: Delete statement LOWER t3
+
+=-=
+[[ -z "$e" ]] && read -ra files && |echo e && echo t
+=-=
 [[ -z "$e" ]] && read -ra files|
 =-=-=
 
@@ -677,7 +775,7 @@ Name: Delete statement lower t6
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (apply #'evil-delete (evil-ts-obj-param-upper)))
+    (apply #'evil-delete (evil-ts-obj-param-UPPER)))
 
 Name: Delete param upper t1
 
@@ -698,6 +796,6 @@ Name: Delete param lower t1
 echo here |temp str
 [[ -n "$mode" ]]
 =-=
-echo here|
+echo here |
 [[ -n "$mode" ]]
 =-=-=
