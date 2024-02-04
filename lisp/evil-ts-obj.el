@@ -180,12 +180,34 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 
 ;;;; Operators
 
+;;;;; operator helpers
+
+(defmacro evil-ts-obj--adjust-linewise-range (beg end type)
+  "Make evil line-wise ranges to be compatible with the core library.
+Core can handle multiline strings and paste it properly in new
+locations preserving original indentation. But we have to modify
+line-wise range so it can be properly handled by the core.
+Namely, delete leading spaces and a trailing newline. BEG END and
+TYPE are arguments from evil operator."
+  `(when (eq ,type 'line)
+     (setq ,beg
+           (save-excursion
+             (goto-char ,beg)
+             (skip-chars-forward " \t")
+             (point))
+           ,end (if (eq (char-before ,end) ?\n)
+                    (1- ,end)
+                  ,end))))
+
+
+;;;;; operator definitions
 
 (evil-define-operator evil-ts-obj-replace (beg end type)
   "Replace content of one region with the content of another one."
   :move-point nil
   :repeat t
   (interactive "<R>")
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--replace-operator beg end))
 
 (evil-define-operator evil-ts-obj-swap (beg end type)
@@ -193,16 +215,19 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   :move-point nil
   :repeat t
   (interactive "<R>")
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--swap-operator beg end))
 
 (evil-define-operator evil-ts-obj-clone-after (beg end type)
   "Copy content of range to the position after END."
   :move-point nil
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--clone-after-operator beg end))
 
 (evil-define-operator evil-ts-obj-teleport-after (beg end type)
   "Move content of range to the position after END."
   :move-point nil
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--teleport-after-operator beg end))
 
 (evil-define-operator evil-ts-obj-clone-after-dwim ()
@@ -213,11 +238,13 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (evil-define-operator evil-ts-obj-clone-before (beg end type)
   "Copy content of range before BEG."
   :move-point nil
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--clone-before-operator beg end))
 
 (evil-define-operator evil-ts-obj-teleport-before (beg end type)
   "Move content of range to the position before BEG."
   :move-point nil
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--teleport-after-operator beg end))
 
 (evil-define-operator evil-ts-obj-clone-before-dwim ()
@@ -230,6 +257,7 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   :move-point nil
   :repeat t
   (interactive "<R><c>")
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--raise-operator beg end count))
 
 (evil-define-operator evil-ts-obj-raise-dwim (count)
@@ -258,6 +286,7 @@ Parent text object is determined by the
 select Nth parent."
   :move-point nil
   (interactive "<R><c>")
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--extract-operator-impl beg end count))
 
 (evil-define-operator evil-ts-obj-extract-up-dwim (count)
@@ -275,6 +304,7 @@ Parent text object is determi by the
 select Nth parent."
   :move-point nil
   (interactive "<R><c>")
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--extract-operator-impl beg end count t))
 
 (evil-define-operator evil-ts-obj-extract-down-dwim (count)
@@ -293,6 +323,7 @@ are used as place for injection. When COUNT is set select N-1th
 child of next/previous text object."
   :move-point nil
   (interactive "<R><c>")
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--inject-operator-impl beg end count t))
 
 (evil-define-operator evil-ts-obj-inject-up-dwim (count)
@@ -312,6 +343,7 @@ are used as place for injection. When COUNT is set select N-1th
 child of next/previous text object."
   :move-point nil
   (interactive "<R><c>")
+  (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--inject-operator-impl beg end count))
 
 (evil-define-operator evil-ts-obj-inject-down-dwim (count)
@@ -418,26 +450,27 @@ topmost statments."
     "o" evil-ts-obj-lower-text-objects-map))
 
 (defun evil-ts-obj--bind-edit-keys ()
-  (evil-define-key 'normal 'evil-ts-obj-mode
+  (evil-define-key '(visual normal) 'evil-ts-obj-mode
     "zx" #'evil-ts-obj-swap
     "zR" #'evil-ts-obj-replace
     "zr" #'evil-ts-obj-raise
-    (kbd "M-r") #'evil-ts-obj-raise-dwim
-    (kbd "M-j") #'evil-ts-obj-drag-down
-    (kbd "M-k") #'evil-ts-obj-drag-up
     "zc" #'evil-ts-obj-clone-after
-    (kbd "M-c") #'evil-ts-obj-clone-after-dwim
     "zC" #'evil-ts-obj-clone-before
-    (kbd "M-C") #'evil-ts-obj-clone-before-dwim
     "zt" #'evil-ts-obj-teleport-after
     "zT" #'evil-ts-obj-teleport-before
     "zE" #'evil-ts-obj-extract-up
-    (kbd "M-h") #'evil-ts-obj-extract-up-dwim
     "ze" #'evil-ts-obj-extract-down
-    (kbd "M-l") #'evil-ts-obj-extract-down-dwim
     "zs" #'evil-ts-obj-inject-down
+    "zS" #'evil-ts-obj-inject-up)
+  (evil-define-key 'normal 'evil-ts-obj-mode
+    (kbd "M-r") #'evil-ts-obj-raise-dwim
+    (kbd "M-j") #'evil-ts-obj-drag-down
+    (kbd "M-k") #'evil-ts-obj-drag-up
+    (kbd "M-c") #'evil-ts-obj-clone-after-dwim
+    (kbd "M-C") #'evil-ts-obj-clone-before-dwim
+    (kbd "M-h") #'evil-ts-obj-extract-up-dwim
+    (kbd "M-l") #'evil-ts-obj-extract-down-dwim
     (kbd "M-s") #'evil-ts-obj-inject-down-dwim
-    "zS" #'evil-ts-obj-inject-up
     (kbd "M-S") #'evil-ts-obj-inject-up-dwim
     (kbd "M->") #'evil-ts-obj-slurp
     (kbd "M-<") #'evil-ts-obj-barf))

@@ -146,15 +146,15 @@ they differ only by the termination symbol.")
 This function is invoked by `evil-ts-obj-edit--raise-operator'
 and `evil-ts-obj-edit--raise-dwim' to determine what things they
 should operate on. The function should accept RANGE-TYPE and
-optionally TEXT-SPEC. RANGE-TYPE can be either text or place. If
+optionally TEXT-THING. RANGE-TYPE can be either text or place. If
 RANGE-TYPE is text then function should return a text object,
 content of which will be used in raise operator. If RANGE-TYPE is
 place then function should return a text object that should be
 replaced by the selected content. In both cases it should return
 alist, for example \\='((statement . inner) (compound . outer)).
 So it is possible to specify multiple potential text objects.
-When the RANGE-TYPE is place, TEXT-SPEC stores specification of
-previously selected text object. See
+When the RANGE-TYPE is place, thing that was previously selected
+for text is passed as TEXT-THING. See
 `evil-ts-obj-def-raise-rules' as an example of this function
 implementation.")
 
@@ -162,23 +162,24 @@ implementation.")
   "This is a plist that maps language to a function that returns drag rules.
 This function is invoked by `evil-ts-obj-edit--drag'to determine
 what things it should operate on. The function should accept
-RANGE-TYPE and optionally FIRST-SPEC. RANGE-TYPE is a symbol that
-value is either first or second. If RANGE-TYPE is first then
+RANGE-TYPE and optionally FIRST-THING. RANGE-TYPE is a symbol
+that value is either first or second. If RANGE-TYPE is first then
 function should return text object, which will be dragged. If
 RANGE-TYPE is second then it returns the object that should be
 swapped with the dragged one. The second object is searched
 across the first object siblings. In both cases it should return
 alist, for example \\='((statement . inner) (compound . outer)).
 So it is possible to specify multiple potential text objects.
-When the RANGE-TYPE is second, FIRST-SPEC stores specification of
-previously selected text object. See `evil-ts-obj-def-drag-rules'
-as an example of this function implementation.")
+When the RANGE-TYPE is second, thing that was previously selected
+for first is passed as FIRST-THING See
+`evil-ts-obj-def-drag-rules' as an example of this function
+implementation.")
 
 (defvar-local evil-ts-obj-conf-clone-rules nil
   "This is a plist that maps language to a function that returns clone DWIM rules.
 This function is invoked by `evil-ts-obj-edit--clone-dwim-impl'to
 determine what things it should operate on. The function should
-accept RANGE-TYPE and optionally TEXT-SPEC. RANGE-TYPE is a
+accept RANGE-TYPE and optionally TEXT-THING. RANGE-TYPE is a
 symbol that value is either text or place. If RANGE-TYPE is text
 then function should return a text object, content of which will
 be cloned. If RANGE-TYPE is place then function should return a
@@ -187,8 +188,8 @@ If clone-before then start of text object is the insert position,
 if clone-after then text is inserted at the end of the range. In
 both cases it should return alist, for example \\='((statement .
 inner) (compound . outer)). So it is possible to specify multiple
-potential text objects. When the RANGE-TYPE is place, TEXT-SPEC
-stores specification of previously selected text object. See
+potential text objects. When the RANGE-TYPE is place, thing that
+was previously selected for text is passed as TEXT-THING See
 `evil-ts-obj-def-clone-rules' as an example of this function
 implementation.")
 
@@ -206,17 +207,17 @@ This function is invoked by
 `evil-ts-obj-edit--extract-operator-impl' and
 `evil-ts-obj-edit--extract-dwim-impl' to determine what things
 they should operate on. The function should accept RANGE-TYPE and
-optionally TEXT-SPEC. RANGE-TYPE is a symbol that value is either
-text or place. If RANGE-TYPE is text then function should return
-a text object, content of which will be extracted. If RANGE-TYPE
-is place then function should return a text object that denotes
-position to insert the selected content. If extract-up then start
-of text object is the insert position, if extract-down then text
-is inserted at the end of the range. In both cases it should
-return alist, for example \\='((statement . inner) (compound .
-outer)). So it is possible to specify multiple potential text
-objects. When the RANGE-TYPE is place, TEXT-SPEC stores
-specification of previously selected text object. See
+optionally TEXT-THING. RANGE-TYPE is a symbol that value is
+either text or place. If RANGE-TYPE is text then function should
+return a text object, content of which will be extracted. If
+RANGE-TYPE is place then function should return a text object
+that denotes position to insert the selected content. If
+extract-up then start of text object is the insert position, if
+extract-down then text is inserted at the end of the range. In
+both cases it should return alist, for example \\='((statement .
+inner) (compound . outer)). So it is possible to specify multiple
+potential text objects. When the RANGE-TYPE is place, thing that
+was previously selected for text is passed as TEXT-THING. See
 `evil-ts-obj-def-extract-rules' and
 `evil-ts-obj-def-conf-lang-extract-rules' as examples of this
 function implementation.")
@@ -241,18 +242,18 @@ This function is invoked by
 `evil-ts-obj-edit--inject-operator-impl' and
 `evil-ts-obj-edit--inject-dwim-impl' to determine what things
 they should operate on. The function should accept RANGE-TYPE and
-optionally TEXT-SPEC. RANGE-TYPE is a symbol that value is either
-text or place. If RANGE-TYPE is text then function should return
-a text object, content of which will be injected into new place.
-If RANGE-TYPE is place then function should return a text object,
-to which text will be injected. Usually, compound inner text
-objects is used as a place for injection. If inject-up then end
-of text object is the insert position, if inject-down then text
-is inserted at the start of the range. In both cases it should
-return alist, for example \\='((statement . inner) (compound .
-outer)). So it is possible to specify multiple potential text
-objects. When the RANGE-TYPE is place, TEXT-SPEC stores
-specification of previously selected text object. See
+optionally TEXT-THING. RANGE-TYPE is a symbol that value is
+either text or place. If RANGE-TYPE is text then function should
+return a text object, content of which will be injected into new
+place. If RANGE-TYPE is place then function should return a text
+object, to which text will be injected. Usually, compound inner
+text objects is used as a place for injection. If inject-up then
+end of text object is the insert position, if inject-down then
+text is inserted at the start of the range. In both cases it
+should return alist, for example \\='((statement .
+inner) (compound . outer)). So it is possible to specify multiple
+potential text objects. When the RANGE-TYPE is place, thing that
+was previously selected for text is passed as TEXT-THING. See
 `evil-ts-obj-def-inject-rules' and
 `evil-ts-obj-def-conf-lang-inject-rules' as examples of this
 function implementation.")

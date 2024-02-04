@@ -29,88 +29,88 @@
 ;;;; Edit rules
 
 ;;;;; raise rules
-(defun evil-ts-obj-def-conf-lang-raise-rules (range-type &optional text-spec)
+(defun evil-ts-obj-def-conf-lang-raise-rules (range-type &optional text-thing)
   "Return default raise rules for configuration languages like YAML.
 See `evil-ts-obj-conf-raise-rules' for description of
-RANGE-TYPE and TEXT-SPEC."
+RANGE-TYPE and TEXT-THING."
   (pcase range-type
     ('text
      '((param . inner)
        (compound . outer)))
     ('place
-     (pcase text-spec
-       ((pmap (:thing 'compound))
+     (pcase text-thing
+       ('compound
         '((param . inner)
           (compound . outer)))
-       ((pmap (:thing 'param))
+       ('param
         '((param . inner)
           (compound . inner)))))))
 
-(defun evil-ts-obj-def-raise-rules (range-type &optional text-spec)
+(defun evil-ts-obj-def-raise-rules (range-type &optional text-thing)
   "Return default raise rules.
 See `evil-ts-obj-conf-raise-rules' for description of
-RANGE-TYPE and TEXT-SPEC."
+RANGE-TYPE and TEXT-THING."
   (pcase range-type
     ('text
      '((param . inner)
        (statement . inner)
        (compound . outer)))
     ('place
-     (pcase text-spec
-       ((pmap (:thing (or 'compound 'statement)))
+     (pcase text-thing
+       ((or 'compound 'statement)
         '((compound . outer)
           (statement . inner)))
-       ((pmap (:thing 'param))
+       ('param
         '((statement . inner)
           (param . all)))))))
 
 ;;;;; drag rules
 
-(defun evil-ts-obj-def-drag-rules (_range-type &optional _first-spec)
+(defun evil-ts-obj-def-drag-rules (_range-type &optional _first-thing)
   "Return default drag rules.
 See `evil-ts-obj-conf-drag-rules' for description of RANGE-TYPE
-and FIRST-SPEC."
+and FIRST-THING."
   '((param . inner)
     (statement . inner)
     (compound . outer)))
 
-(defun evil-ts-obj-def-conf-lang-drag-rules (_range-type &optional _text-spec)
+(defun evil-ts-obj-def-conf-lang-drag-rules (_range-type &optional _first-thing)
   "Return default drag rules for configuration languages like YAML.
 See `evil-ts-obj-conf-drag-rules' for description of RANGE-TYPE
-and TEXT-SPEC."
+and FIRST-THING."
   '((param . inner)
     (compound . outer)))
 
 ;;;;; clone rules
 
-(defun evil-ts-obj-def-clone-rules (_range-type &optional _text-spec)
+(defun evil-ts-obj-def-clone-rules (_range-type &optional _text-thing)
   "Return default clone rules.
 See `evil-ts-obj-conf-clone-rules' for description of RANGE-TYPE
-and TEXT-SPEC."
+and TEXT-THING."
   '((param . outer)
     (statement . outer)
     (compound . outer)))
 
-(defun evil-ts-obj-def-conf-lang-clone-rules (_range-type &optional _text-spec)
+(defun evil-ts-obj-def-conf-lang-clone-rules (_range-type &optional _text-thing)
   "Return default clone rules for configuration languages like YAML.
 See `evil-ts-obj-conf-clone-rules' for description of RANGE-TYPE
-and TEXT-SPEC."
+and TEXT-THING."
   '((param . outer)
     (compound . outer)))
 
 ;;;;; extract rules
 
-(defun evil-ts-obj-def-extract-rules (_range-type &optional _text-spec)
+(defun evil-ts-obj-def-extract-rules (_range-type &optional _text-thing)
   "Return default extract rules.
 See `evil-ts-obj-conf-extract-rules' for description of RANGE-TYPE
-and TEXT-SPEC."
+and TEXT-THING."
   '((statement . inner)
     (compound . outer)))
 
-(defun evil-ts-obj-def-conf-lang-extract-rules (range-type &optional _text-spec)
+(defun evil-ts-obj-def-conf-lang-extract-rules (range-type &optional _text-thing)
   "Return default extract rules for configuration languages like YAML.
 See `evil-ts-obj-conf-extract-rules' for description of RANGE-TYPE
-and TEXT-SPEC."
+and TEXT-THING."
 
   (pcase range-type
     ('text
@@ -121,10 +121,10 @@ and TEXT-SPEC."
 
 ;;;;; inject rules
 
-(defun evil-ts-obj-def-inject-rules (range-type &optional _text-spec)
+(defun evil-ts-obj-def-inject-rules (range-type &optional _text-thing)
   "Return default inject rules.
 See `evil-ts-obj-conf-inject-rules' for description of RANGE-TYPE
-and TEXT-SPEC."
+and TEXT-THING."
   (pcase range-type
     ('text
      '((statement . inner)
@@ -132,10 +132,10 @@ and TEXT-SPEC."
     ('place
      '((compound . inner)))))
 
-(defun evil-ts-obj-def-conf-lang-inject-rules (range-type &optional _text-spec)
+(defun evil-ts-obj-def-conf-lang-inject-rules (range-type &optional _text-thing)
   "Return default inject rules for configuration languages like YAML.
 See `evil-ts-obj-conf-inject-rules' for description of RANGE-TYPE
-and TEXT-SPEC."
+and TEXT-THING."
 
   (pcase range-type
     ('text

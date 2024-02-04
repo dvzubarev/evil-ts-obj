@@ -228,19 +228,19 @@ if no thing can be found (e.g. empty line)."
          (treesit--thing-next (point) thing)))
      thing)))
 
-(defun evil-ts-obj--current-thing (node nav-thing)
-  "If `NAV-THING' is symbol or string it is returned as is.
+(defun evil-ts-obj--current-thing (node things)
+  "If `THINGS' is symbol or string it is returned as is.
 If it is list, it is considered to be in the form (or <thing1>
 <thing2> &rest). In this case, all things are tried sequentially
 and the first that matches against `NODE' is returned."
-  (pcase nav-thing
+  (pcase things
     ((or (pred symbolp)
          (pred stringp))
-     nav-thing)
+     things)
     ((pred listp)
      (seq-find (lambda (thing) (treesit-node-match-p node thing t))
-               (cdr nav-thing) nil))
-    (_ (error "Unsupported thing %s" nav-thing))))
+               (cdr things) nil))
+    (_ (error "Unsupported thing %s" things))))
 
 (defun evil-ts-obj--make-spec (thing &optional action mod command)
   "Create plist that describes the current text object.

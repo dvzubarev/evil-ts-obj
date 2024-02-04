@@ -438,14 +438,25 @@ by `evil-ts-obj-last-range'."
    'teleport start end
    (lambda (r or) (evil-ts-obj-edit--clone-before r or (or del-type t)))))
 
+(defun evil-ts-obj-edit--guess-text-thing (pos rules-func)
+
+  (when-let* ((text-rules-alist (funcall rules-func 'text))
+              (text-thing (evil-ts-obj-edit--thing-from-rules text-rules-alist)))
+    (if (length= text-thing 2)
+        ;; Except the first auxiliary element of the list,
+        ;; there is only one thing in the list
+        (cadr text-thing)
+      (when-let* ((node (evil-ts-obj--thing-around pos text-thing t))
+                  (thing (evil-ts-obj--current-thing node text-thing)))
+        thing))))
 
 ;;;; Raise
-
-(defun evil-ts-obj-edit--raise-operator (start end &optional count)
+(defun evil-ts-obj-edit--raise-operator (start end &optional count text-thing)
   "Replace parent thing with the text from START END range.
 Parent thing is determined by the `evil-ts-obj-conf-raise-rules'
 variable. When COUNT is set select Nth parent. Actual raise is
-implemented via replace operator."
+implemented via replace operator. Optional TEXT-THING defines the
+thing of START END range."
 
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
@@ -456,26 +467,28 @@ implemented via replace operator."
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
                   (raise-rules-func (plist-get evil-ts-obj-conf-raise-rules lang))
-                  (last-spec evil-ts-obj--last-text-obj-spec)
-                  (last-range evil-ts-obj--last-text-obj-range)
-                  (rules-alist (funcall raise-rules-func 'place last-spec))
-                  (parent-thing (evil-ts-obj-edit--thing-from-rules rules-alist))
-                  (spec (evil-ts-obj--make-spec rules-alist 'op))
-                  (range (evil-ts-obj--get-text-obj-range (point)
-                                                          parent-thing spec
-                                                          last-range t)))
+                  (text-range (list start end))
+                  (text-thing (or text-thing
+                                  (evil-ts-obj-edit--guess-text-thing start raise-rules-func)))
+                  (place-rules-alist (funcall raise-rules-func 'place text-thing))
+                  (place-thing (evil-ts-obj-edit--thing-from-rules place-rules-alist))
+                  (place-spec (evil-ts-obj--make-spec place-rules-alist 'op))
+                  (place-range (evil-ts-obj--get-text-obj-range (point)
+                                                                place-thing place-spec
+                                                                text-range t)))
         (when-let* ((count (or count 1))
                     ((> count 1))
-                    (node (caddr range))
+                    (node (caddr place-range))
                     (parent node))
           (cl-dotimes (_ (1- count))
             (if (setq parent (treesit-parent-until
-                              node (lambda (n) (treesit-node-match-p n parent-thing t))))
+                              node (lambda (n) (treesit-node-match-p n place-thing t))))
                 (setq node parent)
               (cl-return node)))
-          (setq range (evil-ts-obj--get-text-obj-range node parent-thing spec)))
+          (setq place-range (evil-ts-obj--get-text-obj-range node place-thing place-spec)))
 
-        (evil-ts-obj-edit--save-range-or-call-op 'raise (car range) (cadr range)
+
+        (evil-ts-obj-edit--save-range-or-call-op 'raise (car place-range) (cadr place-range)
                                                  #'evil-ts-obj-edit--replace))
     (evil-ts-obj-edit--cleanup)))
 
@@ -491,10 +504,11 @@ Nth parent."
       (when-let* ((lang (treesit-language-at (point)))
                   (raise-rules-func (plist-get evil-ts-obj-conf-raise-rules lang))
                   (rules-alist (funcall raise-rules-func 'text ))
-                  (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
+                  (text-things (evil-ts-obj-edit--thing-from-rules rules-alist))
                   (spec (evil-ts-obj--make-spec rules-alist 'op))
-                  (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
-        (evil-ts-obj-edit--raise-operator (car range) (cadr range) count))
+                  (range (evil-ts-obj--get-text-obj-range (point) text-things spec))
+                  (current-thing (plist-get evil-ts-obj--last-text-obj-spec :thing)))
+        (evil-ts-obj-edit--raise-operator (car range) (cadr range) count current-thing))
     (evil-ts-obj-edit--cleanup)))
 
 ;;;; Drag
@@ -519,9 +533,8 @@ current text object with the Nth sibling."
         (evil-ts-obj-edit--swap-operator (car range) (cadr range))
         ;; Find sibling to swap with.
 
-        (when-let* ((last-spec evil-ts-obj--last-text-obj-spec)
-                    (first-thing (plist-get last-spec :thing))
-                    (second-rules-alist (funcall drag-rules-func 'second last-spec))
+        (when-let* ((first-thing (plist-get evil-ts-obj--last-text-obj-spec :thing))
+                    (second-rules-alist (funcall drag-rules-func 'second first-thing))
                     (second-thing (evil-ts-obj-edit--thing-from-rules second-rules-alist))
                     (second-spec (evil-ts-obj--make-spec second-rules-alist 'op))
                     (sibling (evil-ts-obj--find-matching-sibling node first-thing dir second-thing
@@ -549,9 +562,8 @@ current text object with the Nth sibling."
             (evil-ts-obj-edit--clone-after-operator (car range) (cadr range))
           (evil-ts-obj-edit--clone-before-operator (car range) (cadr range)))
 
-        (when-let* ((last-spec evil-ts-obj--last-text-obj-spec)
-                    (first-thing (plist-get last-spec :thing))
-                    (second-rules-alist (funcall clone-rules-func 'place last-spec))
+        (when-let* ((text-thing (plist-get evil-ts-obj--last-text-obj-spec :thing))
+                    (second-rules-alist (funcall clone-rules-func 'place text-thing))
                     (second-thing (evil-ts-obj-edit--thing-from-rules second-rules-alist))
                     (second-spec (evil-ts-obj--make-spec second-rules-alist 'op))
                     (sibling-range (evil-ts-obj--get-text-obj-range (point) second-thing second-spec)))
@@ -563,7 +575,7 @@ current text object with the Nth sibling."
 
 ;;;; Extract
 
-(defun evil-ts-obj-edit--extract-operator-impl (start end &optional count after)
+(defun evil-ts-obj-edit--extract-operator-impl (start end &optional count after text-thing)
   "Teleport text from START END range before or AFTER parent text object.
 Parent text object is determined by the
 `evil-ts-obj-conf-extract-rules' variable. When COUNT is set
@@ -577,28 +589,29 @@ select Nth parent."
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
                   (extract-rules-func (plist-get evil-ts-obj-conf-extract-rules lang))
-                  (last-spec evil-ts-obj--last-text-obj-spec)
-                  (last-range evil-ts-obj--last-text-obj-range)
-                  (rules-alist (funcall extract-rules-func 'place last-spec))
+                  (text-thing (or text-thing
+                                  (evil-ts-obj-edit--guess-text-thing start extract-rules-func)))
+                  (text-range (list start end))
+                  (rules-alist (funcall extract-rules-func 'place text-thing))
                   (place-thing (evil-ts-obj-edit--thing-from-rules rules-alist))
-                  (spec (evil-ts-obj--make-spec rules-alist 'op))
-                  (range (evil-ts-obj--get-text-obj-range (point)
-                                                          place-thing spec
-                                                          last-range t)))
+                  (place-spec (evil-ts-obj--make-spec rules-alist 'op))
+                  (place-range (evil-ts-obj--get-text-obj-range (point)
+                                                          place-thing place-spec
+                                                          text-range t)))
         (when-let* ((count (or count 1))
                     ((> count 1))
-                    (node (caddr range))
+                    (node (caddr place-range))
                     (parent node))
           (cl-dotimes (_ (1- count))
             (if (setq parent (treesit-parent-until
                               node (lambda (n) (treesit-node-match-p n place-thing t))))
                 (setq node parent)
               (cl-return node)))
-          (setq range (evil-ts-obj--get-text-obj-range node place-thing spec)))
+          (setq place-range (evil-ts-obj--get-text-obj-range node place-thing place-spec)))
 
         (if after
-            (evil-ts-obj-edit--teleport-after-operator (car range) (cadr range) 'safe)
-          (evil-ts-obj-edit--teleport-before-operator (car range) (cadr range) 'safe))
+            (evil-ts-obj-edit--teleport-after-operator (car place-range) (cadr place-range) 'safe)
+          (evil-ts-obj-edit--teleport-before-operator (car place-range) (cadr place-range) 'safe))
 
         (when (fboundp 'evil-set-jump)
           (evil-set-jump))
@@ -619,8 +632,10 @@ select Nth parent."
                   (rules-alist (funcall extract-rules-func 'text))
                   (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
                   (spec (evil-ts-obj--make-spec rules-alist 'op))
-                  (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
-        (evil-ts-obj-edit--extract-operator-impl (car range) (cadr range) count after))
+                  (range (evil-ts-obj--get-text-obj-range (point) thing spec))
+                  (current-thing (plist-get evil-ts-obj--last-text-obj-spec :thing)))
+        (evil-ts-obj-edit--extract-operator-impl (car range) (cadr range)
+                                                 count after current-thing))
     (evil-ts-obj-edit--cleanup)))
 
 ;;;; Inject
@@ -658,7 +673,22 @@ select Nth parent."
                                 (+ (cadr place-range) offs))))))
     new-range))
 
-(defun evil-ts-obj-edit--inject-operator-impl (start end &optional count up?)
+(defun evil-ts-obj-edit--find-largest-thing-in-range (pos range thing)
+  (let* ((cursor (treesit-node-at pos))
+         (include-self t)
+         node)
+    (while (setq cursor (treesit-parent-until
+                         cursor
+                         (lambda (n)
+                           (and (<= (car range) (treesit-node-start n))
+                                (>= (cadr range) (treesit-node-end n))
+                                (treesit-node-match-p n thing t)))
+                         include-self))
+      (setq node cursor
+            include-self nil))
+    node))
+
+(defun evil-ts-obj-edit--inject-operator-impl (start end &optional count up? text-thing)
   "Teleport text from START END range inside next text object.
 If UP? is set teleport text inside previous text object.
 Next/previous text objects are determined by the
@@ -673,16 +703,17 @@ child of next/previous text object."
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
                   (inject-rules-func (plist-get evil-ts-obj-conf-inject-rules lang))
-                  (last-spec evil-ts-obj--last-text-obj-spec)
-                  (last-range evil-ts-obj--last-text-obj-range)
-                  (rules-alist (funcall inject-rules-func 'place last-spec))
+                  (text-thing (or text-thing
+                                  (evil-ts-obj-edit--guess-text-thing start inject-rules-func)))
+                  (text-range (list start end))
+                  (text-node (evil-ts-obj-edit--find-largest-thing-in-range
+                              (if up? start end) text-range text-thing))
+                  (dir (if up? 'prev 'next))
+                  (rules-alist (funcall inject-rules-func 'place text-thing))
                   (place-spec (evil-ts-obj--make-spec rules-alist 'op))
                   (place-thing (evil-ts-obj-edit--thing-from-rules rules-alist))
-                  (dir (if up? 'prev 'next))
-                  (last-thing (plist-get last-spec :thing))
-                  (last-node (evil-ts-obj--thing-around (point) last-thing))
                   ;; find next/prev place node
-                  (place-node (evil-ts-obj--find-matching-sibling last-node last-thing
+                  (place-node (evil-ts-obj--find-matching-sibling text-node text-thing
                                                                   dir place-thing))
                   (place-range (evil-ts-obj--get-text-obj-range place-node place-thing place-spec)))
 
@@ -741,8 +772,10 @@ child of next/previous text object."
                   (rules-alist (funcall inject-rules-func 'text))
                   (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
                   (spec (evil-ts-obj--make-spec rules-alist 'op))
-                  (range (evil-ts-obj--get-text-obj-range (point) thing spec)))
-        (evil-ts-obj-edit--inject-operator-impl (car range) (cadr range) count up?))
+                  (range (evil-ts-obj--get-text-obj-range (point) thing spec))
+                  (current-thing (plist-get evil-ts-obj--last-text-obj-spec :thing)))
+        (evil-ts-obj-edit--inject-operator-impl (car range) (cadr range) count up?
+                                                current-thing))
     (evil-ts-obj-edit--cleanup)))
 
 (defun evil-ts-obj--slurp-point-position (place-node place-thing)
@@ -840,21 +873,11 @@ topmost statments."
                (start-pos (if (eq point-pos 'beg)
                               (car place-inner-range)
                             (cadr place-inner-range)))
-               (cursor (treesit-node-at start-pos))
-               (includ-self t)
-               text-start-node
+               (text-start-node (evil-ts-obj-edit--find-largest-thing-in-range
+                                 start-pos place-inner-range text-things))
                start-node-thing
                text-end-node)
 
-          (while (setq cursor (treesit-parent-until
-                               cursor
-                               (lambda (n)
-                                 (and (<= (car place-inner-range) (treesit-node-start n))
-                                      (>= (cadr place-inner-range) (treesit-node-end n))
-                                      (treesit-node-match-p n text-things t)))
-                               includ-self))
-            (setq text-start-node cursor
-                  includ-self nil))
 
           (when text-start-node
             (setq start-node-thing (evil-ts-obj--current-thing text-start-node text-things))
