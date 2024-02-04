@@ -1,6 +1,6 @@
 ;;; evil-ts-obj-yaml-tests.el --- yaml tests -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2023 Denis Zubarev
+;; Copyright (C) 2024 Denis Zubarev
 ;;
 ;; Author: Denis Zubarev <dvzubarev@yandex.ru>
 ;; Maintainer: Denis Zubarev <dvzubarev@yandex.ru>

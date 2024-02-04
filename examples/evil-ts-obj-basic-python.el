@@ -122,7 +122,7 @@ and `NODE'."
   (evil-ts-obj-def-init-lang 'python evil-ts-obj-python-things
                              :ext-func evil-ts-obj-python-ext-func
                              :param-seps evil-ts-obj-python-param-seps
-                             :statement-placeholder '("pass" "...")))))
+                             :statement-placeholder '("pass" "...")))
 
 
 (provide 'evil-ts-obj-basic-python)

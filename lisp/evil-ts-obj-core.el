@@ -1,6 +1,6 @@
 ;;; evil-ts-obj-core.el --- Provides evil text-objects using tree-sitter -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2023 Denis Zubarev
+;; Copyright (C) 2024 Denis Zubarev
 ;;
 ;; Author: Denis Zubarev <dvzubarev@yandex.ru>
 ;; Maintainer: Denis Zubarev <dvzubarev@yandex.ru>
@@ -20,9 +20,7 @@
 ;;; Code:
 
 (require 'generator)
-
 (require 'treesit)
-(require 'evil)
 
 (require 'evil-ts-obj-conf)
 (require 'evil-ts-obj-util)
@@ -255,7 +253,7 @@ list is chosen: `evil-this-operator', `avy-action',
 :visual is put to spec with the value t."
   (let* ((action (or action 'op))
          (cmd (or command
-                  evil-this-operator
+                  (bound-and-true-p evil-this-operator)
                   (and (bound-and-true-p avy-action)
                        (not (eq avy-action #'identity))
                        avy-action)
@@ -264,7 +262,7 @@ list is chosen: `evil-this-operator', `avy-action',
                  :mod ,mod
                  :act ,action
                  :command ,cmd
-                 :visual ,(evil-visual-state-p))))
+                 :visual ,(region-active-p))))
     (if (not (listp thing))
         spec
       (mapcar (pcase-lambda (`(,thing . ,mod))

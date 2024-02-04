@@ -1,6 +1,6 @@
 ;;; evil-ts-obj-avy.el --- Integration with Avy -*- lexical-binding: t; -*-
 ;;
-;; Copyright (C) 2023 Denis Zubarev
+;; Copyright (C) 2024 Denis Zubarev
 ;;
 ;; Author: Denis Zubarev <dvzubarev@yandex.ru>
 ;; Maintainer: Denis Zubarev <dvzubarev@yandex.ru>
@@ -48,7 +48,6 @@
 (defvar evil-ts-obj-avy--current-marker nil
   "Go to this marker when evil operator is done.")
 (defvar evil-ts-obj-avy--dont-jump-back-ops '(evil-change))
-(defvar evil-ts-obj-avy--activate-motion-range-advice nil)
 
 (defun evil-ts-obj-avy--set-selected-node (cand)
   (pcase-let ((`((,_ ,_ ,node) . ,_) cand))
@@ -182,11 +181,11 @@
                (evil-ts-obj-avy--get-candidates-current-window thing)))))
     candidates))
 
-(defun evil-ts-obj-avy-on-thing (thing mod &optional action)
+(defun evil-ts-obj-avy--process-text-obj (thing mod &optional action)
   (let* ((avy-dispatch-alist evil-ts-obj-avy-dispatch-alist)
          (avy-action (or action avy-action-oneshot #'evil-ts-obj-avy-action-goto))
-         (obj-act (if (or evil-this-operator
-                          (evil-visual-state-p)
+         (obj-act (if (or (bound-and-true-p evil-this-operator)
+                          (region-active-p)
                           (not (memq avy-action '(evil-ts-obj-avy-action-goto identity))))
                       'op
                     'nav))
@@ -207,64 +206,20 @@
     (setq evil-ts-obj-avy--current-marker nil))
   (remove-hook 'post-command-hook #'evil-ts-obj-avy--post-op-reset))
 
+(defun evil-ts-obj-avy-act-on-text-obj (thing mod)
+  (when-let ((curr-comm (bound-and-true-p evil-this-operator)))
+    (when (not (memq curr-comm evil-ts-obj-avy--dont-jump-back-ops))
+      ;; have to setup hook for returning to the previous position after operator is done
+      (setq evil-ts-obj-avy--current-marker (copy-marker (point)))
+      (add-hook 'post-command-hook #'evil-ts-obj-avy--post-op-reset 10)))
 
-(defun evil-ts-obj-avy--evil-motion-advice (&rest _r)
-  "This advice prevents evil-motion-range from restoring point after
-motion is executed.
-It is needed so evil operators can work on
-text objects in in other windows."
+  (setq evil-ts-obj-avy--selected-node nil)
+  (avy-with evil-ts-obj-text-obj
+    (evil-ts-obj-avy--process-text-obj thing mod))
+  (when (and evil-ts-obj-avy--selected-node
+             evil-ts-obj--last-text-obj-range)
+    (copy-sequence evil-ts-obj--last-text-obj-range)))
 
-  (when evil-ts-obj-avy--activate-motion-range-advice
-    (setq evil-ts-obj-avy--activate-motion-range-advice nil
-          evil-inhibit-operator nil)))
-
-(advice-add 'evil-motion-range :after #'evil-ts-obj-avy--evil-motion-advice)
-
-(defmacro evil-ts-obj-avy-define-text-obj (thing mod)
-  (declare (indent defun))
-  (let ((name (intern (format "evil-ts-obj-avy-%s-%s-text-obj" thing mod))))
-    `(evil-define-text-object ,name (count &optional _beg _end _type)
-       (when evil-this-operator
-         (setq evil-ts-obj-avy--activate-motion-range-advice t
-               evil-inhibit-operator t)
-
-         (when (not (memq evil-this-operator evil-ts-obj-avy--dont-jump-back-ops))
-           ;; have to setup hook for returning to the previous position after operator is done
-           (setq evil-ts-obj-avy--current-marker (copy-marker (point)))
-           (add-hook 'post-command-hook #'evil-ts-obj-avy--post-op-reset 10)))
-
-       (setq evil-ts-obj-avy--selected-node nil)
-       (avy-with ,name
-         (evil-ts-obj-avy-on-thing ',thing ',mod))
-       (if (and evil-ts-obj-avy--selected-node
-                evil-ts-obj--last-text-obj-range)
-           (copy-sequence evil-ts-obj--last-text-obj-range)
-         ;; Return an empty range so evil-motion-range doesn't try to guess
-         (let ((p (point)))
-           (list p p 'exclusive))))))
-
-(defmacro evil-ts-obj-avy-setup-all-text-objects (thing key)
-  "Define all text objects for a `THING'.
-Also bind `KEY' to defined text objects in all appropriate keymaps."
-  `(progn
-     ,@(let (result)
-         (dolist (mod '(outer inner upper lower))
-           (let ((map-name (intern (format "evil-ts-obj-avy-%s-text-objects-map" mod)))
-                 (command (intern (format "evil-ts-obj-avy-%s-%s-text-obj" thing mod))))
-             (push `(evil-ts-obj-avy-define-text-obj ,thing ,mod) result)
-             (push `(keymap-set ,map-name (kbd ,key) #',command) result)))
-         (nreverse result))))
-
-
-
-(defvar evil-ts-obj-avy-inner-text-objects-map (make-sparse-keymap "Avy inner text objects"))
-(defvar evil-ts-obj-avy-outer-text-objects-map (make-sparse-keymap "Avy outer text objects"))
-(defvar evil-ts-obj-avy-upper-text-objects-map (make-sparse-keymap "Avy upper text objects"))
-(defvar evil-ts-obj-avy-lower-text-objects-map (make-sparse-keymap "Avy lower text objects"))
-
-(evil-ts-obj-avy-setup-all-text-objects compound evil-ts-obj-compound-thing-key)
-(evil-ts-obj-avy-setup-all-text-objects statement evil-ts-obj-statement-thing-key)
-(evil-ts-obj-avy-setup-all-text-objects param evil-ts-obj-param-thing-key)
 
 (defmacro evil-ts-obj-avy-define-all-paste-cmds (thing key)
   "Define paste-after and teleport-after commands for a `THING'.
@@ -277,6 +232,7 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
                  (avy-cmd (intern (format "evil-ts-obj-avy-%s-%s-text-obj" thing mod)))
                  (paste-command (intern (format "evil-ts-obj-avy-%s-%s-paste-after" thing mod)))
                  (move-command (intern (format "evil-ts-obj-avy-%s-%s-teleport-after" thing mod))))
+             (push `(declare-function ,avy-cmd nil) result)
              (push `(defun ,paste-command ()
                       ,(format "Paste remote %s %s thing behind the point." mod thing)
                       (interactive)
@@ -308,12 +264,6 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (evil-ts-obj-avy-define-all-paste-cmds param evil-ts-obj-param-thing-key)
 
 
-(defun evil-ts-obj-avy--bind-text-objects ()
-  (evil-define-key '(normal operator visual) 'evil-ts-obj-mode
-    (kbd (concat evil-ts-obj-avy-key-prefix " i")) evil-ts-obj-avy-inner-text-objects-map
-    (kbd (concat evil-ts-obj-avy-key-prefix " a")) evil-ts-obj-avy-outer-text-objects-map
-    (kbd (concat evil-ts-obj-avy-key-prefix " u")) evil-ts-obj-avy-upper-text-objects-map
-    (kbd (concat evil-ts-obj-avy-key-prefix " o")) evil-ts-obj-avy-lower-text-objects-map))
 
 
 ;; * Misc commands
