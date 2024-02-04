@@ -66,6 +66,12 @@ operators (inject ,slurp ,barf)."
     (list (treesit-node-start child)
           (treesit-node-end child))))
 
+(defcustom evil-ts-obj-yaml-prohibit-param-inner-mod
+  "\\(?:raise\\|extract\\|drag\\|inject\\|slurp\\|barf\\)"
+  "Do not apply `evil-ts-obj-yaml-param-mod' when command matches this regexp."
+  :type 'string
+  :group 'evil-ts-obj)
+
 (defun evil-ts-obj-yaml-ext (spec node)
   "Main extension function for yaml.
 See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
@@ -77,15 +83,8 @@ and `NODE'."
        (list (treesit-node-start comp-node)
              (treesit-node-end comp-node))))
     ((pmap (:thing 'param) (:mod 'inner) (:act 'op)
-           (:command (pred (not (lambda (e) (memq e '(evil-ts-obj-raise-dwim
-                                                      evil-ts-obj-extract-up-dwim
-                                                      evil-ts-obj-extract-down-dwim
-                                                      evil-ts-obj-drag-down
-                                                      evil-ts-obj-drag-up
-                                                      evil-ts-obj-inject-down-dwim
-                                                      evil-ts-obj-inject-up-dwim
-                                                      evil-ts-obj-slurp
-                                                      evil-ts-obj-barf)))))))
+           (:command (pred (not (lambda (c) (string-match-p evil-ts-obj-yaml-prohibit-param-inner-mod
+                                                            (symbol-name c)))))))
      (evil-ts-obj-yaml-param-mod node))))
 
 (defcustom evil-ts-obj-yaml-ext-func

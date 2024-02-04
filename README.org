@@ -134,7 +134,7 @@ Combination of modifiers with things produces set of text objects, that you can 
 - (*inner*, *compound*) - selects only nested statements
 - (*outer*, *statement*) - bounds may be extended to the next sibling, if known
   separator is adjacent to the current thing.
-  If the current thing is the last statement and there is know separator before it,
+  If the current thing is the last statement and there is known separator before it,
   bounds are extended to the previous sibling.
 - (*inner*, *statement*) - thing without changes.
 - (*outer*, *param*) - bounds are extended to the next sibling or to the closing parenthesis.

@@ -148,6 +148,7 @@ k3: t
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-clone-after)
     (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-outer))
     (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-outer)))
 
@@ -215,6 +216,7 @@ Name: Clone after param outer t4
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-clone-after)
     (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-inner))
     (apply #'evil-ts-obj-clone-after (evil-ts-obj-param-outer)))
 
@@ -236,6 +238,7 @@ c: 4
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-clone-before)
     (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-outer))
     (apply #'evil-ts-obj-clone-before (evil-ts-obj-param-outer)))
 
@@ -303,6 +306,7 @@ Name: Clone before param outer t4
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-clone-after-dwim)
     (evil-ts-obj-clone-after-dwim))
 
 Name: Clone after dwim t1
@@ -363,6 +367,7 @@ Name: Clone after dwim t3
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-clone-before-dwim)
     (evil-ts-obj-clone-before-dwim))
 
 Name: Clone before dwim t1
@@ -1157,6 +1162,7 @@ Name: Inject down dwim two levels t2
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-slurp)
     (evil-ts-obj-slurp 1)
     (delete-trailing-whitespace))
 
@@ -1227,6 +1233,7 @@ Name: Slurp dwim many siblings t1
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-barf)
     (evil-ts-obj-barf 1)
     (delete-trailing-whitespace))
 
