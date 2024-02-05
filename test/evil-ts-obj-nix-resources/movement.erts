@@ -3,7 +3,7 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-nix-tests-setup)
-    (evil-ts-obj-next-largest-thing))
+    (evil-ts-obj-next-sibling))
 
 Name: next sibling thing t1
 

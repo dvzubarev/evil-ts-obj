@@ -3,7 +3,7 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-cpp-tests-setup)
-    (evil-ts-obj-previous-largest-thing))
+    (evil-ts-obj-previous-sibling))
 
 Name: Move to previous largest t1
 
@@ -69,7 +69,7 @@ if (|opts and (not i or i < 0 < 3) && t.call() or true ){}
 Code:
   (lambda ()
     (evil-ts-obj-cpp-tests-setup)
-    (evil-ts-obj-next-largest-thing))
+    (evil-ts-obj-next-sibling))
 
 Name: Move to next largest t1
 

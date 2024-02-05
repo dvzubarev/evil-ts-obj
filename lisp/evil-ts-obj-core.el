@@ -28,6 +28,7 @@
 
 (defvar-local evil-ts-obj--last-text-obj-spec nil)
 (defvar-local evil-ts-obj--last-text-obj-range nil)
+(defvar-local evil-ts-obj--last-traversed-sibling nil)
 
 (defun evil-ts-obj--root-at (pos)
   "Return root node at the given `POS'."
@@ -495,8 +496,8 @@ end, move to the end of the parent thing."
 
 
 (defun evil-ts-obj--maybe-set-jump (init-enclosing-node node init-pos)
-  (when (or (not (equal (treesit-node-parent init-enclosing-node)
-                        (treesit-node-parent node)))
+  (when (or (not (treesit-node-eq (treesit-node-parent init-enclosing-node)
+                                  (treesit-node-parent node)))
             (and init-enclosing-node
                  (/= (treesit-node-start init-enclosing-node)
                      init-pos)))
@@ -504,7 +505,7 @@ end, move to the end of the parent thing."
     ;; so it won't be use to return to previous position.
     ;; Save position to jump list
     (when (fboundp 'evil-set-jump)
-     (evil-set-jump))))
+      (evil-set-jump))))
 
 (defun evil-ts-obj--next-thing (thing init-enclosing-node init-pos spec)
   "Return node and range that represents the next `THING'.
@@ -539,7 +540,7 @@ range according to provided `SPEC'."
     (cons next range)))
 
 (defun evil-ts-obj--goto-next-largest-thing (thing)
-  "Go to the next `THING'.
+  "Go to the next largest `THING'.
 At first, determine current THING at point. After that move to
 the next largest `THING' that starts after the current thing
 ends."
@@ -556,19 +557,47 @@ ends."
       (evil-ts-obj--maybe-set-jump init-enclosing-node node init-pos)
       (goto-char (car range)))))
 
-
-
-(defun evil-ts-obj--goto-prev-largest-thing (thing)
-  "Go to the previous `THING'.
+(defun evil-ts-obj--goto-next-sibling-thing (thing)
+  "Go to the next sibling `THING'.
 At first, determine current THING at point. After that move to
-the `THING' that ends before the current thing starts. If no such
-a THING exists jump to a parent THING."
-  (let* ((spec (evil-ts-obj--make-nav-spec thing))
-         (init-pos (point))
-         (init-enclosing-node (evil-ts-obj--thing-around init-pos thing))
-         (parent init-enclosing-node)
-         (pos (treesit-node-start init-enclosing-node))
-         prev range)
+its next sibling. If no next sibling move to the next largest thing."
+
+  (let* ((init-pos (point))
+         (spec (evil-ts-obj--make-nav-spec thing))
+         (init-enclosing-node (evil-ts-obj--thing-around init-pos thing t))
+         next range)
+
+    (when init-enclosing-node
+      ;; simple case: try to find next sibling
+      (setq next (evil-ts-obj--find-matching-sibling
+                  init-enclosing-node
+                  (evil-ts-obj--current-thing init-enclosing-node thing)
+                  'next thing)
+            range (evil-ts-obj--get-text-obj-range next thing spec)))
+
+    (unless next
+      (when (and init-enclosing-node evil-ts-obj--last-traversed-sibling)
+              (setq init-enclosing-node evil-ts-obj--last-traversed-sibling))
+      (pcase-setq `(,next . ,range)
+                  (evil-ts-obj--next-thing thing init-enclosing-node init-pos spec)))
+
+    (when next
+      (evil-ts-obj--maybe-set-jump init-enclosing-node next init-pos)
+      (goto-char (car range)))))
+
+
+(defun evil-ts-obj--prev-thing (thing init-enclosing-node init-pos spec)
+  "Return node and range that represents the previous `THING'.
+When `INIT-ENCLOSING-NODE' is not nil, it is considered to be a
+node that represents current thing. Previous thing should be
+associated with the node that is not equal to
+`INIT-ENCLOSING-NODE' and that starts before `INIT-POS'. Create
+range according to provided `SPEC'. Jump to parent of
+INIT-ENCLOSING-NODE if no previous thing exists."
+
+  (let ((parent init-enclosing-node)
+        (pos (treesit-node-start init-enclosing-node))
+        prev range)
 
     (if (null init-enclosing-node)
         ;; it seems we are outside of any thing at the top level
@@ -577,7 +606,7 @@ a THING exists jump to a parent THING."
               range (evil-ts-obj--get-text-obj-range prev thing spec))
 
       (while (and (or (null range)
-                      (equal init-enclosing-node prev)
+                      (treesit-node-eq init-enclosing-node prev)
                       ;; have to find a range that will move us to the left from
                       ;; the current position
                       (<= init-pos (car range)))
@@ -592,12 +621,53 @@ a THING exists jump to a parent THING."
                         parent (lambda (n) (treesit-node-match-p n thing t)))
                 prev parent
                 pos (or (treesit-node-start prev) 0)))
-
-
         (setq range (evil-ts-obj--get-text-obj-range prev thing spec))))
 
+    (cons prev range)))
+
+(defun evil-ts-obj--goto-prev-largest-thing (thing)
+  "Go to the previous `THING'.
+At first, determine current THING at point. After that move to
+the `THING' that ends before the current thing starts. If no such
+a THING exists jump to a parent THING."
+  (let* ((spec (evil-ts-obj--make-nav-spec thing))
+         (init-pos (point))
+         (init-enclosing-node (evil-ts-obj--thing-around init-pos thing))
+         prev range)
+
+    (pcase-setq `(,prev . ,range)
+                (evil-ts-obj--prev-thing thing init-enclosing-node init-pos spec))
 
     (when range
+      (evil-ts-obj--maybe-set-jump init-enclosing-node prev init-pos)
+      (goto-char (car range)))))
+
+(defun evil-ts-obj--goto-prev-sibling-thing (thing)
+  "Go to the previous sibling `THING'.
+At first, determine current THING at point. After that move to
+its previous sibling. If no next sibling move to the parent of
+the current thing thing."
+
+  (let* ((init-pos (point))
+         (spec (evil-ts-obj--make-nav-spec thing))
+         (init-enclosing-node (evil-ts-obj--thing-around init-pos thing t))
+         prev range)
+
+    (when init-enclosing-node
+      ;; simple case: try to find next sibling
+      (setq prev (evil-ts-obj--find-matching-sibling
+                  init-enclosing-node
+                  (evil-ts-obj--current-thing init-enclosing-node thing)
+                  'prev thing)
+            range (evil-ts-obj--get-text-obj-range prev thing spec)))
+
+    (unless prev
+      (when (and init-enclosing-node evil-ts-obj--last-traversed-sibling)
+        (setq init-enclosing-node evil-ts-obj--last-traversed-sibling))
+      (pcase-setq `(,prev . ,range)
+                  (evil-ts-obj--prev-thing thing init-enclosing-node init-pos spec)))
+
+    (when prev
       (evil-ts-obj--maybe-set-jump init-enclosing-node prev init-pos)
       (goto-char (car range)))))
 
@@ -869,10 +939,12 @@ thing specified in MATCH-THING."
          (cur-node node)
          (cur-kind 'sibling))
 
+    (setq evil-ts-obj--last-traversed-sibling nil)
     (while (and (setq node (funcall fetcher dir node))
                 (setq cur-kind (funcall kind-lambda cur-node cur-kind node))
                 (setq cur-node node)
                 (memq cur-kind '(sibling sep)))
+      (setq evil-ts-obj--last-traversed-sibling cur-node)
       (when (and (eq cur-kind 'sibling)
                  (treesit-node-match-p node match-thing t))
         (iter-yield node)))))

@@ -3,7 +3,7 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-same-next-largest-thing))
+    (evil-ts-obj-same-next-sibling))
 
 Name: next sibling of current thing t1
 
@@ -37,10 +37,63 @@ def func(|*args):
     a = 3
 =-=-=
 
+Name: next sibling of current thing t3
+
+=-=
+def temp(t):
+    |t = 3
+    while True:
+        t *= 8
+    return t
+=-=
+def temp(t):
+    t = 3
+    while True:
+        t *= 8
+    |return t
+=-=-=
+
+Name: next sibling of the same type t4
+
+=-=
+def main():
+    |i = 3
+    while True:
+        pass
+i = 4
+=-=
+def main():
+    i = 3
+    while True:
+        pass
+|i = 4
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-next-largest-thing))
+    (evil-ts-obj-same-next-largest-thing))
+
+Name: next largest of current thing t1
+
+=-=
+def temp(t):
+    |t = 3
+    while True:
+        t *= 8
+    return t
+=-=
+def temp(t):
+    t = 3
+    while |True:
+        t *= 8
+    return t
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-next-sibling))
 
 Name: next sibling t1
 
@@ -228,7 +281,7 @@ if ( v := d.get(k) ) is not None and (isinstance(v, int) or v) and |v > 3:
     pass
 =-=-=
 
-Name: next largest t15
+Name: next sibling t15
 
 =-=
 if| ( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
@@ -242,7 +295,7 @@ if ( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-previous-largest-thing))
+    (evil-ts-obj-previous-sibling))
 
 Name: prev sibling t1
 
@@ -441,6 +494,63 @@ def func1():
 @dec.call()
 def func2():
     pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-same-previous-sibling))
+
+Name: prev sibling of the same type t1
+
+=-=
+i = 0
+def main():
+    while True:
+        pass
+    |i = 3
+=-=
+|i = 0
+def main():
+    while True:
+        pass
+    i = 3
+=-=-=
+
+Name: prev sibling of the same type t2
+
+=-=
+def main():
+    while True:
+        pass
+    |i = 3
+=-=
+def main():
+    while True:
+        pass
+    |i = 3
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-same-previous-largest-thing))
+
+Name: prev same largest thing t1
+
+=-=
+i = 0
+def main():
+    while True:
+        pass
+    |i = 3
+=-=
+i = 0
+def main():
+    while True:
+        |pass
+    i = 3
 =-=-=
 
 

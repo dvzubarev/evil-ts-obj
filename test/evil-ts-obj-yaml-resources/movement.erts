@@ -89,7 +89,7 @@ Name: to end t1
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-previous-largest-thing))
+    (evil-ts-obj-previous-sibling))
 
 Name: to prev sibling t1
 
@@ -223,7 +223,7 @@ So jump to its parent - list param, that starts on the same position as 'a' key
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-same-previous-largest-thing))
+    (evil-ts-obj-same-previous-sibling))
 
 Name: prev sibling of current thing t1
 
@@ -299,7 +299,7 @@ Name: prev thing t1
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-next-largest-thing))
+    (evil-ts-obj-next-sibling))
 
 Name: to next sibling t1
 
@@ -411,7 +411,7 @@ Name: to next sibling t8
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
-    (evil-ts-obj-same-next-largest-thing))
+    (evil-ts-obj-same-next-sibling))
 
 Name: next sibling of current thing t1
 

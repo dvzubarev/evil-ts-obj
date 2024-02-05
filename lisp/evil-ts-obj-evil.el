@@ -82,6 +82,22 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 ;;;  interactive functions
 ;;;; Movement
 
+(evil-define-motion evil-ts-obj-next-sibling (count)
+  "Jump to the next sibling thing from `evil-ts-obj-conf-nav-things'."
+  :type inclusive
+  :jump nil
+  (let ((thing (evil-ts-obj--get-nav-thing)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-next-sibling-thing thing))))
+
+(evil-define-motion evil-ts-obj-same-next-sibling (count)
+  "Jump to the next sibling of the same type as the current thing."
+  :type inclusive
+  :jump nil
+  (let ((thing (evil-ts-obj--get-nav-thing t)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-next-sibling-thing thing))))
+
 (evil-define-motion evil-ts-obj-next-largest-thing (count)
   "Jump to the next largest thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
@@ -98,6 +114,22 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
     (dotimes (_ (or count 1))
       (evil-ts-obj--goto-next-largest-thing thing))))
 
+(evil-define-motion evil-ts-obj-previous-sibling (count)
+  "Jump to the previous sibling thing from `evil-ts-obj-conf-nav-things'."
+  :type inclusive
+  :jump nil
+  (let ((thing (evil-ts-obj--get-nav-thing)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-prev-sibling-thing thing))))
+
+(evil-define-motion evil-ts-obj-same-previous-sibling (count)
+  "Jump to the previous sibling of the same type as the current thing."
+  :type inclusive
+  :jump nil
+  (let ((thing (evil-ts-obj--get-nav-thing t)))
+    (dotimes (_ (or count 1))
+      (evil-ts-obj--goto-prev-sibling-thing thing))))
+
 (evil-define-motion evil-ts-obj-previous-largest-thing (count)
   "Jump to the previous largest thing from `evil-ts-obj-conf-nav-things'."
   :type inclusive
@@ -113,6 +145,7 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
   (let ((thing (evil-ts-obj--get-nav-thing t)))
     (dotimes (_ (or count 1))
       (evil-ts-obj--goto-prev-largest-thing thing))))
+
 
 
 (evil-define-motion evil-ts-obj-beginning-of-thing (count)
@@ -192,8 +225,8 @@ Also bind `KEY' to defined commands in all appropriate keymaps."
                           "end-of"
                           "previous"
                           "next"
-                          "previous-largest"
-                          "next-largest"))
+                          "previous-sibling"
+                          "next-sibling"))
            (let ((map-name (intern (format "evil-ts-obj-goto-%s-map" move)))
                  (command (intern (format "evil-ts-obj-%s-%s" move thing))))
              (push `(evil-ts-obj-define-movement ,move ,thing) result)
@@ -438,8 +471,8 @@ topmost statments."
 (defvar evil-ts-obj-goto-end-of-map (make-sparse-keymap "Goto end of"))
 (defvar evil-ts-obj-goto-next-map (make-sparse-keymap))
 (defvar evil-ts-obj-goto-previous-map (make-sparse-keymap))
-(defvar evil-ts-obj-goto-next-largest-map (make-sparse-keymap))
-(defvar evil-ts-obj-goto-previous-largest-map (make-sparse-keymap))
+(defvar evil-ts-obj-goto-next-sibling-map (make-sparse-keymap))
+(defvar evil-ts-obj-goto-previous-sibling-map (make-sparse-keymap))
 
 (evil-ts-obj-setup-all-movement compound evil-ts-obj-compound-thing-key)
 (evil-ts-obj-setup-all-movement statement evil-ts-obj-statement-thing-key)
@@ -450,10 +483,10 @@ topmost statments."
   (evil-define-key 'normal 'evil-ts-obj-mode
     (kbd "M-a") #'evil-ts-obj-beginning-of-thing
     (kbd "M-e") #'evil-ts-obj-end-of-thing
-    (kbd "M-n") #'evil-ts-obj-next-largest-thing
-    (kbd "C-M-n") #'evil-ts-obj-same-next-largest-thing
-    (kbd "M-p") #'evil-ts-obj-previous-largest-thing
-    (kbd "C-M-p") #'evil-ts-obj-same-previous-largest-thing
+    (kbd "M-n") #'evil-ts-obj-next-sibling
+    (kbd "C-M-n") #'evil-ts-obj-same-next-sibling
+    (kbd "M-p") #'evil-ts-obj-previous-sibling
+    (kbd "C-M-p") #'evil-ts-obj-same-previous-sibling
     (kbd "M-f") #'evil-ts-obj-next-thing
     (kbd "C-M-f") #'evil-ts-obj-same-next-thing
     (kbd "M-b") #'evil-ts-obj-previous-thing

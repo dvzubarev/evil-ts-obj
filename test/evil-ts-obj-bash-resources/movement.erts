@@ -3,7 +3,7 @@ Point-Char: @
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-next-largest-thing))
+    (evil-ts-obj-next-sibling))
 
 Name: Move to next largest t1
 
@@ -32,7 +32,7 @@ fi
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-previous-largest-thing))
+    (evil-ts-obj-previous-sibling))
 
 Name: Move to next largest t1
 

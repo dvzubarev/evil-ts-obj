@@ -47,8 +47,8 @@
     (end-of . ")")
     (previous . "[")
     (next . "]")
-    (previous-largest . "{")
-    (next-largest . "}"))
+    (previous-sibling . "{")
+    (next-sibling . "}"))
   "Default bindings for movement commands."
   :type 'alist)
 
