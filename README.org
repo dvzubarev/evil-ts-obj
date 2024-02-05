@@ -170,13 +170,17 @@ firstly searching for parameters, then statements and so on.
 | previous-thing              | Move to the previous thing                                                                                                                       | M-b   |
 | same-next-thing             | Detect current thing at point and @@html:<br>@@ move to the next thing of the same type                                                          | C-M-f |
 | same-previous-thing         | Detect current thing at point and @@html:<br>@@ move to the previous thing of the same type                                                      | C-M-b |
-| next-largest-thing          | Move to the next thing that starts after the end of the current thing                                                                            | M-n   |
-| previous-largest-thing      | Move to the previous thing that ends before the start of the current thing                                                                       | M-p   |
-| same-next-largest-thing     | Detect current thing at point and @@html:<br>@@ perform next-largest-thing on this thing                                                         | C-M-n |
-| same-previous-largest-thing | Detect current thing at point and @@html:<br>@@ perform previous-largest-thing on this thing                                                     | C-M-p |
+| next-sibling-thing          | Move to the next sibling thing. @@html:<br>@@ If no sibling exists, move to the next sibling of the parent                                       | M-n   |
+| previous-sibling-thing      | Move to the previous sibling thing @@html:<br>@@ If no sibling exists, move to the parent                                                        | M-p   |
+| same-next-sibling-thing     | Detect current thing at point and @@html:<br>@@ move to the next sibling thing of this type                                                      | C-M-n |
+| same-previous-sibling-thing | Detect current thing at point and @@html:<br>@@ move to the previous sibling thing of this type                                                  | C-M-p |
+| next-largest-thing          | Move to the next thing that starts after the end of the current thing                                                                            |       |
+| previous-largest-thing      | Move to the previous thing that ends before the start of the current thing                                                                       |       |
+| same-next-largest-thing     | Detect current thing at point and @@html:<br>@@ perform next-largest-thing on this thing                                                         |       |
+| same-previous-largest-thing | Detect current thing at point and @@html:<br>@@ perform previous-largest-thing on this thing                                                     |       |
 
 There are also movement commands for each thing.
-They are bound to its own prefixes.
+They are bound to its own prefixes by default.
 
 | Command                | Prefix key |
 |------------------------+------------|
@@ -184,8 +188,8 @@ They are bound to its own prefixes.
 | end-of                 | )          |
 | next-thing             | ]          |
 | previous-thing         | [          |
-| next-largest-thing     | }          |
-| previous-largest-thing | {          |
+| next-sibling-thing     | }          |
+| previous-sibling-thing | {          |
 ** Evil operators
 There are set of operators for editing text objects. There are DWIM commands
 that do not require user inputs, operators that expect one text object and
