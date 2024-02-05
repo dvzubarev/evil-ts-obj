@@ -356,6 +356,7 @@ and also corresponding keymaps: =evil-ts-obj-avy-inner-paste-map=, =evil-ts-obj-
 (use-package! evil-ts-obj
   :init
 
+  (setopt evil-ts-obj-enabled-keybindings '(generic-navigation text-objects))
   (setopt evil-ts-obj-navigation-keys-prefix
         '((beginning-of . nil)
           (end-of . nil)

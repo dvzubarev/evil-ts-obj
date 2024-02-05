@@ -24,11 +24,6 @@
 (require 'evil-ts-obj-core)
 (require 'evil-ts-obj-util)
 
-(defcustom evil-ts-obj-avy-key-prefix "z"
-  "Default key binding for avy text objects."
-  :type 'string
-  :group 'evil-ts-obj)
-
 (defcustom evil-ts-obj-avy-dispatch-alist
   '((?x . evil-ts-obj-avy-action-delete-thing)
     (?y . evil-ts-obj-avy-action-yank-thing)
@@ -250,6 +245,14 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
          (nreverse result))))
 
 
+(defvar evil-ts-obj-avy-inner-text-objects-map (make-sparse-keymap "Avy inner text objects"))
+(defvar evil-ts-obj-avy-outer-text-objects-map (make-sparse-keymap "Avy outer text objects"))
+(defvar evil-ts-obj-avy-upper-text-objects-map (make-sparse-keymap "Avy upper text objects"))
+(defvar evil-ts-obj-avy-UPPER-text-objects-map (make-sparse-keymap "Avy UPPER text objects"))
+(defvar evil-ts-obj-avy-lower-text-objects-map (make-sparse-keymap "Avy lower text objects"))
+(defvar evil-ts-obj-avy-LOWER-text-objects-map (make-sparse-keymap "Avy LOWER text objects"))
+
+
 (defvar evil-ts-obj-avy-inner-paste-map (make-sparse-keymap "Avy inner paste cmds"))
 (defvar evil-ts-obj-avy-outer-paste-map (make-sparse-keymap "Avy outer paste cmds"))
 (defvar evil-ts-obj-avy-upper-paste-map (make-sparse-keymap "Avy upper paste cmds"))
@@ -259,9 +262,6 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (defvar evil-ts-obj-avy-upper-teleport-map (make-sparse-keymap "Avy upper teleport cmds"))
 (defvar evil-ts-obj-avy-lower-teleport-map (make-sparse-keymap "Avy lower teleport cmds"))
 
-(evil-ts-obj-avy-define-all-paste-cmds compound evil-ts-obj-compound-thing-key)
-(evil-ts-obj-avy-define-all-paste-cmds statement evil-ts-obj-statement-thing-key)
-(evil-ts-obj-avy-define-all-paste-cmds param evil-ts-obj-param-thing-key)
 
 
 

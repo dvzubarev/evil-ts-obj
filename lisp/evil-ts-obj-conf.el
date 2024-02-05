@@ -19,8 +19,6 @@
 ;;
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl-lib))
 
 
 
@@ -29,28 +27,6 @@
 (defgroup evil-ts-obj nil
   "Provide evil text-objects using tree-sitter."
   :group 'tools)
-
-(defcustom evil-ts-obj-compound-thing-key "e"
-  "Default key binding for compound text objects."
-  :type 'string)
-
-(defcustom evil-ts-obj-statement-thing-key "s"
-  "Default key binding for statement text objects."
-  :type 'string)
-
-(defcustom evil-ts-obj-param-thing-key "a"
-  "Default key binding for param text objects."
-  :type 'string)
-
-(defcustom evil-ts-obj-navigation-keys-prefix
-  '((beginning-of . "(")
-    (end-of . ")")
-    (previous . "[")
-    (next . "]")
-    (previous-sibling . "{")
-    (next-sibling . "}"))
-  "Default bindings for movement commands."
-  :type 'alist)
 
 
 ;;; Variables

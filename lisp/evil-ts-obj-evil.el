@@ -25,6 +25,43 @@
 (require 'evil-ts-obj-avy)
 (require 'evil-ts-obj-edit)
 
+(defcustom evil-ts-obj-compound-thing-key "e"
+  "Default key binding for compound text objects."
+  :type 'string
+  :group 'evil-ts-obj)
+
+(defcustom evil-ts-obj-statement-thing-key "s"
+  "Default key binding for statement text objects."
+  :type 'string
+  :group 'evil-ts-obj)
+
+(defcustom evil-ts-obj-param-thing-key "a"
+  "Default key binding for param text objects."
+  :type 'string
+  :group 'evil-ts-obj)
+
+(defcustom evil-ts-obj-navigation-keys-prefix
+  '((beginning-of . "(")
+    (end-of . ")")
+    (previous . "[")
+    (next . "]")
+    (previous-sibling . "{")
+    (next-sibling . "}"))
+  "Default bindings for movement commands."
+  :type 'alist
+  :group 'evil-ts-obj)
+
+(defcustom evil-ts-obj-avy-key-prefix "z"
+  "Default key binding for avy text objects."
+  :type 'string
+  :group 'evil-ts-obj)
+
+(defcustom evil-ts-obj-enabled-keybindings
+  '(generic-navigation navigation text-objects edit-operators avy)
+  "List of keybindings that should be enabled by default."
+  :type '(repeat symbol)
+  :group 'evil-ts-obj)
+
 ;;; Avy integration
 
 (defvar evil-ts-obj-avy--activate-motion-range-advice nil)
@@ -66,18 +103,15 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
              (push `(keymap-set ,map-name (kbd ,key) #',command) result)))
          (nreverse result))))
 
-(defvar evil-ts-obj-avy-inner-text-objects-map (make-sparse-keymap "Avy inner text objects"))
-(defvar evil-ts-obj-avy-outer-text-objects-map (make-sparse-keymap "Avy outer text objects"))
-(defvar evil-ts-obj-avy-upper-text-objects-map (make-sparse-keymap "Avy upper text objects"))
-(defvar evil-ts-obj-avy-UPPER-text-objects-map (make-sparse-keymap "Avy UPPER text objects"))
-(defvar evil-ts-obj-avy-lower-text-objects-map (make-sparse-keymap "Avy lower text objects"))
-(defvar evil-ts-obj-avy-LOWER-text-objects-map (make-sparse-keymap "Avy LOWER text objects"))
 
 (evil-ts-obj-avy-setup-all-text-objects compound evil-ts-obj-compound-thing-key)
 (evil-ts-obj-avy-setup-all-text-objects statement evil-ts-obj-statement-thing-key)
 (evil-ts-obj-avy-setup-all-text-objects param evil-ts-obj-param-thing-key)
 
 
+(evil-ts-obj-avy-define-all-paste-cmds compound evil-ts-obj-compound-thing-key)
+(evil-ts-obj-avy-define-all-paste-cmds statement evil-ts-obj-statement-thing-key)
+(evil-ts-obj-avy-define-all-paste-cmds param evil-ts-obj-param-thing-key)
 
 ;;;  interactive functions
 ;;;; Movement
@@ -480,6 +514,7 @@ topmost statments."
 
 
 (defun evil-ts-obj--set-generic-nav-bindings ()
+
   (evil-define-key 'normal 'evil-ts-obj-mode
     (kbd "M-a") #'evil-ts-obj-beginning-of-thing
     (kbd "M-e") #'evil-ts-obj-end-of-thing
@@ -543,11 +578,16 @@ topmost statments."
     (kbd (concat evil-ts-obj-avy-key-prefix " O")) evil-ts-obj-avy-LOWER-text-objects-map))
 
 (defun evil-ts-obj--bind-keys ()
-  (evil-ts-obj--set-generic-nav-bindings)
-  (evil-ts-obj--bind-movement)
-  (evil-ts-obj--bind-text-objects)
-  (evil-ts-obj--bind-edit-keys)
-  (evil-ts-obj--avy-bind-text-objects)
+  (when (memq 'generic-navigation evil-ts-obj-enabled-keybindings)
+    (evil-ts-obj--set-generic-nav-bindings))
+  (when (memq 'navigation evil-ts-obj-enabled-keybindings)
+    (evil-ts-obj--bind-movement))
+  (when (memq 'text-objects evil-ts-obj-enabled-keybindings)
+    (evil-ts-obj--bind-text-objects))
+  (when (memq 'edit-operators evil-ts-obj-enabled-keybindings)
+    (evil-ts-obj--bind-edit-keys))
+  (when (memq 'avy evil-ts-obj-enabled-keybindings)
+    (evil-ts-obj--avy-bind-text-objects))
   ;; Without that call keybinding won't activate until a state transition
   ;; see https://github.com/emacs-evil/evil/issues/301
   (evil-normalize-keymaps))
