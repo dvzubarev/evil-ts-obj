@@ -1513,7 +1513,7 @@ Name: Extract up dwim t2
 =-=
 def main(v):
     if True:
-        var = call(|t, p)
+        var = cal|l(t, p)
     call()
 =-=
 def main(v):
@@ -1622,6 +1622,19 @@ def main(v):
         pass
 =-=-=
 
+Name: Extract up dwim t8
+
+=-=
+def main(v):
+    d = call(v, |par=call([1,
+                          2, 3]))
+=-=
+def main(v):
+    |par=call([1,
+              2, 3])
+    d = call(v, )
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
@@ -1651,7 +1664,7 @@ Name: Extract up dwim two levels t2
 =-=
 def main(v):
     if True:
-        var = call(|t, p)
+        var = cal|l(t, p)
     call()
 =-=
 def main(v):
@@ -1801,7 +1814,7 @@ Name: Extract down dwim t2
 =-=
 def main(v):
     if True:
-        var = call(|t, p)
+        var = cal|l(t, p)
     call()
 =-=
 def main(v):
@@ -1937,7 +1950,7 @@ Name: Extract down dwim two levels t2
 =-=
 def main(v):
     if True:
-        var = call(|t, p)
+        var = cal|l(t, p)
     call()
 =-=
 def main(v):

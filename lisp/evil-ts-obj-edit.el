@@ -575,21 +575,28 @@ current text object with the Nth sibling."
 
 ;;;; Extract
 
-(defun evil-ts-obj-edit--extract-valid-place? (place-node place-range)
+(defun evil-ts-obj-edit--extract-valid-place? (place-node place-range place-things)
   "Return t if PLACE-NODE is suitable for inserting extracted text.
 Check that parent of a place is compound or root node. If parent
-is compound PLACE-RANGE should be inside compound inner range."
+is compound PLACE-RANGE should be inside compound inner range.
+PLACE-THINGS are possible things of a place-node."
 
   ;; TODO put requirements of parent of a place to rules?
-  (if-let* ((parent-spec (evil-ts-obj--make-spec 'compound 'op 'inner))
+  (if-let* ((things (if (memq 'compound place-things)
+                        place-things
+                      (append place-things '(compound))))
+            (parent-spec (evil-ts-obj--make-spec 'compound 'op 'inner))
             (place-parent (treesit-parent-until
                            place-node
-                           (lambda (n) (treesit-node-match-p n 'compound t))))
-            (place-parent-range (evil-ts-obj--get-text-obj-range
-                                 place-parent 'compound parent-spec)))
-      ;; check that place-range is inside parent inner range
-      (and (<= (car place-parent-range) (car place-range))
-           (<= (cadr place-range) (cadr place-parent-range)))
+                           (lambda (n) (treesit-node-match-p n things t)))))
+
+      (when-let* ((parent-thing (evil-ts-obj--current-thing place-parent things))
+                  ((eq parent-thing 'compound))
+                  (place-parent-range (evil-ts-obj--get-text-obj-range
+                                       place-parent 'compound parent-spec)))
+        ;; check that place-range is inside parent inner range
+        (and (<= (car place-parent-range) (car place-range))
+             (<= (cadr place-range) (cadr place-parent-range))))
     ;; we are likely hit root node
     t))
 
@@ -625,7 +632,8 @@ select Nth parent."
                      (range-valid nil))
                 ((or (null place-range)
                      (and (setq range-valid
-                                (evil-ts-obj-edit--extract-valid-place? place-node place-range))
+                                (evil-ts-obj-edit--extract-valid-place?
+                                 place-node place-range place-thing))
                           (>= iter count)))
                  place-range)
 

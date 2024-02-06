@@ -100,12 +100,18 @@ and TEXT-THING."
 
 ;;;;; extract rules
 
-(defun evil-ts-obj-def-extract-rules (_range-type &optional _text-thing)
+(defun evil-ts-obj-def-extract-rules (range-type &optional _text-thing)
   "Return default extract rules.
 See `evil-ts-obj-conf-extract-rules' for description of RANGE-TYPE
 and TEXT-THING."
-  '((statement . inner)
-    (compound . outer)))
+  (pcase range-type
+    ('text
+     '((param . inner)
+       (statement . inner)
+       (compound . outer)))
+    ('place
+     '((statement . inner)
+       (compound . outer)))))
 
 (defun evil-ts-obj-def-conf-lang-extract-rules (range-type &optional _text-thing)
   "Return default extract rules for configuration languages like YAML.

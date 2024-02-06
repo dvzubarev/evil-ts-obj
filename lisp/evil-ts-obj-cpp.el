@@ -33,7 +33,8 @@
     "class_specifier"
     "for_range_loop"
     "try_statement"
-    "catch_clause")
+    "catch_clause"
+    "lambda_expression")
   "Nodes that designate compound statement in cpp."
   :type '(repeat string)
   :group 'evil-ts-obj)
