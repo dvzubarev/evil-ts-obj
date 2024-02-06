@@ -575,6 +575,24 @@ current text object with the Nth sibling."
 
 ;;;; Extract
 
+(defun evil-ts-obj-edit--extract-valid-place? (place-node place-range)
+  "Return t if PLACE-NODE is suitable for inserting extracted text.
+Check that parent of a place is compound or root node. If parent
+is compound PLACE-RANGE should be inside compound inner range."
+
+  ;; TODO put requirements of parent of a place to rules?
+  (if-let* ((parent-spec (evil-ts-obj--make-spec 'compound 'op 'inner))
+            (place-parent (treesit-parent-until
+                           place-node
+                           (lambda (n) (treesit-node-match-p n 'compound t))))
+            (place-parent-range (evil-ts-obj--get-text-obj-range
+                                 place-parent 'compound parent-spec)))
+      ;; check that place-range is inside parent inner range
+      (and (<= (car place-parent-range) (car place-range))
+           (<= (cadr place-range) (cadr place-parent-range)))
+    ;; we are likely hit root node
+    t))
+
 (defun evil-ts-obj-edit--extract-operator-impl (start end &optional count after text-thing)
   "Teleport text from START END range before or AFTER parent text object.
 Parent text object is determined by the
@@ -587,27 +605,41 @@ select Nth parent."
       (evil-ts-obj-edit--teleport-after-operator start end)
     (evil-ts-obj-edit--teleport-before-operator start end))
   (unwind-protect
-      (when-let* ((lang (treesit-language-at (point)))
-                  (extract-rules-func (plist-get evil-ts-obj-conf-extract-rules lang))
-                  (text-thing (or text-thing
-                                  (evil-ts-obj-edit--guess-text-thing start extract-rules-func)))
-                  (text-range (list start end))
-                  (rules-alist (funcall extract-rules-func 'place text-thing))
-                  (place-thing (evil-ts-obj-edit--thing-from-rules rules-alist))
-                  (place-spec (evil-ts-obj--make-spec rules-alist 'op))
-                  (place-range (evil-ts-obj--get-text-obj-range (point)
-                                                                place-thing place-spec
-                                                                text-range t)))
-        (when-let* ((count (or count 1))
-                    ((> count 1))
-                    (node (caddr place-range))
-                    (parent node))
-          (cl-dotimes (_ (1- count))
-            (if (setq parent (treesit-parent-until
-                              node (lambda (n) (treesit-node-match-p n place-thing t))))
-                (setq node parent)
-              (cl-return node)))
-          (setq place-range (evil-ts-obj--get-text-obj-range node place-thing place-spec)))
+      (when-let*
+          ((lang (treesit-language-at (point)))
+           (extract-rules-func (plist-get evil-ts-obj-conf-extract-rules lang))
+           (text-thing (or text-thing
+                           (evil-ts-obj-edit--guess-text-thing start extract-rules-func)))
+           (text-range (list start end))
+           (rules-alist (funcall extract-rules-func 'place text-thing))
+           (place-thing (evil-ts-obj-edit--thing-from-rules rules-alist))
+           (place-spec (evil-ts-obj--make-spec rules-alist 'op))
+           (place-range
+            (cl-do* ((place-range
+                      (evil-ts-obj--get-text-obj-range (point)
+                                                       place-thing place-spec
+                                                       text-range t))
+                     (place-node (caddr place-range))
+                     (count (or count 1))
+                     (iter 1)
+                     (range-valid nil))
+                ((or (null place-range)
+                     (and (setq range-valid
+                                (evil-ts-obj-edit--extract-valid-place? place-node place-range))
+                          (>= iter count)))
+                 place-range)
+
+              (if range-valid
+                  (cl-incf iter)
+                (setq place-range nil))
+
+              ;; Place is not valid or iter < count, so keep searching place-node
+              (setq place-node (treesit-parent-until
+                                place-node
+                                (lambda (n) (treesit-node-match-p n place-thing t))))
+              (when place-node
+                (setq place-range
+                      (evil-ts-obj--get-text-obj-range place-node place-thing place-spec))))))
 
         (if after
             (evil-ts-obj-edit--teleport-after-operator (car place-range) (cadr place-range) 'safe)

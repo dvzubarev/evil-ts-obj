@@ -573,9 +573,9 @@ void f (){
 }
 =-=
 void f (){
+    |i+=2;
     if (i > 0)
         i--;
-    |i+=2;
     else
         {}
 }
@@ -614,13 +614,13 @@ void f (){
 }
 =-=
 void f (){
-    if (i > 0)
-        i--;
     |if (i < 0){
         i++;
         std::cout<<"\n";
     } else
         i+=2;
+    if (i > 0)
+        i--;
     else {}
 }
 =-=-=
@@ -631,7 +631,7 @@ Code:
     (evil-ts-obj-extract-up-dwim 2)
     (delete-trailing-whitespace))
 
-Name: Extract dwim up 2 levels t1
+Name: Extract dwim up two levels t1
 
 =-=
 void f (){
@@ -650,28 +650,30 @@ void f (){
 }
 =-=-=
 
-Name: Extract dwim up 2 levels t2
+Name: Extract dwim up two levels t2
 
 =-=
 void f (){
     if (i > 0)
         i--;
-    else |if (i < 0){
+    else
+    |if (i < 0){
         i++;
         std::cout<<"\n";
     } else
         i+=2;
 }
 =-=
+|if (i < 0){
+    i++;
+    std::cout<<"\n";
+} else
+    i+=2;
 void f (){
-    |if (i < 0){
-        i++;
-        std::cout<<"\n";
-    } else
-        i+=2;
     if (i > 0)
         i--;
-    else {}
+    else
+    {}
 }
 =-=-=
 
@@ -826,12 +828,12 @@ void f (){
         i--;
     else
     {}
-    |if (i < 0){
-        i++;
-        std::cout<<"\n";
-    } else
-        i+=2;
 }
+|if (i < 0){
+    i++;
+    std::cout<<"\n";
+} else
+    i+=2;
 =-=-=
 
 Code:

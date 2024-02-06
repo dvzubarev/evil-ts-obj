@@ -1565,13 +1565,70 @@ Name: Extract up dwim t5
     pass
 =-=-=
 
+Name: Extract up dwim t6
+
+=-=
+def main(v):
+    if True and |False:
+        var = call(t, p)
+    call()
+=-=
+def main(v):
+    |False
+    if True and :
+        var = call(t, p)
+    call()
+=-=-=
+
+Name: Extract up dwim t7
+
+=-=
+def main(v):
+    if True:
+        var=3
+    elif False:
+        |call(3)
+    call()
+=-=
+def main(v):
+    |call(3)
+    if True:
+        var=3
+    elif False:
+        pass
+    call()
+=-=-=
+
+Name: Extract up dwim t7
+
+=-=
+def main(v):
+    if True:
+        var=3
+    elif False:
+        call(3)
+    else:
+        |while True:
+            pass
+=-=
+def main(v):
+    |while True:
+        pass
+    if True:
+        var=3
+    elif False:
+        call(3)
+    else:
+        pass
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
     (evil-ts-obj-extract-up-dwim 2)
     (delete-trailing-whitespace))
 
-Name: Extract up dwim 2 levels t1
+Name: Extract up dwim two levels t1
 
 =-=
 def main(v):
@@ -1589,7 +1646,7 @@ def main(v):
 
 
 
-Name: Extract up dwim 2 levels t2
+Name: Extract up dwim two levels t2
 
 =-=
 def main(v):
@@ -1604,7 +1661,7 @@ def main(v):
     call()
 =-=-=
 
-Name: Extract up dwim 2 levels t3
+Name: Extract up dwim two levels t3
 
 =-=
 def main(v):
@@ -1619,7 +1676,7 @@ def main(v):
     call()
 =-=-=
 
-Name: Extract up dwim 2 levels t4
+Name: Extract up dwim two levels t4
 
 =-=
 def main(v):
@@ -1627,14 +1684,14 @@ def main(v):
         var = call(t, p)
     call()
 =-=
+|False
 def main(v):
-    |False
     if True and :
         var = call(t, p)
     call()
 =-=-=
 
-Name: Extract up dwim 2 levels t5
+Name: Extract up dwim two levels t5
 
 =-=
 @dec
@@ -1796,6 +1853,63 @@ Name: Extract down dwim t5
     pass
 =-=-=
 
+
+Name: Extract down dwim t6
+
+=-=
+def main(v):
+    if True and |False:
+        var = call(t, p)
+    call()
+=-=
+def main(v):
+    if True and :
+        var = call(t, p)
+    |False
+    call()
+=-=-=
+
+Name: Extract down dwim t7
+
+=-=
+def main(v):
+    if True:
+        var=3
+    elif False:
+        |call(3)
+    call()
+=-=
+def main(v):
+    if True:
+        var=3
+    elif False:
+        pass
+    |call(3)
+    call()
+=-=-=
+
+Name: Extract down dwim t7
+
+=-=
+def main(v):
+    if True:
+        var=3
+    elif False:
+        call(3)
+    else:
+        |while True:
+            pass
+=-=
+def main(v):
+    if True:
+        var=3
+    elif False:
+        call(3)
+    else:
+        pass
+    |while True:
+        pass
+=-=-=
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
@@ -1848,7 +1962,7 @@ def main(v):
 |True
 =-=-=
 
-Name: Extract down dwim 2 levels t4
+Name: Extract down dwim two levels t4
 
 =-=
 def main(v):
@@ -1859,8 +1973,8 @@ def main(v):
 def main(v):
     if True and :
         var = call(t, p)
-    |False
     call()
+|False
 =-=-=
 
 Code:
