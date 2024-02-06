@@ -106,7 +106,7 @@ There are a number of things defined in this library:
 | Thing     | Description                                                                                                         | Key |
 |-----------+---------------------------------------------------------------------------------------------------------------------+-----|
 | compound  | Code structures that may enclose @@html:<br>@@ multiple statements/expressions (function, loops, conditionals etc.) | e   |
-| statement | Simple statements/expressions, boolean conditions, etc.                                                             | s   |
+| statement | Simple statements/expressions, boolean expressions, RHS, etc.                                             | s   |
 | parameter | Parameters/arguments of a function, items of a list/mapping/tuples                                                  | a   |
 
 For more information about treesit things see description of =treesit-thing-settings= variable.

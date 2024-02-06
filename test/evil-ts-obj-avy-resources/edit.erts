@@ -3,7 +3,7 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (evil-ts-obj-avy-tests-with-avy-input "ea"
+    (evil-ts-obj-avy-tests-with-avy-input "be"
         (setq-local evil-this-operator t)
         (apply #'evil-ts-obj-raise (evil-ts-obj-avy-statement-lower-text-obj))))
 

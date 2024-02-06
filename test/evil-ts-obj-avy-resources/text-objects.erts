@@ -89,7 +89,7 @@ def temp(var):
 Code:
   (lambda ()
     (evil-ts-obj-avy-tests-setup)
-    (evil-ts-obj-avy-tests-with-avy-input "b"
+    (evil-ts-obj-avy-tests-with-avy-input "ea"
       (evil-ts-obj-avy-statement-outer-text-obj)))
 
 Name: statement nav t1

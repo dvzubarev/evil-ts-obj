@@ -272,7 +272,7 @@ Name: Delete statement outer t4
 =-=
 buffer=$(cat /dev/stdin ; echo . |)
 =-=
-|
+buffer=|
 =-=-=
 
 Name: Delete statement outer t5

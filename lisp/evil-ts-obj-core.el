@@ -808,6 +808,19 @@ Return t if `NODE' is named and its parent is matching against
               (parent (treesit-node-parent node)))
     (string-match-p parent-regex (treesit-node-type parent))))
 
+(defun evil-ts-obj--by-field-name-pred (node fields)
+  "Return t if NODE\\='s field name matches any field from FIELDS list.
+FIELDS is a list of conses where the car is a parent type and the
+cdr is a field name. Parent type may be nil, then match only by
+field name."
+  (let* ((parent (treesit-node-parent node))
+         (parent-type (treesit-node-type parent)))
+    (cl-some (pcase-lambda (`(,par . ,field))
+               (and (or (null par)
+                        (equal parent-type par))
+                    (equal (treesit-node-field-name node) field)))
+             fields)))
+
 
 ;;; Traversing Siblings
 

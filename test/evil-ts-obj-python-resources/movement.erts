@@ -657,7 +657,6 @@ def temp(var, temp=(1,2), ):
 
 Name: next thing t10
 
-No next thing
 =-=
 
 def temp(var):
@@ -665,7 +664,19 @@ def temp(var):
 =-=
 
 def temp(var):
- |   i = 3
+    i = |3
+=-=-=
+
+Name: next thing t11
+
+=-=
+
+def temp(var):
+ |   call()
+=-=
+
+def temp(var):
+    |call()
 =-=-=
 
 Name: next thing t11
@@ -781,11 +792,11 @@ Jump to the previous thing not to the beginning of the current thing
 =-=
 def temp(var):
     i = 3
-    i +=| 3
+    i |= 4
 =-=
 def temp(var):
-    |i = 3
-    i += 3
+    i = |3
+    i = 4
 =-=-=
 
 Name: previous thing t10
@@ -834,6 +845,21 @@ t = |call()
 
 t = call()
 =-=-=
+
+Name: previous compound t2
+
+=-=
+def main():
+    pass
+|
+t = call()
+=-=
+|def main():
+    pass
+
+t = call()
+=-=-=
+
 
 Code:
   (lambda ()

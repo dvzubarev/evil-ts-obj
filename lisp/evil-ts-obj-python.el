@@ -79,7 +79,9 @@ level decorated_definition node as a thing."
 Consider NODE to be a statement if it is used as a condition in a
 compound statement or it is a part of a boolean expression, or if
 its type is matched against `evil-ts-obj-python-statement-regex'."
-  (or (equal (treesit-node-field-name node) "condition")
+  (or (evil-ts-obj--by-field-name-pred node '((nil . "condition")
+                                              ("assignment" . "right")
+                                              ("interpolation" . "expression")))
       (and (not (equal (treesit-node-type node) "boolean_operator"))
            (equal (treesit-node-type (treesit-node-parent node)) "boolean_operator")
            (member (treesit-node-field-name node) '("left" "right")))

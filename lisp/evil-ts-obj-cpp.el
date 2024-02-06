@@ -41,10 +41,7 @@
 (defun evil-ts-obj-cpp-compound-pred (node)
   "Match only top-level template_declaration.
 This is useful if NODE represents struct, class or function."
-  (if-let* ((parent (treesit-node-parent node))
-            ((equal (treesit-node-type parent) "template_declaration")))
-      nil
-    t))
+  (not (equal (treesit-node-type (treesit-node-parent node)) "template_declaration")))
 
 (defvar evil-ts-obj-cpp-statement-regex nil
   "Regex is composed from `evil-ts-obj-cpp-statement-nodes'.")
@@ -77,8 +74,10 @@ Consider NODE to be a statement if it is used as condition in a
 compound statement or it is a part of a boolean expression, or if
 its type is matched against `evil-ts-obj-cpp-statement-regex'."
 
-  (or (and (equal (treesit-node-type (treesit-node-parent node)) "condition_clause")
-           (equal (treesit-node-field-name node) "value"))
+  (or (evil-ts-obj--by-field-name-pred node '(("condition_clause" . "value")
+                                              ;; rhs
+                                              ("init_declarator" . "value")
+                                              ("assignment_expression" . "right")))
       (evil-ts-obj--common-bool-expr-pred node "binary_expression"
                                           evil-ts-obj-cpp-statement-seps)
       (string-match-p evil-ts-obj-cpp-statement-regex (treesit-node-type node))))

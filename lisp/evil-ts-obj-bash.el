@@ -70,6 +70,7 @@ same type."
       (_
        (or
         (and (equal parent-type "test_command") (treesit-node-check node 'named))
+        (evil-ts-obj--by-field-name-pred node '(("variable_assignment" . "value")))
         (evil-ts-obj--common-bool-expr-pred node "binary_expression"
                                             evil-ts-obj-bash-statement-seps)
         (string-match-p evil-ts-obj-bash-statement-regex (treesit-node-type node)))))))

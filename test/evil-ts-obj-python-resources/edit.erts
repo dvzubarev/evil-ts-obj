@@ -11,13 +11,13 @@ Name: Replace next statement t1
 
 =-=
 def main():
-    |v=3
+    |call()
     return call(v=v,
                 cv = 13)
 =-=
 def main():
-    v=3
-    |v=3
+    call()
+    |call()
 =-=-=
 
 
@@ -25,42 +25,43 @@ Name: Replace next statement t2
 
 =-=
 def main():
-    |v=[1,
-       2]
+    |call([1,
+          2])
     return call(v=v,
                 cv = 13)
 =-=
 def main():
-    v=[1,
-       2]
-    |v=[1,
-       2]
+    call([1,
+          2])
+    |call([1,
+          2])
 =-=-=
 
 Name: Replace next statement t3
 
 =-=
 def main():
-    |v=[1,
-       2]
+    |call([1,
+          2])
 
 call(v=v,
      cv = 13)
 =-=
 def main():
-    v=[1,
-       2]
+    call([1,
+          2])
 
-|v=[1,
-   2]
+|call([1,
+      2])
 =-=-=
 
 Name: Replace next statement t4
 
 =-=
 def main():
-    |v=[1,
-       2]
+    |call([1,
+          2])
+
 
 def func():
     for v in c:
@@ -68,23 +69,24 @@ def func():
              cv = 13)
 =-=
 def main():
-    v=[1,
-       2]
+    call([1,
+          2])
+
 
 def func():
     for v in c:
-        |v=[1,
-           2]
+        |call([1,
+              2])
 =-=-=
 
 Name: Replace next statement t5
 
 =-=
 def main():
-    |v=3
+    |call()
 =-=
 def main():
-    |v=3
+    |call()
 =-=-=
 
 Name: Replace next statement t6
@@ -151,15 +153,15 @@ Name: Replace cancel test t1
 
 =-=
 def main():
-    |v=3
-    v *= 8
+    |call()
+    call(8)
     return call(v=v,
                 cv = 13)
 =-=
 def main():
-    v=3
-    v *= 8
-    v *= 8
+    call()
+    call(8)
+    call(8)
 =-=-=
 
 Code:
