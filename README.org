@@ -1,4 +1,4 @@
-#+title: treesit text objects and movement for evil
+#+title: Treesit Text Objects and edit/movement commands
 
 
 
@@ -9,9 +9,10 @@ The goal of this package is not to create text objects for every possible code s
 Instead, the package provides universal text objects that can be used on code structures of the same type.
 For example, there are no distinct text objects for loops and conditionals,
 but there is one that you can use on any compound structures like functions, loops, conditionals etc.
-Of course, one can add its own text objects, see customization section.
-When it comes to movement, this package does not try to extend or enrich the existing movement commands.
-It provides opinionated set of movement commands that I find useful in day to day work.
+One can add its own text objects, see customization section.
+Edit/movement commands are heavily rely on defined text objects.
+For example, extract/inject commands will search for compound text objects to operate on them.
+However behavior of edit commands can be changed to some extent via rules.
 
 Key features:
 - Few text objects, but they allow to operate on many code structures ([[docs/things-demo.org][examples]])
@@ -55,7 +56,18 @@ An example using straight package manager:
   (add-hook 'python-ts-mode-hook #'evil-ts-obj-mode))
 #+end_src
 
-If you don't use straight, you have to clone repository, generate autoloads and optionally compile the project.
+doom emacs:
+#+begin_src emacs-lisp
+;packages.el
+(package! evil-ts-obj :recipe (:host github :repo "dvzubarev/evil-ts-obj"))
+
+(use-package! evil-ts-obj
+  :defer t
+  :config
+  (add-hook 'python-ts-mode-hook #'evil-ts-obj-mode))
+#+end_src
+
+If you don't use straight or doom, you have to clone repository, generate autoloads and optionally compile the project.
 One way to do it is to use [[https://github.com/emacs-eldev/eldev#installation][Eldev]].
 #+begin_src bash
 git clone https://github.com/dvzubarev/evil-ts-obj
@@ -106,7 +118,7 @@ There are a number of things defined in this library:
 | Thing     | Description                                                                                                         | Key |
 |-----------+---------------------------------------------------------------------------------------------------------------------+-----|
 | compound  | Code structures that may enclose @@html:<br>@@ multiple statements/expressions (function, loops, conditionals etc.) | e   |
-| statement | Simple statements/expressions, boolean expressions, RHS, etc.                                             | s   |
+| statement | Simple statements/expressions, boolean expressions, RHS, etc.                                                       | s   |
 | parameter | Parameters/arguments of a function, items of a list/mapping/tuples                                                  | a   |
 
 For more information about treesit things see description of =treesit-thing-settings= variable.
@@ -156,8 +168,7 @@ For example, after executing extract operator extracted text may be accessed via
 
 
 ** Movement
-Currently movement commands are using only things as is, without applying modifiers listed above.
-Commands, listed belowe, use a group of things, defined in the =evil-ts-obj-conf-nav-things= variable.
+Commands, listed below, use a group of things, defined in the =evil-ts-obj-conf-nav-things= variable.
 This variable is set for every language and for most languages it equals to =(or param statement compound)=.
 It means, the commands move point to the nearest thing from this list,
 firstly searching for parameters, then statements and so on.
@@ -276,7 +287,7 @@ See examples in the [[docs/edit-demo.org][file]].
   Count is provided via numeric argument.
   When point is inside the compound or at the end of the compound
   barf bottommost statements. If point is at the beginning barf
-  topmost statments.
+  topmost statements.
 
   Default key: =M-<=
 
@@ -428,6 +439,18 @@ eldev -S '(setq treesit-extra-load-path (list "/path/to/tree-sitter/grammars"))'
 * Alternatives and Inspirations
 There are packages that are more mature and support more languages:
 - [[https://github.com/mickeynp/combobulate][combobulate]] has many feature. Make sure to check it out!
+- [[https://github.com/ethan-leba/tree-edit][tree-edit]] allows to manipulate syntax tree.
 - [[https://github.com/meain/evil-textobj-tree-sitter][evil-textobj-tree-sitter]] supports many more languages and works with the older Emacs versions.
+
+The main difference of this package is heavy usage of builtin things machinery.
+Introducing extra layer of abstraction some things are getting easier to do.
+Although this package is not as powerful as others that directly manipulate the syntax tree,
+it is still possible to implement some useful editing commands.
+Also language setup is quite easy in basic case: one need to list nodes
+designated for things and write a function for extracting inner range from
+the compound thing. After that most commands will work.
+Compared to =evil-textobj-tree-sitter= using things should be more efficient,
+since it does not require to execute bunch of queries against the whole buffer,
+whenever you use text objects.
 
 Remote text objects were inspired by the great packages [[https://github.com/noctuid/targets.el][targets.el]], [[https://github.com/noctuid/things.el][things.el]].
