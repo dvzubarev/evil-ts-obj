@@ -148,6 +148,35 @@ struct st_t{
 };
 =-=-=
 
+Name: Delete empty compound outer t1
+
+=-=
+void func(){
+    while(true){
+    |
+    }
+}
+=-=
+void func(){
+    |
+}
+=-=-=
+
+Name: Delete next compound outer t1
+
+=-=
+void func(){
+|
+while(true){
+
+    }
+}
+=-=
+void func(){
+
+|
+}
+=-=-=
 
 Code:
   (lambda ()

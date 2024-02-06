@@ -153,14 +153,13 @@ exists. Return nil if no node can be found."
                   (setq node next-node))))
          node)))))
 
-(defun evil-ts-obj--find-parent-with-same-range (node thing)
+(defun evil-ts-obj--propagate-to-identical-parent (node thing)
   "Handle edge case when the parent is identical to a child NODE.
 Parent should also match with THING. They are concidered
 identical if their RANGEs are the same or if the only difference
 between parent and NODE is the termination symbol. To obtain
 termination symbols for current language variable
-`evil-ts-obj-conf-terms' is consulted. In that case return only
-top level node."
+`evil-ts-obj-conf-terms' is consulted."
 
   (let ((init-start (treesit-node-start node))
         (init-end (treesit-node-end node)))
@@ -197,9 +196,9 @@ returns the largest node that ends before `POS'. It returns nil
 if no thing can be found (e.g. empty line)."
 
   (let* ((cursor (evil-ts-obj--node-at-or-around pos))
-         (iter-pred (lambda (node)
+         (pred (lambda (node)
                       (treesit-node-match-p node thing t)))
-         (enclosing-node (treesit-parent-until cursor iter-pred t))
+         (enclosing-node (treesit-parent-until cursor pred t))
          (before-cursor (and enclosing-node
                              (< pos (treesit-node-start enclosing-node))))
          (after-cursor (and enclosing-node
@@ -208,23 +207,26 @@ if no thing can be found (e.g. empty line)."
     (cond
      (before-cursor
       (while (and
-              (setq cursor (treesit-parent-until enclosing-node iter-pred))
+              (setq cursor (treesit-parent-until enclosing-node pred))
               (when (= (treesit-node-start enclosing-node)
                        (treesit-node-start cursor))
                 (setq enclosing-node cursor)))))
      (after-cursor
       (while (and
-              (setq cursor (treesit-parent-until cursor iter-pred))
+              (setq cursor (treesit-parent-until cursor pred))
               (when (= (treesit-node-end enclosing-node)
                        (treesit-node-end cursor))
                 (setq enclosing-node cursor))))))
 
-    (evil-ts-obj--find-parent-with-same-range
-     (if enclosing-node
-         enclosing-node
-       ;; try to find next node
-       (unless dont-step-forward
-         (treesit--thing-next (point) thing)))
+    (evil-ts-obj--propagate-to-identical-parent
+     (or enclosing-node
+         (unless dont-step-forward
+           (treesit--thing-next pos thing))
+         ;; last chance; point may be inside empty compound...
+         (when-let* ((node (treesit-parent-until (treesit-node-at pos) pred t))
+                     ((not (and dont-step-forward
+                                (< pos (treesit-node-start node))))))
+           node))
      thing)))
 
 (defun evil-ts-obj--current-thing (node things)

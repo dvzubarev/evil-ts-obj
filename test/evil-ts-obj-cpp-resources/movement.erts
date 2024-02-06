@@ -112,3 +112,37 @@ if (opts and (not i or i < 0 < 3) && |t.call() or true ){}
 =-=
 if (opts and (not i or i < 0 < 3) && t.call() or |true ){}
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-beginning-of-thing))
+
+Name: Move to beginning of t1
+
+=-=
+float func2(){
+|
+}
+=-=
+|float func2(){
+
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-end-of-thing))
+
+Name: Move to end of t1
+
+=-=
+float func2(){
+|
+}
+=-=
+float func2(){
+
+|}
+=-=-=
