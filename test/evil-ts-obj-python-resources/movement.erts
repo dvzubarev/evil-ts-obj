@@ -669,6 +669,8 @@ def temp(var):
 
 Name: next thing t11
 
+We are already on a thing.
+So there is no next thing, cursor does not move
 =-=
 
 def temp(var):
@@ -676,10 +678,10 @@ def temp(var):
 =-=
 
 def temp(var):
-    |call()
+ |   call()
 =-=-=
 
-Name: next thing t11
+Name: next thing t12
 
 =-=
 def temp():
@@ -797,6 +799,32 @@ def temp(var):
 def temp(var):
     i = |3
     i = 4
+=-=-=
+
+Name: previous thing t9-2
+
+=-=
+def temp(var):
+    i = 3
+    call|(3)
+=-=
+def temp(var):
+    i = |3
+    call(3)
+=-=-=
+
+Name: previous thing t9-3
+
+=-=
+def temp(var):
+    i = 3
+    call(3)
+|
+=-=
+def temp(var):
+    i = 3
+    call(|3)
+
 =-=-=
 
 Name: previous thing t10

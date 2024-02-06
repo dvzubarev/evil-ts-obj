@@ -152,26 +152,32 @@ exists. Return nil if no node can be found."
                  (t
                   (setq node next-node))))
          node)))))
+(defun evil-ts-obj--child-identical? (node child)
+  "Determine whether CHILD of a NODE is identical to NODE.
+They are concidered identical if their ranges are the same or if
+the only difference between CHILD and NODE is the termination
+symbol. To obtain termination symbols for current language
+variable `evil-ts-obj-conf-terms' is consulted."
+  (let ((child-start (treesit-node-start child))
+        (child-end (treesit-node-end child)))
+    (and
+     (= (treesit-node-start node) child-start)
+     (or (= (treesit-node-end node) child-end)
+         (and (= (treesit-node-child-count node) 2)
+              (when-let* ((terms (plist-get evil-ts-obj-conf-terms
+                                            (treesit-language-at child-start)))
+                          (last-child (treesit-node-child node -1)))
+                (member (treesit-node-type last-child) terms)))))))
 
 (defun evil-ts-obj--propagate-to-identical-parent (node thing)
   "Handle edge case when the parent is identical to a child NODE.
 Parent should also match with THING. They are concidered
-identical if their RANGEs are the same or if the only difference
-between parent and NODE is the termination symbol. To obtain
-termination symbols for current language variable
-`evil-ts-obj-conf-terms' is consulted."
-
-  (let ((init-start (treesit-node-start node))
-        (init-end (treesit-node-end node)))
+identical if `evil-ts-obj--child-identical?' returns t."
+  (let ((init-start (treesit-node-start node)))
     (while-let ((parent (treesit-node-parent node))
                 ((= (treesit-node-start parent) init-start))
                 ((treesit-node-match-p parent thing t))
-                ((or (= (treesit-node-end parent) init-end)
-                     (and (= (treesit-node-child-count parent) 2)
-                          (when-let* ((terms (plist-get evil-ts-obj-conf-terms
-                                                        (treesit-language-at init-start)))
-                                      (last-child (treesit-node-child parent -1)))
-                            (member (treesit-node-type last-child) terms))))))
+                ((evil-ts-obj--child-identical? parent node)))
       (setq node parent))
     node))
 
@@ -706,6 +712,7 @@ If `CURRENT' is t, detect current thing at point and return this thing."
 (defun evil-ts-obj--search-subtree-forward (start-node thing spec init-pos)
   (let ((filter (lambda (c) (< init-pos (treesit-node-end c))))
         (match-pred (lambda (n) (and (treesit-node-match-p n thing t)
+                                     (not (evil-ts-obj--child-identical? start-node n))
                                      (let ((range (evil-ts-obj--get-text-obj-range n thing spec)))
                                        (< init-pos (car range)))))))
     (evil-ts-obj--search-subtree start-node thing filter nil match-pred)))
@@ -713,13 +720,16 @@ If `CURRENT' is t, detect current thing at point and return this thing."
 (defun evil-ts-obj--search-subtree-backward (start-node thing spec init-pos)
   (let ((filter (lambda (c) (< (treesit-node-start c) init-pos)))
         (match-pred (lambda (n) (and (treesit-node-match-p n thing t)
+                                     (not (evil-ts-obj--child-identical? start-node n))
                                      (let ((range (evil-ts-obj--get-text-obj-range n thing spec)))
                                        (< (car range) init-pos)))))
         (node start-node)
         child)
     ;; have to find the deepest node for that subtree
     (while (setq node (evil-ts-obj--search-subtree node thing filter t match-pred))
-      (setq child node))
+      (setq child node
+            start-node node))
+
     child))
 
 (defun evil-ts-obj--goto-next-thing (thing)
