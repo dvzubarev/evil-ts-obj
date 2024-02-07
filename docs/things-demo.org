@@ -1,4 +1,7 @@
 #+title: Things in action
+
+=evil-delete= is used in all examples as an operator.
+
 ** Compound outer
 #+BEGIN_HTML
 <table border="0"> <tr>
@@ -277,7 +280,7 @@ for var1, var2 in call():
 #+BEGIN_HTML
 <table border="0"> <tr>
 <td>Original<img width="260" height="1"></td>
-<td>After <b>dus</b><img width="260" height="1"></td>
+<td>After <b>dUs</b><img width="260" height="1"></td>
 </tr> <tr> <td>
 #+END_HTML
 
@@ -530,7 +533,7 @@ struct faktory_t<T,
 #+BEGIN_HTML
 <table border="0"> <tr>
 <td>Original<img width="260" height="1"></td>
-<td>After <b>dua</b><img width="260" height="1"></td>
+<td>After <b>dUa</b><img width="260" height="1"></td>
 </tr> <tr> <td>
 #+END_HTML
 
@@ -555,7 +558,7 @@ var = call(|kw2='a, b')
 #+BEGIN_HTML
 <table border="0"> <tr>
 <td>Original<img width="260" height="1"></td>
-<td>After <b>dua</b><img width="260" height="1"></td>
+<td>After <b>dUa</b><img width="260" height="1"></td>
 </tr> <tr> <td>
 #+END_HTML
 
