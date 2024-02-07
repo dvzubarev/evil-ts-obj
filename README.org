@@ -10,9 +10,9 @@ Instead, the package provides universal text objects that can be used on code st
 For example, there are no distinct text objects for loops and conditionals,
 but there is one that you can use on any compound structures like functions, loops, conditionals etc.
 One can add its own text objects, see customization section.
-Edit/movement commands are heavily rely on defined text objects.
+Edit/movement commands heavily rely on defined text objects.
 For example, extract/inject commands will search for compound text objects to operate on them.
-However behavior of edit commands can be changed to some extent via rules.
+However, behavior of edit commands can be changed to some extent via rules.
 
 Key features:
 - Few text objects, but they allow to operate on many code structures ([[docs/things-demo.org][examples]])
