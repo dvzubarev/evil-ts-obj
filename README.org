@@ -105,7 +105,7 @@ add =evil-ts-obj-mode= to its hook.
 
 - python
 - bash
-- c++
+- c/c++
 - nix
 - yaml
 

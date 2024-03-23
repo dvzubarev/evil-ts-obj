@@ -18,23 +18,16 @@
 
 
 (require 'evil-ts-obj-def)
+(require 'evil-ts-obj-c)
 
 (defcustom evil-ts-obj-cpp-compound-nodes
-  '("struct_specifier"
-    "function_definition"
-    "if_statement"
-    "else_clause"
-    "while_statement"
-    "for_statement"
-    "switch_statement"
-    "case_statement"
-
-    "template_declaration"
-    "class_specifier"
-    "for_range_loop"
-    "try_statement"
-    "catch_clause"
-    "lambda_expression")
+  (append evil-ts-obj-c-compound-nodes
+          '("template_declaration"
+            "class_specifier"
+            "for_range_loop"
+            "try_statement"
+            "catch_clause"
+            "lambda_expression"))
   "Nodes that designate compound statement in cpp."
   :type '(repeat string)
   :group 'evil-ts-obj)
@@ -48,16 +41,10 @@ This is useful if NODE represents struct, class or function."
   "Regex is composed from `evil-ts-obj-cpp-statement-nodes'.")
 
 (defcustom evil-ts-obj-cpp-statement-nodes
-  '("type_definition"
-    "field_declaration"
-    "declaration"
-    "expression_statement"
-    "return_statement"
-    "call_expression"
-
-    "using_declaration"
-    "alias_declaration"
-    "throw_statement")
+  (append evil-ts-obj-c-statement-nodes
+          '("using_declaration"
+            "alias_declaration"
+            "throw_statement"))
   "Nodes that designate simple statement in cpp."
   :type '(repeat string)
   :group 'evil-ts-obj
@@ -88,13 +75,11 @@ its type is matched against `evil-ts-obj-cpp-statement-regex'."
   "Regex is composed from `evil-ts-obj-cpp-param-parent-nodes'.")
 
 (defcustom evil-ts-obj-cpp-param-parent-nodes
-  '("parameter_list"
-    "argument_list"
-
-    "template_parameter_list"
-    "template_argument_list"
-    "initializer_list"
-    "lambda_capture_specifier")
+  (append evil-ts-obj-c-param-parent-nodes
+          '("template_parameter_list"
+            "template_argument_list"
+            "initializer_list"
+            "lambda_capture_specifier"))
   "Parent nodes for a parameter thing in python."
   :type '(repeat string)
   :group 'evil-ts-obj
@@ -132,42 +117,11 @@ NODE should have type template_declaration."
 (defun evil-ts-obj-cpp-extract-compound-inner (node)
   "Return range for a compound inner text object.
 Compound is represented by a `NODE'."
-  (when-let ((body-node
-              (pcase (treesit-node-type node)
-                ("if_statement"
-                 (treesit-node-child-by-field-name node "consequence"))
-                ((or "else_clause" "case_statement")
-                 (treesit-node-child node -1 t))
-                ("template_declaration"
-                 (thread-first node
-                               (evil-ts-obj-cpp--find-func-in-template)
-                               (treesit-node-child-by-field-name "body")))
-                (_
-                 (treesit-node-child-by-field-name node "body")))))
-    (if (member (treesit-node-type body-node) '("compound_statement"
-                                                "field_declaration_list"))
-        ;; do not include enclosing braces
-        (if-let ((first-child (treesit-node-child body-node 0 t))
-                 (last-child  (treesit-node-child body-node -1 t)))
-            (list (treesit-node-start first-child)
-                  (treesit-node-end last-child))
-          ;; empty body
-          (list (treesit-node-end (treesit-node-child body-node 0))
-                (treesit-node-start (treesit-node-child body-node 1))))
 
-      (list (treesit-node-start body-node)
-            (treesit-node-end body-node)))))
+  (when (equal (treesit-node-type node) "template_declaration")
+    (setq node (evil-ts-obj-cpp--find-func-in-template node)))
+  (evil-ts-obj-c-extract-compound-inner node))
 
-(defun evil-ts-obj-cpp-compound-outer-ext (node)
-  "Extend a struct/class range to include trailing ;.
-Current thing is represented by `NODE'."
-  (let ((start (treesit-node-start node))
-        (end (treesit-node-end node)))
-    (when-let* (((member (treesit-node-type node) '("struct_specifier" "class_specifier")))
-                (next-node (treesit-node-next-sibling node))
-                ((equal (treesit-node-type next-node) ";")))
-      (setq end (treesit-node-end next-node)))
-    (list start end)))
 
 (defun evil-ts-obj-cpp-compound-nav-mod (node)
   "Skip templates header when navigating to templated things.
@@ -186,7 +140,7 @@ and `NODE'."
     ((pmap (:thing 'compound) (:mod 'inner))
      (evil-ts-obj-cpp-extract-compound-inner node))
     ((pmap (:thing 'compound) (:mod 'outer) (:act 'op))
-     (evil-ts-obj-cpp-compound-outer-ext node))
+     (evil-ts-obj-c-compound-outer-ext node))
     ((pmap (:thing 'compound) (:mod 'outer) (:act 'nav))
      (evil-ts-obj-cpp-compound-nav-mod node))))
 
