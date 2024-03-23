@@ -82,6 +82,10 @@ its type is matched against `evil-ts-obj-python-statement-regex'."
   (or (evil-ts-obj--by-field-name-pred node '((nil . "condition")
                                               ("assignment" . "right")
                                               ("interpolation" . "expression")))
+      ;; expresions in return/yield
+      (and (treesit-node-check node 'named)
+           (member (treesit-node-type (treesit-node-parent node)) '("return_statement" "yield")))
+      ;; parts of boolean expression
       (and (not (equal (treesit-node-type node) "boolean_operator"))
            (equal (treesit-node-type (treesit-node-parent node)) "boolean_operator")
            (member (treesit-node-field-name node) '("left" "right")))
