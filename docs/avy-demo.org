@@ -1,5 +1,11 @@
 #+title: Avy in action
 * Parameter outer
+Examples of removing remote text object.
+Text object selection is done via Avy.
+
+=dzaa= is a sequence of command which can be spelled out as:
+=d= evil delete operator,
+=z= initiate Avy candidate selection, =aa= is a key sequence for parameter outer text object.
 
 #+BEGIN_HTML
 <table border="0"> <tr>
@@ -53,6 +59,11 @@ def temp(var|):
 
 * Paste/teleport actions
 Those actions try to adapt indentation of the inserted thing to the indentation of the current point.
+
+=zaem= is a sequence of command which can be spelled out as:
+=z= initiate Avy candidate selection, =ae= is a key sequence for compound outer text object,
+=m= - avy action for teleporting selected text object.
+
 #+BEGIN_HTML
 <table border="0"> <tr>
 <td>Original<img width="260" height="1"></td>
