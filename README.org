@@ -201,7 +201,7 @@ They are bound to its own prefixes by default.
 | previous-thing         | [          |
 | next-sibling-thing     | }          |
 | previous-sibling-thing | {          |
-** Evil operators
+** Operators
 There are set of operators for editing text objects. There are DWIM commands
 that do not require user inputs, operators that expect one text object and
 operators that should be provided with two text objects in a row. Nearly all
@@ -290,6 +290,14 @@ See examples in the [[docs/edit-demo.org][file]].
   topmost statements.
 
   Default key: =M-<=
+
+- convolute ::
+  Command: =evil-ts-obj-convolute=
+
+  Swap parent node with the grandparent node for the current text object.
+
+  Default key: N/a
+
 
 - low-level operators ::
   These operators expect that user provide two text objects in a row (inspired by evil-exchange).

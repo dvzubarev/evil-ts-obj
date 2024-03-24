@@ -38,15 +38,16 @@ invocation of the operator.")
 
 
 ;;; Basic edit function implementations
-(defun evil-ts-obj-edit--replace (range target-range)
+(defun evil-ts-obj-edit--replace (range target-range &optional keep-props)
   "Replace text in TARGET-RANGE with then content within RANGE.
-RANGE should be a cons of markers. Return the range
-of the inserted content."
+RANGE should be a cons of markers. Return the range of the
+inserted content. Set KEEP-PROPS to preserve text properties of
+the text in RANGE."
 
   (let (text)
     (pcase-let ((`(,start . ,end) range))
       (with-current-buffer (marker-buffer start)
-        (setq text (evil-ts-obj-util--extract-text start end))))
+        (setq text (evil-ts-obj-util--extract-text start end keep-props))))
     (pcase-let ((`(,start . ,end) target-range))
       (with-current-buffer (marker-buffer start)
         (delete-region start end)
@@ -58,6 +59,21 @@ of the inserted content."
             ;; after insert, marker is pushed to the end of inserted text.
             ;; We explicitly set this behavior when marker was created.
             (list init-pos (marker-position start))))))))
+
+(defun evil-ts-obj-edit--simple-replace (range-or-text target-range &optional keep-props)
+  "Replace text in TARGET-RANGE with then content within RANGE-OR-TEXT.
+If RANGE-OR-TEXT is not cons then it should be string.
+RANGE-OR-TEXT and TARGET-RANGE should be in the same buffer. For
+the more generic version see `evil-ts-obj-edit--replace' Set
+KEEP-PROPS to preserve text properties of the text in RANGE."
+  (let ((text (if (stringp range-or-text)
+                  range-or-text
+                (evil-ts-obj-util--extract-text (car range-or-text) (cdr range-or-text) keep-props))))
+    (pcase-let ((`(,start . ,end) target-range))
+      (delete-region start end)
+      (save-excursion
+        (goto-char start)
+        (insert (evil-ts-obj-util--indent-text-according-to-point-pos text))))))
 
 (defun evil-ts-obj-edit--swap (range other-range)
   "Swap content of two ranges: RANGE and OTHER-RANGE.
@@ -950,6 +966,81 @@ topmost statments."
 
     (evil-ts-obj-edit--cleanup)))
 
+
+(defun evil-ts-obj-edit--convolute ()
+  "Swap parent node with the grandparent node for the current text node.
+See `evil-ts-obj-edit--convolute-impl' for the implementation
+details."
+  (evil-ts-obj-edit--cleanup)
+  (unwind-protect
+      (when-let* ((lang (treesit-language-at (point)))
+                  (conv-rules-func (plist-get evil-ts-obj-conf-convolute-rules lang))
+                  (text-rules-alist (funcall conv-rules-func 'text))
+                  (text-things (evil-ts-obj-edit--thing-from-rules text-rules-alist))
+                  (text-spec (evil-ts-obj--make-spec text-rules-alist 'op))
+                  (text-range (evil-ts-obj--get-text-obj-range (point) text-things text-spec nil t))
+                  (text-node (caddr text-range))
+                  (parent-rules-alist (funcall conv-rules-func 'parent))
+                  (parent-candidate-thing (evil-ts-obj-edit--thing-from-rules parent-rules-alist))
+                  (parent-spec (evil-ts-obj--make-spec parent-rules-alist 'op))
+                  (parent-range (evil-ts-obj--get-text-obj-range (point) parent-candidate-thing
+                                                                 parent-spec text-range t))
+                  (parent-thing (plist-get evil-ts-obj--last-text-obj-spec :thing))
+                  (parent-node (caddr parent-range))
+                  (grandparent-range (evil-ts-obj--get-text-obj-range (point) parent-candidate-thing
+                                                                      parent-spec parent-range))
+                  ;; grandparent and parent should be the same thing
+                  ((eq (plist-get evil-ts-obj--last-text-obj-spec :thing) parent-thing)))
+        (evil-ts-obj-edit--convolute-impl text-range parent-range grandparent-range))
+    (evil-ts-obj-edit--cleanup)))
+
+
+(defun evil-ts-obj-edit--convolute-impl (text-range parent-range grandparent-range)
+  "Swap parent node with the grandparent node for the current text node.
+Each node is represented via coresponding range: TEXT-RANGE,
+PARENT-RANGE, GRANDPARENT-RANGE.
+It is implemented via three replace operations on provided ranges.
+Initial positions:
+[G [ P [ T ] P ] G ]
+1. Replace text range with grandparent range.
+[G [ P > [G [ P [ T ] P ] G ] < P ] G ]
+2. Replace original grandparent with the parent range.
+[ P [G [ P [ T ] P ] G ] P ]
+3. Replace inner parent range with the text range.
+[ P [G [ T ] G ] P ]"
+
+  (put-text-property (car text-range) (cadr text-range) 'text-range t)
+  (put-text-property (car parent-range) (cadr parent-range) 'parent-range t)
+
+  (let ((end-parent-marker (copy-marker (cadr parent-range) t))
+        (end-grandparent-marker (copy-marker (cadr grandparent-range) t)))
+    (unwind-protect
+        (progn
+          (let ((text (evil-ts-obj-util--extract-text
+                       (car grandparent-range) end-grandparent-marker t)))
+            (remove-list-of-text-properties (car parent-range) (cadr parent-range)
+                                            '(text-range parent-range))
+            (evil-ts-obj-edit--simple-replace text (cons (car text-range) (cadr text-range)) t))
+          (evil-ts-obj-edit--simple-replace (cons (car parent-range) end-parent-marker)
+                                            (cons (car grandparent-range) end-grandparent-marker) t)
+
+          ;; restore bounds of parent and text nodes
+          (when-let* ((start-pos (max (point-min) (1- (car grandparent-range))))
+                      (text-start (next-single-property-change start-pos 'text-range))
+                      (text-end (next-single-property-change text-start 'text-range))
+                      (parent-start (next-single-property-change start-pos 'parent-range))
+                      (parent-end (next-single-property-change parent-start 'parent-range)))
+
+            (evil-ts-obj-edit--save-range-or-call-op 'conv text-start text-end
+                                                     #'evil-ts-obj-edit--replace)
+            (evil-ts-obj-edit--save-range-or-call-op 'conv parent-start parent-end
+                                                     #'evil-ts-obj-edit--replace)
+            (goto-char (car evil-ts-obj--last-text-obj-range))))
+      (remove-list-of-text-properties (car parent-range)
+                                      (min (cadr parent-range) (point-max))
+                                      '(text-range parent-range))
+      (set-marker end-parent-marker nil)
+      (set-marker end-grandparent-marker nil))))
 
 (provide 'evil-ts-obj-edit)
 ;;; evil-ts-obj-edit.el ends here

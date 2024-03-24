@@ -41,7 +41,8 @@
     "declaration"
     "expression_statement"
     "return_statement"
-    "call_expression")
+    "call_expression"
+    "conditional_expression")
   "Nodes that designate simple statement in c."
   :type '(repeat string)
   :group 'evil-ts-obj

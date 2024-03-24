@@ -969,3 +969,82 @@ def main():
 #+BEGIN_HTML
 </td> </tr> </table>
 #+END_HTML
+** Convolute
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-x evil-ts-obj-convolute</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+l.append(|call1()) if pred() else l.append(call2())
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+l.append(|call1() if pred() else l.append(call2()))
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-x evil-ts-obj-convolute</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+for v1, v2 in l():
+    call(v1)
+    if i:
+        |v = call(v1, v2)
+    v2
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+if i:
+    for v1, v2 in l():
+        call(v1)
+        v = call(v1, v2)
+        v2
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>M-x evil-ts-obj-convolute</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src cpp
+pred() ? l.push_back(|call1()) : l.push_back(call2());
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src cpp
+l.push_back(pred() ? |call1() : l.push_back(call2()));
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML

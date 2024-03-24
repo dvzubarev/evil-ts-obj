@@ -194,6 +194,31 @@ See `evil-ts-obj-conf-barf-rules' for description of RANGE-TYPE."
      '((param . inner)))))
 
 
+;;;;; convolute rules
+
+(defun evil-ts-obj-def-convolute-rules (range-type)
+  "Return default convolute rules.
+See `evil-ts-obj-conf-convolute-rules' for description of RANGE-TYPE."
+  (pcase range-type
+    ('parent
+     '((statement . inner)
+       (compound . outer)))
+    ('text
+     '((param . inner)
+       (statement . inner)
+       (compound . outer)))))
+
+(defun evil-ts-obj-def-conf-lang-convolute-rules (range-type)
+  "Return default convolute rules for configuration languages like YAML.
+See `evil-ts-obj-conf-convolute-rules' for description of RANGE-TYPE."
+  (pcase range-type
+    ('parent
+     '((param-compound . outer)))
+    ('text
+     '((param . inner)
+       (compound . outer)))))
+
+
 ;;;; sibling traverse helpers
 
 (defvar evil-ts-obj-def--sibling-trav (evil-ts-obj-trav-create
@@ -305,7 +330,8 @@ And other default rules to its corresponding variables."
   (cl-callf plist-put evil-ts-obj-conf-statement-placeholder lang statement-placeholder)
   (cl-callf plist-put evil-ts-obj-conf-inject-rules lang #'evil-ts-obj-def-inject-rules)
   (cl-callf plist-put evil-ts-obj-conf-slurp-rules lang #'evil-ts-obj-def-slurp-rules)
-  (cl-callf plist-put evil-ts-obj-conf-barf-rules lang #'evil-ts-obj-def-barf-rules))
+  (cl-callf plist-put evil-ts-obj-conf-barf-rules lang #'evil-ts-obj-def-barf-rules)
+  (cl-callf plist-put evil-ts-obj-conf-convolute-rules lang #'evil-ts-obj-def-convolute-rules))
 
 
 (cl-defun evil-ts-obj-def-init-conf-lang (
@@ -373,7 +399,9 @@ This function also adds `evil-ts-obj-def-raise-rules' to
   (cl-callf plist-put evil-ts-obj-conf-slurp-rules lang
             #'evil-ts-obj-def-conf-lang-slurp-rules)
   (cl-callf plist-put evil-ts-obj-conf-barf-rules lang
-            #'evil-ts-obj-def-conf-lang-barf-rules))
+            #'evil-ts-obj-def-conf-lang-barf-rules)
+  (cl-callf plist-put evil-ts-obj-conf-convolute-rules lang
+            #'evil-ts-obj-def-conf-lang-convolute-rules))
 
 
 (provide 'evil-ts-obj-def)

@@ -1301,3 +1301,69 @@ Name: Barf dwim many siblings t1
 - 3
 - ab
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-convolute)
+    (evil-ts-obj-convolute)
+    (delete-trailing-whitespace))
+
+Name: Convolute t1
+=-=
+---
+- bb:
+   | t1: 1
+    t2: 2
+    a1: 3
+  a2: 4
+- aa
+=-=
+---
+bb:
+  - t1: 1
+    t2: 2
+    a1: 3
+    a2: 4
+- aa
+=-=-=
+
+Name: Convolute t2
+=-=
+---
+- bb:
+    t1:
+      t11: 11
+    t2:
+     | t22: 22
+      a:
+        - 1
+-
+=-=
+---
+- t2:
+    bb:
+      t1:
+        t11: 11
+      t22: 22
+      a:
+        - 1
+-
+=-=-=
+
+Name: Convolute t3
+=-=
+---
+- name: t
+  general:
+    |xi: t
+  args: yes
+-
+=-=
+---
+general:
+  - name: t
+    |xi: t
+    args: yes
+-
+=-=-=

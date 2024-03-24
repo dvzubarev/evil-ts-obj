@@ -100,11 +100,14 @@ first line of TEXT."
         (when restore-trailing-spaces
           (goto-char (point-max))
           (insert (make-string restore-trailing-spaces 32)))
-        (buffer-substring-no-properties (point-min) (point-max))))))
+        (buffer-substring (point-min) (point-max))))))
 
-(defun evil-ts-obj-util--extract-text (start end)
-  "Extract text between START and END with first line indented."
-  (let* ((text (buffer-substring-no-properties start end))
+(defun evil-ts-obj-util--extract-text (start end &optional keep-props)
+  "Extract text between START and END with first line indented.
+If KEEP-PROPS is set then text properties of the region are
+preserved."
+  (let* ((text (if keep-props (buffer-substring start end)
+                 (buffer-substring-no-properties start end)))
          (first-line-indent (evil-ts-obj-util--calc-first-line-indent start end))
          (prepared-text text))
     (when first-line-indent

@@ -67,7 +67,7 @@ operators (inject ,slurp ,barf)."
           (treesit-node-end child))))
 
 (defcustom evil-ts-obj-yaml-prohibit-param-inner-mod
-  "\\(?:raise\\|extract\\|drag\\|inject\\|slurp\\|barf\\)"
+  "\\(?:raise\\|extract\\|drag\\|inject\\|slurp\\|barf\\|convolute\\)"
   "Do not apply `evil-ts-obj-yaml-param-mod' when command matches this regexp."
   :type 'string
   :group 'evil-ts-obj)

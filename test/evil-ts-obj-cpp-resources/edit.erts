@@ -1278,3 +1278,48 @@ void f (){
     i = 3;
 }
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-convolute)
+    (delete-trailing-whitespace))
+
+Name: Convolute statements t1
+
+=-=
+pred() ? l.push_back(|call1()) : l.push_back(call2());
+=-=
+l.push_back(pred() ? |call1() : l.push_back(call2()));
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-convolute)
+    (delete-trailing-whitespace))
+
+Name: Convolute statements t2
+
+=-=
+while(true){
+    auto temp = value;
+    if (reply && temp){
+        |ReplyWithCallReply(ctx, reply);
+        return MODULE_OK;
+    }
+    else
+        return WithError(ctx, "ERR");
+}
+
+=-=
+if (reply && temp){
+    while(true){
+        auto temp = value;
+        |ReplyWithCallReply(ctx, reply);
+    }
+    return MODULE_OK;
+}
+else
+    return WithError(ctx, "ERR");
+=-=-=

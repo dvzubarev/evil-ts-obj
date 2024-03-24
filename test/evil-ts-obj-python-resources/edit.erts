@@ -2491,7 +2491,7 @@ Code:
     (evil-ts-obj-barf 2)
     (delete-trailing-whitespace))
 
-Name: Barf 2 statements t1
+Name: Barf two statements t1
 
 =-=
 def main():
@@ -2508,7 +2508,7 @@ def main():
     j = call(i)
 =-=-=
 
-Name: Barf 2 statements t2
+Name: Barf two statements t2
 
 =-=
 def main():
@@ -2523,4 +2523,44 @@ def main():
     |while True:
 
         j = call(i)
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-convolute)
+    (delete-trailing-whitespace))
+
+Name: Convolute statements t1
+
+=-=
+l.append(|call1()) if pred() else l.append(call2())
+=-=
+l.append(|call1() if pred() else l.append(call2()))
+=-=-=
+
+Name: Convolute statements t2
+
+=-=
+if t and (a == 3 or (tt and |3 < t) or 3) or call():
+    pass
+=-=
+if t and (tt and (a == 3 or |3 < t or 3)) or call():
+    pass
+=-=-=
+
+Name: Convolute statements t3
+
+=-=
+for v1, v2 in l():
+    call(v1)
+    if i:
+        |v = call(v1, v2)
+    v2
+=-=
+if i:
+    for v1, v2 in l():
+        call(v1)
+        v = call(v1, v2)
+        v2
 =-=-=

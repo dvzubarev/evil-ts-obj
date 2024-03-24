@@ -272,6 +272,21 @@ be extracted from the place place. See
 `evil-ts-obj-def-conf-lang-barf-rules' as examples of this
 function implementation.")
 
+(defvar-local evil-ts-obj-conf-convolute-rules nil
+  "This is a plist that maps language to a function that returns convolute rules.
+This function is invoked by `evil-ts-obj-edit--convolute' to
+determine what things they should operate on. The function should
+accept RANGE-TYPE. RANGE-TYPE can be either text or parent. If
+RANGE-TYPE is text then function should return a text object,
+which will be used for determining parent nodes. If RANGE-TYPE is
+parent then function should return a text object that is used to
+determine parent and grandparent nodes of the text object. In
+both cases it should return alist, for example \\='((statement .
+inner) (compound . outer)). So it is possible to specify multiple
+potential text objects. See
+`evil-ts-obj-def-conf-lang-convolute-rules' as an example of this
+function implementation.")
+
 ;;; Helper functions
 
 (defun evil-ts-obj-conf--make-nodes-regex (nodes)
