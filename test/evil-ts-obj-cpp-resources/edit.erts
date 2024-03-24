@@ -1282,7 +1282,7 @@ void f (){
 Code:
   (lambda ()
     (evil-ts-obj-cpp-tests-setup)
-    (evil-ts-obj-convolute)
+    (evil-ts-obj-convolute 1)
     (delete-trailing-whitespace))
 
 Name: Convolute statements t1
@@ -1293,11 +1293,6 @@ pred() ? l.push_back(|call1()) : l.push_back(call2());
 l.push_back(pred() ? |call1() : l.push_back(call2()));
 =-=-=
 
-Code:
-  (lambda ()
-    (evil-ts-obj-cpp-tests-setup)
-    (evil-ts-obj-convolute)
-    (delete-trailing-whitespace))
 
 Name: Convolute statements t2
 

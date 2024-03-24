@@ -1306,7 +1306,7 @@ Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
     (setq-local evil-this-operator 'evil-ts-obj-convolute)
-    (evil-ts-obj-convolute)
+    (evil-ts-obj-convolute 1)
     (delete-trailing-whitespace))
 
 Name: Convolute t1

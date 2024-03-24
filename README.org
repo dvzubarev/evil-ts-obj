@@ -295,6 +295,7 @@ See examples in the [[docs/edit-demo.org][file]].
   Command: =evil-ts-obj-convolute=
 
   Swap parent node with the grandparent node for the current text object.
+  When numeric argument is provided select select COUNT siblings of the current text object.
 
   Default key: N/a
 

@@ -486,10 +486,10 @@ topmost statments."
   (interactive "<c>")
   (evil-ts-obj-edit--barf count))
 
-(evil-define-operator evil-ts-obj-convolute ()
+(evil-define-operator evil-ts-obj-convolute (count)
   "Swap parent node with the grandparent node for the current text node."
-  (interactive)
-  (evil-ts-obj-edit--convolute ))
+  (interactive "<c>")
+  (evil-ts-obj-edit--convolute count))
 
 
 ;;; default keybindings

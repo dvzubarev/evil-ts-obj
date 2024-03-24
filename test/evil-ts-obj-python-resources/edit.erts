@@ -2528,7 +2528,7 @@ def main():
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-convolute)
+    (evil-ts-obj-convolute 1)
     (delete-trailing-whitespace))
 
 Name: Convolute statements t1
@@ -2563,4 +2563,53 @@ if i:
         call(v1)
         v = call(v1, v2)
         v2
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-convolute 9)
+    (delete-trailing-whitespace))
+
+Name: Convolute with numeric arg t1
+
+=-=
+for x in generate_rows(some):
+    do_something_just_with_rows(x)
+    for y in columns:
+        |do_something_with_row_column(x,y)
+        do_something_with(x)
+        while x<y:
+            ...
+=-=
+for y in columns:
+    for x in generate_rows(some):
+        do_something_just_with_rows(x)
+        |do_something_with_row_column(x,y)
+        do_something_with(x)
+        while x<y:
+            ...
+=-=-=
+
+Name: Convolute with numeric arg t2
+
+=-=
+for y in columns:
+    begloop=1
+    with TempParams:
+        |begwith=1
+        while True:
+            ...
+        endwith=2
+    endloop=2
+=-=
+with TempParams:
+    for y in columns:
+        begloop=1
+        |begwith=1
+        while True:
+            ...
+        endwith=2
+        endloop=2
 =-=-=

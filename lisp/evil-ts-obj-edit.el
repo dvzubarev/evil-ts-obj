@@ -967,26 +967,40 @@ topmost statments."
     (evil-ts-obj-edit--cleanup)))
 
 
-(defun evil-ts-obj-edit--convolute ()
+
+
+(defun evil-ts-obj-edit--convolute (&optional count)
   "Swap parent node with the grandparent node for the current text node.
 See `evil-ts-obj-edit--convolute-impl' for the implementation
-details."
+details. When COUNT is set and is greater than 1, also select
+COUNT siblings of the current text node."
   (evil-ts-obj-edit--cleanup)
   (unwind-protect
-      (when-let* ((lang (treesit-language-at (point)))
+      (when-let* ((count (or count 1))
+                  (lang (treesit-language-at (point)))
                   (conv-rules-func (plist-get evil-ts-obj-conf-convolute-rules lang))
                   (text-rules-alist (funcall conv-rules-func 'text))
                   (text-things (evil-ts-obj-edit--thing-from-rules text-rules-alist))
                   (text-spec (evil-ts-obj--make-spec text-rules-alist 'op))
                   (text-range (evil-ts-obj--get-text-obj-range (point) text-things text-spec nil t))
+                  (text-thing (plist-get evil-ts-obj--last-text-obj-spec :thing))
                   (text-node (caddr text-range))
+                  (text-range (if (> count 1)
+                                  (list (car text-range)
+                                        (cadr
+                                         (or
+                                          (evil-ts-obj--get-text-obj-range
+                                           (evil-ts-obj--find-matching-sibling
+                                            text-node text-thing 'next text-things (1- count))
+                                           text-things text-spec)
+                                          text-range)))
+                                text-range))
                   (parent-rules-alist (funcall conv-rules-func 'parent))
                   (parent-candidate-thing (evil-ts-obj-edit--thing-from-rules parent-rules-alist))
                   (parent-spec (evil-ts-obj--make-spec parent-rules-alist 'op))
                   (parent-range (evil-ts-obj--get-text-obj-range (point) parent-candidate-thing
-                                                                 parent-spec text-range t))
+                                                                 parent-spec text-range))
                   (parent-thing (plist-get evil-ts-obj--last-text-obj-spec :thing))
-                  (parent-node (caddr parent-range))
                   (grandparent-range (evil-ts-obj--get-text-obj-range (point) parent-candidate-thing
                                                                       parent-spec parent-range))
                   ;; grandparent and parent should be the same thing

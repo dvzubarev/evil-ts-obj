@@ -1048,3 +1048,41 @@ l.push_back(pred() ? |call1() : l.push_back(call2()));
 #+BEGIN_HTML
 </td> </tr> </table>
 #+END_HTML
+
+
+#+BEGIN_HTML
+<table border="0"> <tr>
+<td>Original<img width="260" height="1"></td>
+<td>After <b>9 M-x evil-ts-obj-convolute</b><img width="260" height="1"></td>
+</tr> <tr> <td>
+#+END_HTML
+
+#+begin_src python
+for y in columns:
+    begloop=1
+    with TempParams:
+        |begwith=1
+        while True:
+            ...
+        endwith=2
+    endloop=2
+#+end_src
+
+#+BEGIN_HTML
+</td><td>
+#+END_HTML
+
+#+begin_src python
+with TempParams:
+    for y in columns:
+        begloop=1
+        |begwith=1
+        while True:
+            ...
+        endwith=2
+        endloop=2
+#+end_src
+
+#+BEGIN_HTML
+</td> </tr> </table>
+#+END_HTML
