@@ -26,9 +26,14 @@
 (require 'evil-ts-obj-util)
 
 
+(defvar evil-ts-obj--command-num 0)
 (defvar-local evil-ts-obj--last-text-obj-spec nil)
 (defvar-local evil-ts-obj--last-text-obj-range nil)
 (defvar-local evil-ts-obj--last-traversed-sibling nil)
+
+
+(defun evil-ts-obj--pre-command ()
+  (cl-incf evil-ts-obj--command-num))
 
 (defun evil-ts-obj--root-at (pos)
   "Return root node at the given `POS'."
@@ -376,7 +381,7 @@ do not update `evil-ts-obj--last-text-obj-range' variable."
                 r
               (evil-ts-obj--default-range node current-spec))))
       (unless dont-set-last
-        (setq evil-ts-obj--last-text-obj-spec current-spec
+        (setq evil-ts-obj--last-text-obj-spec (plist-put current-spec :cmd-num evil-ts-obj--command-num)
               evil-ts-obj--last-text-obj-range (copy-sequence range)))
       range)))
 
@@ -451,6 +456,22 @@ If `RETURN-NODE' is t, return cons of range and the treesit node."
         (setq range (funcall finalizer evil-ts-obj--last-text-obj-spec range)))
       (append range (when (and range return-node) (list node))))))
 
+(defun evil-ts-obj--last-range-of-this-cmd (&optional return-spec)
+  "Return range plist of the last text object created during this command.
+When RETURN-SPEC is t, return the spec plist object. If no text
+objects were created during this command returns nil."
+  (when (eql (plist-get evil-ts-obj--last-text-obj-spec :cmd-num)
+             evil-ts-obj--command-num)
+    (if return-spec
+        evil-ts-obj--last-text-obj-spec
+      evil-ts-obj--last-text-obj-range)))
+
+(defun evil-ts-obj--last-thing-of-this-cmd (&optional fallback)
+  "Return thing of the last text object created during this command.
+If no text objects were created returns FALLBACK. If FALLBACK is
+nil returns symbol \\='opaque."
+  (or (plist-get (evil-ts-obj--last-range-of-this-cmd t) :thing)
+      (or fallback 'opaque)))
 
 ;;; Movement
 

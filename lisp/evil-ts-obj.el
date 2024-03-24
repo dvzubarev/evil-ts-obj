@@ -55,10 +55,12 @@
   :group 'evil-ts-obj
   :lighter ""
 
-  (when evil-ts-obj-mode
-    (let ((lang (evil-ts-obj--guess-lang-from-mode)))
-      (evil-ts-obj--maybe-create-parser lang)
-      (funcall (intern (format "evil-ts-obj-%s-setup-things" lang))))))
+  (if evil-ts-obj-mode
+      (let ((lang (evil-ts-obj--guess-lang-from-mode)))
+        (evil-ts-obj--maybe-create-parser lang)
+        (funcall (intern (format "evil-ts-obj-%s-setup-things" lang)))
+        (add-hook 'pre-command-hook #'evil-ts-obj--pre-command 50 t))
+    (remove-hook 'pre-command-hook #'evil-ts-obj--pre-command t)))
 
 
 (require 'evil-ts-obj-evil)

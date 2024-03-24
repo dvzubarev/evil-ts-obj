@@ -295,6 +295,26 @@ if |i < 8 and i > 0:
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-raise)
+    (apply #'evil-ts-obj-raise (evil-ts-obj-compound-inner)))
+
+Name: Raise compound inner t1
+
+=-=
+try:
+    i, j = call()
+    |i = 3
+except Exception as e:
+    pass
+=-=
+|i, j = call()
+i = 3
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
     (apply #'evil-ts-obj-raise (evil-ts-obj-param-inner)))
 
 Name: Raise param inner t1
@@ -443,7 +463,7 @@ Name: Raise with simple text object t2
 for v1 in l(v1, v|3=(1,3)):
     pass
 =-=
-for v1 in l(|v3):
+for v1 in |v3:
     pass
 =-=-=
 
@@ -2298,6 +2318,7 @@ Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
     (apply #'evil-ts-obj-extract-up (evil-ts-obj-compound-inner))
+    (cl-incf evil-ts-obj--command-num)
     (apply #'evil-ts-obj-inject-up (evil-ts-obj-last-range))
     (delete-trailing-whitespace))
 
