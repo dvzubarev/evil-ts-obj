@@ -483,8 +483,7 @@ implemented via replace operator."
                     (node (caddr place-range))
                     (parent node))
           (cl-dotimes (_ (1- count))
-            (if (setq parent (treesit-parent-until
-                              node (lambda (n) (treesit-node-match-p n place-thing t))))
+            (if (setq parent (treesit-parent-until node place-thing))
                 (setq node parent)
               (cl-return node)))
           (setq place-range (evil-ts-obj--get-text-obj-range node place-thing place-spec)))
@@ -586,9 +585,7 @@ PLACE-THINGS are possible things of a place-node."
                         place-things
                       (append place-things '(compound))))
             (parent-spec (evil-ts-obj--make-spec 'compound 'op 'inner))
-            (place-parent (treesit-parent-until
-                           place-node
-                           (lambda (n) (treesit-node-match-p n things t)))))
+            (place-parent (treesit-parent-until place-node things)))
 
       (when-let* ((parent-thing (evil-ts-obj--current-thing place-parent things))
                   ((eq parent-thing 'compound))
@@ -640,9 +637,7 @@ select Nth parent."
                 (setq place-range nil))
 
               ;; Place is not valid or iter < count, so keep searching place-node
-              (setq place-node (treesit-parent-until
-                                place-node
-                                (lambda (n) (treesit-node-match-p n place-thing t))))
+              (setq place-node (treesit-parent-until place-node place-thing))
               (when place-node
                 (setq place-range
                       (evil-ts-obj--get-text-obj-range place-node place-thing place-spec))))))

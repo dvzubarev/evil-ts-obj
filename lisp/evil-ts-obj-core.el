@@ -207,9 +207,7 @@ returns the largest node that ends before `POS'. It returns nil
 if no thing can be found (e.g. empty line)."
 
   (let* ((cursor (evil-ts-obj--node-at-or-around pos))
-         (pred (lambda (node)
-                      (treesit-node-match-p node thing t)))
-         (enclosing-node (treesit-parent-until cursor pred t))
+         (enclosing-node (treesit-parent-until cursor thing t))
          (before-cursor (and enclosing-node
                              (< pos (treesit-node-start enclosing-node))))
          (after-cursor (and enclosing-node
@@ -218,13 +216,13 @@ if no thing can be found (e.g. empty line)."
     (cond
      (before-cursor
       (while (and
-              (setq cursor (treesit-parent-until enclosing-node pred))
+              (setq cursor (treesit-parent-until enclosing-node thing))
               (when (= (treesit-node-start enclosing-node)
                        (treesit-node-start cursor))
                 (setq enclosing-node cursor)))))
      (after-cursor
       (while (and
-              (setq cursor (treesit-parent-until cursor pred))
+              (setq cursor (treesit-parent-until cursor thing))
               (when (= (treesit-node-end enclosing-node)
                        (treesit-node-end cursor))
                 (setq enclosing-node cursor))))))
@@ -232,9 +230,9 @@ if no thing can be found (e.g. empty line)."
     (evil-ts-obj--propagate-to-identical-parent
      (or enclosing-node
          (unless dont-step-forward
-           (treesit--thing-next pos thing))
+           (treesit-thing-next pos thing))
          ;; last chance; point may be inside empty compound...
-         (when-let* ((node (treesit-parent-until (treesit-node-at pos) pred t))
+         (when-let* ((node (treesit-parent-until (treesit-node-at pos) thing t))
                      ((not (and dont-step-forward
                                 (< pos (treesit-node-start node))))))
            node))
@@ -447,8 +445,7 @@ If `RETURN-NODE' is t, return cons of range and the treesit node."
                         (while (and cur-range
                                     (<= bound-start (car cur-range))
                                     (<= (cadr cur-range) bound-end))
-                          (setq node (treesit-parent-until
-                                      node (lambda (n) (treesit-node-match-p n thing t)))
+                          (setq node (treesit-parent-until node thing)
                                 cur-range (evil-ts-obj--apply-modifiers node thing spec)))
                         cur-range)
                     (evil-ts-obj--apply-modifiers node thing spec))))
@@ -487,8 +484,7 @@ beginning, move to the beginning of the parent thing."
     ;; jump to beginning of a parent.
     ;; Take into consideration that parent may start on the same position as the child.
     (while-let (((<= (point) (car range)))
-                (parent-node (treesit-parent-until
-                              node (lambda (n) (treesit-node-match-p n thing t)))))
+                (parent-node (treesit-parent-until node thing)))
       (setq node parent-node
             range (evil-ts-obj--get-text-obj-range parent-node thing spec)))
     (when range
@@ -504,8 +500,7 @@ end, move to the end of the parent thing."
               (node (evil-ts-obj--thing-around (point) thing))
               (range (evil-ts-obj--get-text-obj-range node thing spec)))
     (while-let (((<= (1- (cadr range)) (point)))
-                (parent-node (treesit-parent-until
-                              node (lambda (n) (treesit-node-match-p n thing t)))))
+                (parent-node (treesit-parent-until node thing)))
       (setq node parent-node
             range (evil-ts-obj--get-text-obj-range parent-node thing spec)))
 
@@ -550,7 +545,7 @@ range according to provided `SPEC'."
     (if (null init-enclosing-node)
         ;; it seems we are outside of any thing at the top level
         ;; just try to move forward
-        (setq next (treesit--thing-next init-pos thing)
+        (setq next (treesit-thing-next init-pos thing)
               range (evil-ts-obj--get-text-obj-range next thing spec))
 
       ;; Try to move to next thing from pos.
@@ -561,7 +556,7 @@ range according to provided `SPEC'."
                       ;; the current position
                       (<= (car range) init-pos))
                   (< pos (point-max)))
-        (setq next (treesit--thing-next pos thing)
+        (setq next (treesit-thing-next pos thing)
               range (evil-ts-obj--get-text-obj-range next thing spec)
               parent (treesit-node-parent parent)
               pos (treesit-node-end parent))))
@@ -631,7 +626,7 @@ INIT-ENCLOSING-NODE if no previous thing exists."
     (if (null init-enclosing-node)
         ;; it seems we are outside of any thing at the top level
         ;; just try to move backward
-        (setq prev (treesit--thing-prev init-pos thing)
+        (setq prev (treesit-thing-prev init-pos thing)
               range (evil-ts-obj--get-text-obj-range prev thing spec))
 
       (while (and (or (null range)
@@ -641,13 +636,12 @@ INIT-ENCLOSING-NODE if no previous thing exists."
                       (<= init-pos (car range)))
                   (< (point-min) pos))
         ;; trying to get previous thing
-        (setq prev (treesit--thing-prev pos thing))
+        (setq prev (treesit-thing-prev pos thing))
 
         (when (null prev)
           ;; try to step up till we move from the start position of current enclosing node
           ;; make one step per iteration
-          (setq parent (treesit-parent-until
-                        parent (lambda (n) (treesit-node-match-p n thing t)))
+          (setq parent (treesit-parent-until parent thing)
                 prev parent
                 pos (or (treesit-node-start prev) 0)))
         (setq range (evil-ts-obj--get-text-obj-range prev thing spec))))

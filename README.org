@@ -26,11 +26,11 @@ Key features:
 * Installation
 ** Emacs and tree-sitter installation
 Firstly, install tree-sitter library.
-You have to use fairly recent version that is not released yet (specifically the version after 6d1904c221d15d2fcbe0b590ff0a3f96c692429f).
+You have to use fairly recent version (specifically the version after 6d1904c221d15d2fcbe0b590ff0a3f96c692429f).
 #+begin_src bash
 git clone https://github.com/tree-sitter/tree-sitter.git
 cd tree-sitter
-git checkout 660481dbf71413eba5a928b0b0ab8da50c1109e0
+git checkout 25c7189180849be27b1e552d27f0488e3bd5900d
 make
 sudo make install
 sudo ldconfig
@@ -40,7 +40,7 @@ Install Emacs 30.0.50 from sources.
 #+begin_src bash
 git clone --no-tags --single-branch --filter=blob:none  https://github.com/mirrors/emacs.git emacs-30
 cd emacs-30
-git checkout b37676642679a9ec3cd3b995cd14a4af3567cf80
+git checkout b22ab99f0a85f73a1aec582f7aba0e6b5101b953
 ./configure --with-tree-sitter --add-flags-to-your-liking
 make
 sudo make install
