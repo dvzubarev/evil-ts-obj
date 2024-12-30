@@ -1,0 +1,946 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-drag-up 1))
+
+Name: drag up t1
+
+=-=
+struct S1 {}
+
+impl S1 {
+    fn func1(self, i: usize, j: usize) -> usize {
+        return i + j;
+    }
+    fn |func2() {}
+}
+=-=
+struct S1 {}
+
+impl S1 {
+    |fn func2() {}
+    fn func1(self, i: usize, j: usize) -> usize {
+        return i + j;
+    }
+}
+=-=-=
+
+Name: drag up t2
+
+=-=
+fn func () {
+   let i = 3;
+   |call(i);
+}
+=-=
+fn func () {
+   |call(i);
+   let i = 3;
+}
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-clone-after-dwim))
+
+Name: Clone after dwim t1
+
+=-=
+while true { 
+    |i += 1;
+}
+=-=
+while true { 
+    |i += 1;
+    i += 1;
+}
+=-=-=
+
+Name: Clone after dwim t2
+
+=-=
+|while true { 
+    i += 1;
+}
+=-=
+|while true { 
+    i += 1;
+}
+while true { 
+    i += 1;
+}
+=-=-=
+
+Name: Clone after dwim t3
+
+=-=
+struct |St<T> {}
+=-=
+struct |St<T> {}
+struct St<T> {}
+=-=-=
+
+Name: Clone after dwim t4
+
+=-=
+struct St<T, |U> {}
+=-=
+struct St<T, |U, U> {}
+=-=-=
+
+Name: Clone after dwim t5
+Skip: t
+
+=-=
+if |opts && (!i || i < 0 < 3) && t.call() || true  {
+}
+=-=
+if |opts && opts && (!i || i < 0 < 3) && t.call() || true  {
+}
+=-=-=
+
+Name: Clone after dwim t6
+Skip: t
+
+=-=
+if opts && |(!i || i < 0 < 3) && t.call() || true  {
+}
+=-=
+if |opts && |(!i || i < 0 < 3) && (!i || i < 0 < 3) && t.call() || true  {
+}
+=-=-=
+
+Name: Clone after dwim t7
+Skip: t
+
+=-=
+if |opts && (!i || i < 0 < 3) && t.call() || |true  {
+}
+=-=
+if |opts && (!i || i < 0 < 3) && t.call() || |true || true  {
+}
+=-=-=
+
+Name: Clone after dwim t8
+
+=-=
+if true {
+    let comp = true && false && |call();
+}
+=-=
+if true {
+    let comp = true && false && |call() && call();
+}
+=-=-=
+
+Name: Clone after dwim t9
+Skip: t
+
+=-=
+if true {
+    let comp = |true && false && call();
+}
+=-=
+if true {
+    let comp = |true && true && false && call();
+}
+=-=-=
+
+Name: Clone after dwim t10
+
+=-=
+if true {
+    |let comp = true && false && call();
+    call2();
+}
+=-=
+if true {
+    |let comp = true && false && call();
+    let comp = true && false && call();
+    call2();
+}
+=-=-=
+
+Name: Clone after dwim t11
+
+=-=
+if true {
+    let comp = true && false;
+    |res = sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=
+if true {
+    let comp = true && false;
+    |res = sort(items_hld, comp);
+    res = sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=-=
+Name: Clone after dwim t12
+
+=-=
+if true {
+    let comp = true && false;
+    res = |sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=
+if true {
+    let comp = true && false;
+    res = |sort(items_hld, comp) sort(items_hld, comp);
+    items_hld.props.sorted.by_key = true;
+}
+=-=-=
+
+Name: Clone after dwim t13
+
+=-=
+if true {
+    let comp = true && false;
+    |call(comp);
+}
+=-=
+if true {
+    let comp = true && false;
+    |call(comp);
+    call(comp);
+}
+=-=-=
+
+Name: Clone after dwim t14
+
+=-=
+if true {
+    let comp = true && false;
+   | call(comp);
+}
+=-=
+if true {
+    let comp = true && false;
+   | call(comp);
+    call(comp);
+}
+=-=-=
+
+Name: Clone after dwim t15
+
+=-=
+if true {
+    let comp = |call() + 1;
+    return comp;
+}
+=-=
+if true {
+    let comp = |call() call() + 1;
+    return comp;
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-extract-up-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Extract dwim up t1
+
+=-=
+fn f() {
+    if |i > 0 {
+        i -= 1;
+    } else {
+        i += 2;
+    }
+}
+=-=
+fn f() {
+    |i > 0
+    if  {
+        i -= 1;
+    } else {
+        i += 2;
+    }
+}
+=-=-=
+
+Name: Extract dwim up t2
+
+=-=
+fn f() {
+    if i > 0 {
+        |i -= 1;
+    } else {
+        i += 2;
+    }
+}
+=-=
+fn f() {
+    |i -= 1;
+    if i > 0 {
+
+    } else {
+        i += 2;
+    }
+}
+=-=-=
+
+Name: Extract dwim up t3
+
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } else {
+        |i += 2;
+    }
+}
+=-=
+fn f() {
+    |i += 2;
+    if i > 0 {
+        i -= 1;
+    } else {
+
+    }
+}
+=-=-=
+
+Name: Extract dwim up t4
+
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } |else {
+        i += 2;
+    }
+}
+=-=
+fn f() {
+    |else {
+        i += 2;
+    }
+    if i > 0 {
+        i -= 1;
+    }
+}
+=-=-=
+
+Name: Extract dwim up t5
+
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } else |if i < 0 {
+        i += 1;
+        println!();
+    } else {
+        i += 2;
+    }
+}
+=-=
+fn f() {
+    |if i < 0 {
+        i += 1;
+        println!();
+    } else {
+        i += 2;
+    }
+    if i > 0 {
+        i -= 1;
+    } else {}
+}
+=-=-=
+
+Name: Extract dwim up t6
+
+=-=
+fn f() {
+    {
+        |let a = 5;
+    }
+}
+=-=
+fn f() {
+    |let a = 5;
+    {
+
+    }
+}
+=-=-=
+
+Name: Extract dwim up t7
+
+=-=
+fn f() {
+    let a = {
+      |i += 1;
+      5
+    }
+}
+=-=
+fn f() {
+    |i += 1;
+    let a = {
+
+      5
+    }
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-extract-up-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Extract dwim up two levels t1
+
+=-=
+fn f() {
+    if |i > 0 {
+        i -= 1;
+    } else {
+        i += 2;
+    }
+}
+=-=
+|i > 0
+fn f() {
+    if  {
+        i -= 1;
+    } else {
+        i += 2;
+    }
+}
+=-=-=
+
+Name: Extract dwim up two levels t2
+
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } else |if i < 0 {
+        i += 1;
+        println!();
+    } else {
+        i += 2;
+    }
+}
+=-=
+|if i < 0 {
+        i += 1;
+        println!();
+    } else {
+        i += 2;
+    }
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } else {}
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-extract-down-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Extract dwim down t1
+
+=-=
+fn f() {
+    if |i > 0 {
+        i -= 1;
+    } else {
+        i += 2;
+    }
+}
+=-=
+fn f() {
+    if  {
+        i -= 1;
+    } else {
+        i += 2;
+    }
+    |i > 0
+}
+=-=-=
+
+Name: Extract dwim down t2
+
+=-=
+fn f() {
+    if i > 0 {
+        |i -= 1;
+    } else {
+        i += 2;
+    }
+}
+=-=
+fn f() {
+    if i > 0 {
+
+    } else {
+        i += 2;
+    }
+    |i -= 1;
+}
+=-=-=
+
+Name: Extract dwim down t3
+
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } else {
+        |i += 2;
+    }
+}
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } else {
+
+    }
+    |i += 2;
+}
+=-=-=
+
+Name: Extract dwim down t4
+
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } |else {
+        i += 2;
+    }
+}
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    }
+    |else {
+        i += 2;
+    }
+}
+=-=-=
+
+Name: Extract dwim down t5
+
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } else |if i < 0 {
+        i += 1;
+        println!();
+    } else {
+        i += 2;
+    }
+}
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } else {}
+    |if i < 0 {
+        i += 1;
+        println!();
+    } else {
+        i += 2;
+    }
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-extract-down-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Extract dwim down two levels t1
+
+=-=
+fn f() {
+    if |i > 0 {
+        i -= 1;
+    } else {
+        i += 2;
+    }
+}
+=-=
+fn f() {
+    if  {
+        i -= 1;
+    } else {
+        i += 2;
+    }
+}
+|i > 0
+=-=-=
+
+Name: Extract dwim down two levels t2
+
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } else |if i < 0 {
+        i += 1;
+        println!();
+    } else {
+        i += 2;
+    }
+}
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+    } else {}
+}
+|if i < 0 {
+        i += 1;
+        println!();
+    } else {
+        i += 2;
+    }
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-inject-down-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Inject down dwim  t1
+
+=-=
+fn f() {
+    |let i = 3;
+    if i > 0 {
+        i -= 1;
+    }
+    if true {}
+}
+=-=
+fn f() {
+
+    if i > 0 {
+        |let i = 3;
+        i -= 1;
+    }
+    if true {}
+}
+=-=-=
+
+Name: Inject down dwim  t2
+
+=-=
+fn f() {
+    |let mut i = 3;
+    i += 1;
+
+    if (i > 0){
+        i--;
+    }
+}
+=-=
+fn f() {
+
+    i += 1;
+
+    if (i > 0){
+        |let mut i = 3;
+        i--;
+    }
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-inject-down-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Inject down dwim two levels t1
+
+=-=
+fn f() {
+    |let i = 3;
+    if i > 0 {
+        while i < 5 {
+            i -= 1;
+        }
+    }
+}
+=-=
+fn f() {
+
+    if i > 0 {
+        while i < 5 {
+            |let i = 3;
+            i -= 1;
+        }
+    }
+}
+=-=-=
+
+Name: Inject down dwim two levels t2
+
+=-=
+fn f() {
+    |let i = 3;
+    if i > 0 {
+        i = call(i);
+        while i < 5 {
+            i -= 1;
+        }
+    }
+}
+=-=
+fn f() {
+
+    if i > 0 {
+        i = call(i);
+        while i < 5 {
+            |let i = 3;
+            i -= 1;
+        }
+    }
+}
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-inject-up-dwim 1)
+    (delete-trailing-whitespace))
+
+Name: Inject up dwim  t1
+
+=-=
+fn f() {
+    i += 1;
+    if i > 0 {
+        i -= 1;
+    }
+    |i = 3;
+}
+=-=
+fn f() {
+    i += 1;
+    if i > 0 {
+        i -= 1;
+        |i = 3;
+    }
+
+}
+=-=-=
+
+Name: Inject up dwim  t2
+
+=-=
+fn f() {
+    if i > 3 {
+        i -= 1;
+    }
+    i += 1;
+    if i > 0 {
+        i -= 1;
+    }
+    i += 1;
+    |i = 3;
+}
+=-=
+fn f() {
+    if i > 3 {
+        i -= 1;
+    }
+    i += 1;
+    if i > 0 {
+        i -= 1;
+        |i = 3;
+    }
+    i += 1;
+
+}
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-inject-up-dwim 2)
+    (delete-trailing-whitespace))
+
+Name: Inject up dwim two levels t1
+
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+        if i > 3 {
+            i -= 1;
+            i -= 1;
+        }
+    }
+    i += 1;
+    |i = 3;
+}
+=-=
+fn f() {
+    if i > 0 {
+        i -= 1;
+        if i > 3 {
+            i -= 1;
+            i -= 1;
+            |i = 3;
+        }
+    }
+    i += 1;
+
+}
+=-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-slurp 1)
+    (delete-trailing-whitespace))
+
+Name: Slurp t1
+
+=-=
+fn f() {
+    i += 1;
+    if i > 0 {
+       | i -= 1;
+    }
+    i = 3;
+}
+=-=
+fn f() {
+    i += 1;
+    if i > 0 {
+       | i -= 1;
+        i = 3;
+    }
+
+}
+=-=-=
+
+Name: Slurp t3
+
+=-=
+fn f() {
+    i += 1;
+    |if i > 0 {
+        i -= 1;
+    }
+    i = 3;
+}
+=-=
+fn f() {
+
+    |if i > 0 {
+        i += 1;
+        i -= 1;
+    }
+    i = 3;
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-barf 1)
+    (delete-trailing-whitespace))
+
+Name: Barf t1
+
+=-=
+fn f() {
+    i += 1;
+    if i > 0 {
+        |i -= 1;
+        i = 3;
+    }
+}
+=-=
+fn f() {
+    i += 1;
+    if i > 0 {
+        |i -= 1;
+
+    }
+    i = 3;
+}
+=-=-=
+
+Name: Barf t3
+
+=-=
+fn f() {
+    |if i > 0 {
+       i += 1;
+       i -= 1;
+    }
+    i = 3;
+}
+=-=
+fn f() {
+    i += 1;
+    |if i > 0 {
+
+       i -= 1;
+    }
+    i = 3;
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-convolute 1)
+    (delete-trailing-whitespace))
+
+
+Name: Convolute statements t2
+
+=-=
+while true {
+    let temp = value;
+    if reply && temp {
+        |ReplyWithCallReply(ctx, reply);
+        MODULE_OK
+    } else {
+        WithError(ctx, "ERR")
+    }
+}
+
+=-=
+if reply && temp {
+    while true {
+        let temp = value;
+        |ReplyWithCallReply(ctx, reply);
+    }
+    MODULE_OK
+} else {
+    WithError(ctx, "ERR")
+}
+=-=-=

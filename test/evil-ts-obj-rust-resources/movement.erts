@@ -1,0 +1,81 @@
+Point-Char: |
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-previous-sibling))
+
+Name: Move to previous largest t1
+
+=-=
+fn func1(T t, U u) {
+    ()
+}
+
+|fn func2(T t, U u) {
+    ()
+}
+=-=
+|fn func1(T t, U u) {
+    ()
+}
+
+fn func2(T t, U u) {
+    ()
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-next-sibling))
+
+Name: Move to next largest t1
+
+=-=
+|fn func2(){
+    ()
+}
+
+struct St {}
+=-=
+fn func2(){
+    ()
+}
+
+|struct St {}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-beginning-of-thing))
+
+Name: Move to beginning of t1
+
+=-=
+fn func2(){
+|
+}
+=-=
+|fn func2(){
+
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (evil-ts-obj-end-of-thing))
+
+Name: Move to end of t1
+
+=-=
+fn func2(){
+|
+}
+=-=
+fn func2(){
+
+|}
+=-=-=
