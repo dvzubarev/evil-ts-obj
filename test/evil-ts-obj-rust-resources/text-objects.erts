@@ -539,3 +539,49 @@ struct S {
     |f3: i32,
 }
 =-=-=
+
+Name: Delete statement outer t11
+
+=-=
+enum E {
+    Variant1,
+    |Variant2(usize, i32),
+    Variant3 { a: usize, b: i32 },
+}
+=-=
+enum E {
+    Variant1,
+    |Variant3 { a: usize, b: i32 },
+}
+=-=-=
+
+Name: Delete statement outer t12
+
+=-=
+enum E {
+    Variant1,
+    Variant2(usize, i32),
+    |Variant3 { a: usize, b: i32 },
+}
+=-=
+enum E {
+    Variant1,
+    Variant2(usize, i32),|
+}
+=-=-=
+
+Name: Delete statement outer t13
+
+=-=
+enum E {
+    Variant1,
+    Variant2(usize, i32),
+    Variant3 { |a: usize, b: i32 },
+}
+=-=
+enum E {
+    Variant1,
+    Variant2(usize, i32),
+    Variant3 { |b: i32 },
+}
+=-=-=

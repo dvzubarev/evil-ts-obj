@@ -39,7 +39,8 @@
     "let_declaration"
     "expression_statement"
     "return_expression"
-    "call_expression")
+    "call_expression"
+    "enum_variant")
   "Nodes that designate simple statement in rust."
   :type '(repeat string)
   :group 'evil-ts-obj
