@@ -524,3 +524,18 @@ i = |5 * 2;
 =-=
 i = |;
 =-=-=
+
+Name: Delete statement outer t10
+
+=-=
+struct S {
+    f1: i32,
+|    f2: i32,
+    f3: i32,
+}
+=-=
+struct S {
+    f1: i32,
+    |f3: i32,
+}
+=-=-=

@@ -46,7 +46,7 @@
   :set #'evil-ts-obj-conf-nodes-setter)
 
 (defcustom evil-ts-obj-rust-statement-seps
-  '("&&" "||")
+  '("&&" "||" ",")
   "Separators for rust statements."
   :type '(repeat string)
   :group 'evil-ts-obj)
