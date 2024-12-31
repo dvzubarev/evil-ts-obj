@@ -585,3 +585,76 @@ enum E {
     Variant3 { |b: i32 },
 }
 =-=-=
+
+Name: Delete statement outer t14
+
+=-=
+trait T {
+    |type A;
+
+    fn f(&self) -> Self;
+
+    fn g(&self) {
+        println!("{}", self.f());
+    }
+}
+=-=
+trait T {
+    |
+
+    fn f(&self) -> Self;
+
+    fn g(&self) {
+        println!("{}", self.f());
+    }
+}
+=-=-=
+
+Name: Delete statement outer t15
+
+=-=
+trait T {
+    type A;
+
+    |fn f(&self) -> Self;
+
+    fn g(&self) {
+        println!("{}", self.f());
+    }
+}
+=-=
+trait T {
+    type A;
+
+    |
+
+    fn g(&self) {
+        println!("{}", self.f());
+    }
+}
+=-=-=
+
+Name: Delete statement outer t16
+
+=-=
+trait T {
+    type A;
+
+    fn f(&self) -> Self;
+
+    |fn g(&self) {
+        println!("{}", self.f());
+    }
+}
+=-=
+trait T {
+    type A;
+
+    fn f(&self) -> Self;
+
+    fn g(&self) {
+        |
+    }
+}
+=-=-=
+

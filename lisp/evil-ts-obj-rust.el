@@ -40,7 +40,9 @@
     "expression_statement"
     "return_expression"
     "call_expression"
-    "enum_variant")
+    "enum_variant"
+    "function_signature_item"
+    "associated_type")
   "Nodes that designate simple statement in rust."
   :type '(repeat string)
   :group 'evil-ts-obj
