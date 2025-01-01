@@ -524,3 +524,137 @@ i = |5 * 2;
 =-=
 i = |;
 =-=-=
+
+Name: Delete statement outer t10
+
+=-=
+struct S {
+    f1: i32,
+|    f2: i32,
+    f3: i32,
+}
+=-=
+struct S {
+    f1: i32,
+    |f3: i32,
+}
+=-=-=
+
+Name: Delete statement outer t11
+
+=-=
+enum E {
+    Variant1,
+    |Variant2(usize, i32),
+    Variant3 { a: usize, b: i32 },
+}
+=-=
+enum E {
+    Variant1,
+    |Variant3 { a: usize, b: i32 },
+}
+=-=-=
+
+Name: Delete statement outer t12
+
+=-=
+enum E {
+    Variant1,
+    Variant2(usize, i32),
+    |Variant3 { a: usize, b: i32 },
+}
+=-=
+enum E {
+    Variant1,
+    Variant2(usize, i32),|
+}
+=-=-=
+
+Name: Delete statement outer t13
+
+=-=
+enum E {
+    Variant1,
+    Variant2(usize, i32),
+    Variant3 { |a: usize, b: i32 },
+}
+=-=
+enum E {
+    Variant1,
+    Variant2(usize, i32),
+    Variant3 { |b: i32 },
+}
+=-=-=
+
+Name: Delete statement outer t14
+
+=-=
+trait T {
+    |type A;
+
+    fn f(&self) -> Self;
+
+    fn g(&self) {
+        println!("{}", self.f());
+    }
+}
+=-=
+trait T {
+    |
+
+    fn f(&self) -> Self;
+
+    fn g(&self) {
+        println!("{}", self.f());
+    }
+}
+=-=-=
+
+Name: Delete statement outer t15
+
+=-=
+trait T {
+    type A;
+
+    |fn f(&self) -> Self;
+
+    fn g(&self) {
+        println!("{}", self.f());
+    }
+}
+=-=
+trait T {
+    type A;
+
+    |
+
+    fn g(&self) {
+        println!("{}", self.f());
+    }
+}
+=-=-=
+
+Name: Delete statement outer t16
+
+=-=
+trait T {
+    type A;
+
+    fn f(&self) -> Self;
+
+    |fn g(&self) {
+        println!("{}", self.f());
+    }
+}
+=-=
+trait T {
+    type A;
+
+    fn f(&self) -> Self;
+
+    fn g(&self) {
+        |
+    }
+}
+=-=-=
+
