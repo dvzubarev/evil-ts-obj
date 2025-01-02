@@ -1409,6 +1409,21 @@ def main(v):
     call2('st')
 =-=-=
 
+Name: Clone after dwim t7
+
+=-=
+    @dec
+    |def main():
+        pass
+=-=
+    @dec
+    |def main():
+        pass
+    @dec
+    def main():
+        pass
+=-=-=
+
 
 Code:
   (lambda ()
