@@ -257,6 +257,22 @@ text-on-eol, text-last-line-empty, text-last-char."
         (text-last-line-empty . ,text-last-line-empty)
         (text-on-eol . ,newline-after-text)))))
 
+(defun evil-ts-obj-edit--handle-cloned-orig-text (text-range op-type)
+  "Finalize cloned text represented by TEXT-RANGE.
+TEXT-RANGE is the cons of markers. This function is meant to be invoked
+during clone edit operations. Values of OP-TYPE: nil, t, comment, safe.
+When OP-TYPE is nil text is left untouched.
+Otherwise some function is invoked on provided TEXT-RANGE:
+- safe: `evil-ts-obj-edit--delete-compound-inner',
+- comment: `comment-region',
+- t: `delete-region'."
+  (pcase-let ((`(,start . ,end) text-range))
+    (with-current-buffer (marker-buffer start)
+      (pcase op-type
+        ('safe (evil-ts-obj-edit--delete-compound-inner text-range))
+        ('comment (comment-region start end))
+        ('t (delete-region start end))))))
+
 (defun evil-ts-obj-edit--clone-after (text-range place-range &optional delete-range)
   "Copy content of TEXT-RANGE to the position after PLACE-RANGE.
 Return new range of the cloned content. If the end of the
@@ -266,15 +282,15 @@ the beginning of the PLACE-RANGE (see
 `evil-ts-obj-edit--clone-indent'). After this content of RANGE is
 inserted on the new line.
 
-Possible values of DELETE-RANGE are t, nil and safe symbol. If
-DELETE-RANGE is t delete content of RANGE. If its value is safe,
-then use `evil-ts-obj-edit--delete-compound-inner' function for
-range deletion."
+Possible values of DELETE-RANGE are t, nil and safe or comment symbols.
+See `evil-ts-obj-edit--handle-cloned-orig-text' for more information."
 
   (evil-ts-obj-edit--clone-check-ranges text-range place-range delete-range t)
   (let-alist (evil-ts-obj-edit--collect-text-feats text-range)
     (pcase-let ((`(,start . ,end) place-range)
-                (`(,text-start . ,text-end) text-range))
+                (`(,text-start . ,text-end) text-range)
+                (result-start (make-marker))
+                (result-end (make-marker)))
       (with-current-buffer (marker-buffer start)
         (let ((insert-pos (marker-position end))
               (place-last-char (char-after (1- end)))
@@ -326,17 +342,18 @@ range deletion."
                                      (evil-ts-obj-util--indent-text-according-to-point-pos text)
                                    text)))
               (insert indented-text)
-              ;; set inserted text range to place-range
-              (setf (car place-range) (set-marker start insert-pos)
-                    (cdr place-range) (set-marker end (+ insert-pos (length indented-text)))))))))
+              ;; Set markers here so they will be adjusted after handle-cloned-orig-text function.
+              (set-marker result-start insert-pos)
+              (set-marker result-end (+ insert-pos (length indented-text)))))))
 
-    (pcase-let ((`(,start . ,end) text-range))
-      (with-current-buffer (marker-buffer start)
-        (pcase delete-range
-          ('safe (evil-ts-obj-edit--delete-compound-inner text-range))
-          ('t (delete-region start end)))))
-    (list (marker-position (car place-range))
-          (marker-position (cdr place-range)))))
+      (evil-ts-obj-edit--handle-cloned-orig-text text-range delete-range)
+
+      ;; Return the range of newly inserted text.
+      (prog1
+          (list (marker-position result-start)
+                (marker-position result-end))
+        (set-marker result-start nil)
+        (set-marker result-end nil)))))
 
 (defun evil-ts-obj-edit--clone-before (text-range place-range &optional delete-range)
   "Copy content of TEXT-RANGE before the beginning of PLACE-RANGE.
@@ -347,23 +364,17 @@ to an indentation at the beginning of the PLACE-RANGE (see
 `evil-ts-obj-edit--clone-indent'). After this content of RANGE is
 inserted on the new line.
 
-Possible values of DELETE-RANGE are t, nil and safe symbol. If
-DELETE-RANGE is t delete content of RANGE. If its value is safe,
-then use `evil-ts-obj-edit--delete-compound-inner' function for
-range deletion."
+Possible values of DELETE-RANGE are t, nil and safe or comment symbols.
+See `evil-ts-obj-edit--handle-cloned-orig-text' for more information."
   (evil-ts-obj-edit--clone-check-ranges text-range place-range delete-range nil)
   (let-alist (evil-ts-obj-edit--collect-text-feats text-range)
     (pcase-let* ((`(,start . ,end) place-range)
                  (`(,text-start . ,text-end) text-range)
                  (text (if .text-starts-with-space
                            (buffer-substring-no-properties text-start text-end)
-                         (evil-ts-obj-util--extract-text text-start text-end))))
-      ;; delete text from original buffer
-      (with-current-buffer (marker-buffer text-start)
-        (pcase delete-range
-          ('safe (evil-ts-obj-edit--delete-compound-inner text-range))
-          ('t (delete-region text-start text-end))))
-
+                         (evil-ts-obj-util--extract-text text-start text-end)))
+                 (result-start (make-marker))
+                 (result-end (make-marker)))
       (with-current-buffer (marker-buffer start)
         (let ((insert-pos (marker-position start))
               (point-mark (copy-marker (max start (point)) t))
@@ -413,9 +424,20 @@ range deletion."
                                    (evil-ts-obj-util--indent-text-according-to-point-pos text)
                                  text)))
             (insert indented-text)
-            (goto-char point-mark)
-            (set-marker point-mark nil)
-            (list insert-pos (+ insert-pos (length indented-text)))))))))
+            ;; Set markers here so they will be adjusted after handle-cloned-orig-text function.
+            (set-marker result-start insert-pos)
+            (set-marker result-end (+ insert-pos (length indented-text))))
+
+
+          ;; Handle text from original buffer.
+          (evil-ts-obj-edit--handle-cloned-orig-text text-range delete-range)
+
+          (goto-char point-mark)
+          (set-marker point-mark nil)
+          (prog1
+              (list (marker-position result-start) (marker-position result-end))
+            (set-marker result-start nil)
+            (set-marker result-end nil)))))))
 
 
 ;;; Helper functions
@@ -430,7 +452,7 @@ range deletion."
 
 (defun evil-ts-obj-edit--cleanup (&optional second-range)
   (when evil-ts-obj-edit--saved-range
-    (evil-ts-obj-edit--release-markers (cdr evil-ts-obj-edit--saved-range))
+    (evil-ts-obj-edit--release-markers (nth 1 evil-ts-obj-edit--saved-range))
     (setq evil-ts-obj-edit--saved-range nil))
   (when second-range
     (evil-ts-obj-edit--release-markers second-range))
@@ -447,7 +469,7 @@ range deletion."
     (overlay-put o 'face evil-ts-obj-edit-highlight-face)
     (add-to-list 'evil-ts-obj-edit--overlays o)))
 
-(defun evil-ts-obj-edit--save-range-or-call-op (op-type start end op-func)
+(defun evil-ts-obj-edit--save-range-or-call-op (op-type start end op-func &rest args)
   "Helper function for two-staged operators.
 If invoked for the first time, saves START, END and OP-TYPE to
 the `evil-ts-obj-edit--saved-range'. If
@@ -460,19 +482,23 @@ by `evil-ts-obj-last-range'."
         (end-marker (copy-marker end nil)))
     (if (or (null evil-ts-obj-edit--saved-range)
             (not (eq op-type (car evil-ts-obj-edit--saved-range)))
-            (not (buffer-live-p (marker-buffer (cadr evil-ts-obj-edit--saved-range)))))
-        ;; first call with this op-type
+            (not (buffer-live-p (marker-buffer (car (nth 1 evil-ts-obj-edit--saved-range))))))
+        ;; It is the first call with this op-type.
         (progn
           (evil-ts-obj-edit--cleanup)
-          (setq evil-ts-obj-edit--saved-range (cons op-type (cons start-marker end-marker)))
-          (evil-ts-obj-edit--highlight-range start end))
-      ;; second call
+          (setq evil-ts-obj-edit--saved-range (list op-type (cons start-marker end-marker) args))
+          (evil-ts-obj-edit--highlight-range start end)
+          nil)
+      ;; The second call.
       (let ((second-markers (cons start-marker end-marker)))
         (unwind-protect
             (setq evil-ts-obj--last-text-obj-range
-                  (funcall op-func
-                           (cdr evil-ts-obj-edit--saved-range)
-                           second-markers))
+                  (apply op-func
+                         (nth 1 evil-ts-obj-edit--saved-range)
+                         second-markers
+                         (pcase args
+                           ((or '() '(nil)) (nth 2 evil-ts-obj-edit--saved-range))
+                           (_ args))))
           (evil-ts-obj-edit--cleanup second-markers))))))
 
 ;;; Operators
@@ -483,16 +509,34 @@ by `evil-ts-obj-last-range'."
 (defun evil-ts-obj-edit--swap-operator (start end)
   (evil-ts-obj-edit--save-range-or-call-op 'swap start end #'evil-ts-obj-edit--swap))
 
-(defun evil-ts-obj-edit--clone-after-operator (start end)
-  (evil-ts-obj-edit--save-range-or-call-op 'clone start end #'evil-ts-obj-edit--clone-after))
+(defun evil-ts-obj-edit--clone-after-operator (start end &optional comment?)
+  ""
+  (evil-ts-obj-edit--save-range-or-call-op
+   'clone start end
+   (lambda (r or dr)
+     (let ((res (evil-ts-obj-edit--clone-after r or dr)))
+       ;; Move point to the start of inserted text.
+       (when (eq dr 'comment)
+         (goto-char (car res)))
+       res))
+   (when comment? 'comment)))
 
 (defun evil-ts-obj-edit--teleport-after-operator (start end &optional del-type)
   (evil-ts-obj-edit--save-range-or-call-op
    'teleport start end
    (lambda (r or) (evil-ts-obj-edit--clone-after r or (or del-type t)))))
 
-(defun evil-ts-obj-edit--clone-before-operator (start end)
-  (evil-ts-obj-edit--save-range-or-call-op 'clone start end #'evil-ts-obj-edit--clone-before))
+(defun evil-ts-obj-edit--clone-before-operator (start end &optional comment?)
+  ""
+  (evil-ts-obj-edit--save-range-or-call-op
+   'clone start end
+   (lambda (r or dr)
+     (let ((res (evil-ts-obj-edit--clone-before r or dr)))
+       ;; Move point to the start of the inserted text.
+       (when (eq dr 'comment)
+         (goto-char (car res)))
+       res))
+   (when comment? 'comment)))
 
 (defun evil-ts-obj-edit--teleport-before-operator (start end &optional del-type)
   (evil-ts-obj-edit--save-range-or-call-op
@@ -510,8 +554,8 @@ implemented via replace operator."
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
 
-  ;; put current range to evil-ts-obj-edit--saved-range
-  ;; as if it is the first call to replace operator
+  ;; Put current range to `evil-ts-obj-edit--saved-range'
+  ;; as if it is the first call to replace operator.
   (evil-ts-obj-edit--save-range-or-call-op 'raise start end #'evil-ts-obj-edit--replace)
   (unwind-protect
       (when-let* ((lang (treesit-language-at (point)))
@@ -592,7 +636,7 @@ current text object with the Nth sibling."
 
 ;;;; Clone
 
-(defun evil-ts-obj-edit--clone-dwim-impl (after?)
+(defun evil-ts-obj-edit--clone-dwim-impl (after? &optional comment?)
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
   (unwind-protect
@@ -612,8 +656,8 @@ current text object with the Nth sibling."
                     (second-spec (evil-ts-obj--make-spec second-rules-alist 'op))
                     (sibling-range (evil-ts-obj--get-text-obj-range (point) second-thing second-spec)))
           (if after?
-              (evil-ts-obj-edit--clone-after-operator (car range) (cadr range))
-            (evil-ts-obj-edit--clone-before-operator (car range) (cadr range)))))
+              (evil-ts-obj-edit--clone-after-operator (car range) (cadr range) comment?)
+            (evil-ts-obj-edit--clone-before-operator (car range) (cadr range) comment?))))
     (evil-ts-obj-edit--cleanup)))
 
 

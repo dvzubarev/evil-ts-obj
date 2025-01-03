@@ -823,13 +823,37 @@ def main(v):
                     cv=13)
 =-=-=
 
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-after `(,@(evil-ts-obj-compound-outer) 4) )
+    (apply #'evil-ts-obj-clone-after (evil-ts-obj-compound-outer)))
+
+Name: Clone after and comment compound outer t1
+
+=-=
+def main(v):
+    |if v:
+        return call(v=v,
+                    cv=13)
+=-=
+def main(v):
+    # if v:
+    #     return call(v=v,
+    #                 cv=13)
+    |if v:
+        return call(v=v,
+                    cv=13)
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
     (apply #'evil-ts-obj-clone-after (evil-ts-obj-compound-outer))
     (apply #'evil-ts-obj-clone-after (evil-ts-obj-compound-inner)))
 
-Name: Clone after compound outer t2
+Name: Clone after compound inner t1
 
 =-=
 def main(v):
@@ -1059,6 +1083,32 @@ def main(v):
         return call(v=v,
                     cv=13)
 =-=-=
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-ts-obj-clone-before `(,@(evil-ts-obj-compound-outer) 4))
+    (apply #'evil-ts-obj-clone-before (evil-ts-obj-compound-outer)))
+
+Name: Clone before compound outer and comment t1
+
+=-=
+def main(v):
+    |if v:
+        return call(v=v,
+                    cv=13)
+=-=
+def main(v):
+    |if v:
+        return call(v=v,
+                    cv=13)
+    # if v:
+    #     return call(v=v,
+    #                 cv=13)
+=-=-=
+
+
 
 Code:
   (lambda ()
@@ -1339,7 +1389,7 @@ for var1, var2 in call():
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-clone-after-dwim))
+    (evil-ts-obj-clone-after-dwim nil))
 
 Name: Clone after dwim t1
 
@@ -1428,7 +1478,76 @@ Name: Clone after dwim t7
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
-    (evil-ts-obj-clone-before-dwim))
+    (evil-ts-obj-clone-after-dwim 4))
+
+Name: Clone after and comment t1
+
+=-=
+    var |= 3
+    pass
+=-=
+    # var = 3
+    |var = 3
+    pass
+=-=-=
+
+
+Name: Clone after and comment t2
+
+=-=
+    |if True:
+        pass
+=-=
+    # if True:
+    #     pass
+    |if True:
+        pass
+=-=-=
+
+Name: Clone after and comment t3
+
+=-=
+def main(v):
+    if v:
+        return |call(v=v,
+                    cv=13)
+=-=
+def main(v):
+    if v:
+        return # call(v=v,
+               #      cv=13)
+        |call(v=v,
+             cv=13)
+=-=-=
+
+Name: Clone after and comment t4
+
+=-=
+def main(v):
+    return call(v=v, cv=13) + |call2('st')
+=-=
+def main(v):
+    return call(v=v, cv=13) + # call2('st')
+    |call2('st')
+=-=-=
+
+
+Name: Clone after and comment t5
+=-=
+var = call(arg1, |kw1=[],
+           kw2='a, b')
+=-=
+var = call(arg1, # kw1=[],
+           |kw1=[],
+           kw2='a, b')
+=-=-=
+
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-clone-before-dwim nil))
 
 Name: Clone before dwim t1
 
@@ -1498,6 +1617,49 @@ def main(v):
     |call2('st')
 =-=-=
 
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (evil-ts-obj-clone-before-dwim 4)
+    (delete-trailing-whitespace))
+
+Name: Clone before and comment dwim t1
+
+=-=
+    pass
+    var |= 3
+=-=
+    pass
+    |var = 3
+    # var = 3
+=-=-=
+
+Name: Clone before and comment dwim t2
+
+=-=
+def main(v):
+    if v:
+        return |call(v=v,
+                    cv=13)
+=-=
+def main(v):
+    if v:
+        return |call(v=v,
+                    cv=13)
+        # call(v=v,
+        #      cv=13)
+=-=-=
+
+
+Name: Clone before and comment dwim t3
+
+=-=
+var = call(arg1, |kw1=1, kw2='a, b')
+=-=
+var = call(arg1, |kw1=1, # kw1=1,
+           kw2='a, b')
+=-=-=
 
 Code:
   (lambda ()

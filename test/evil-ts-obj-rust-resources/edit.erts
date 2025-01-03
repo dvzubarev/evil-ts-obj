@@ -45,7 +45,7 @@ fn func () {
 Code:
   (lambda ()
     (evil-ts-obj-rust-tests-setup)
-    (evil-ts-obj-clone-after-dwim))
+    (evil-ts-obj-clone-after-dwim nil))
 
 Name: Clone after dwim t1
 

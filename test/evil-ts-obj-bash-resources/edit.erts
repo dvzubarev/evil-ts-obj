@@ -217,7 +217,7 @@ echo str4
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-clone-after-dwim))
+    (evil-ts-obj-clone-after-dwim nil))
 
 Name: clone after dwim t1
 
@@ -248,7 +248,7 @@ echo he \
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-clone-before-dwim))
+    (evil-ts-obj-clone-before-dwim nil))
 
 Name: clone before dwim t1
 

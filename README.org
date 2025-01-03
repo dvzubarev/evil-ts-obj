@@ -237,6 +237,7 @@ See examples in the [[docs/edit-demo.org][file]].
   Commands: =evil-ts-obj-clone-before-dwim=, =evil-ts-obj-clone-after-dwim=
 
   Clone current text object at point and paste it before/after the current one.
+  When universal prefix is used comment original text and move point to newly cloned text.
 
   Default keys: =M-C=, =M-c=
 

@@ -333,11 +333,12 @@ TYPE are arguments from evil operator."
   (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--swap-operator beg end))
 
-(evil-define-operator evil-ts-obj-clone-after (beg end type)
+(evil-define-operator evil-ts-obj-clone-after (beg end type arg)
   "Copy content of range to the position after END."
   :move-point nil
+  (interactive "<R>p")
   (evil-ts-obj--adjust-linewise-range beg end type)
-  (evil-ts-obj-edit--clone-after-operator beg end))
+  (evil-ts-obj-edit--clone-after-operator beg end (eql arg 4)))
 
 (evil-define-operator evil-ts-obj-teleport-after (beg end type)
   "Move content of range to the position after END."
@@ -345,16 +346,17 @@ TYPE are arguments from evil operator."
   (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--teleport-after-operator beg end))
 
-(evil-define-operator evil-ts-obj-clone-after-dwim ()
+(evil-define-operator evil-ts-obj-clone-after-dwim (arg)
   "Clone current text object at point and paste it after the current one."
-  (interactive)
-  (evil-ts-obj-edit--clone-dwim-impl t))
+  (interactive "p")
+  (evil-ts-obj-edit--clone-dwim-impl t (eql arg 4)))
 
-(evil-define-operator evil-ts-obj-clone-before (beg end type)
+(evil-define-operator evil-ts-obj-clone-before (beg end type arg)
   "Copy content of range before BEG."
   :move-point nil
+  (interactive "<R>p")
   (evil-ts-obj--adjust-linewise-range beg end type)
-  (evil-ts-obj-edit--clone-before-operator beg end))
+  (evil-ts-obj-edit--clone-before-operator beg end (eql arg 4)))
 
 (evil-define-operator evil-ts-obj-teleport-before (beg end type)
   "Move content of range to the position before BEG."
@@ -362,10 +364,10 @@ TYPE are arguments from evil operator."
   (evil-ts-obj--adjust-linewise-range beg end type)
   (evil-ts-obj-edit--teleport-after-operator beg end))
 
-(evil-define-operator evil-ts-obj-clone-before-dwim ()
-  "Clone current text object at point and paste it after the current one."
-  (interactive)
-  (evil-ts-obj-edit--clone-dwim-impl nil))
+(evil-define-operator evil-ts-obj-clone-before-dwim (arg)
+  "Clone current text object at point and paste it before the current one."
+  (interactive "p")
+  (evil-ts-obj-edit--clone-dwim-impl nil (eql arg 4)))
 
 (evil-define-operator evil-ts-obj-raise (beg end type count)
   "Replace parent thing with the specified range."
