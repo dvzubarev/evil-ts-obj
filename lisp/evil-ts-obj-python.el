@@ -194,7 +194,8 @@ and `NODE'."
                              :statement-sib-trav
                              (evil-ts-obj-trav-create
                               :fetcher (lambda (d n) (evil-ts-obj--common-get-statement-sibling
-                                                      d n '("boolean_operator"))))
+                                                      d n '("boolean_operator")
+                                                      evil-ts-obj-python-statement-seps)))
                              :statement-placeholder '("pass" "...")))
 
 

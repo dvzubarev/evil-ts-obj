@@ -71,7 +71,7 @@ Code:
     (evil-ts-obj-cpp-tests-setup)
     (evil-ts-obj-next-sibling))
 
-Name: Move to next largest t1
+Name: Move to next sibling t1
 
 =-=
 |float func2(){
@@ -89,7 +89,7 @@ template <class T>
 |struct st_t{};
 =-=-=
 
-Name: Move to next largest t2
+Name: Move to next sibling t2
 
 =-=
 if (o|pts and (not i or i < 0 < 3) && t.call() or true ){}
@@ -97,7 +97,7 @@ if (o|pts and (not i or i < 0 < 3) && t.call() or true ){}
 if (opts and |(not i or i < 0 < 3) && t.call() or true ){}
 =-=-=
 
-Name: Move to next largest t3
+Name: Move to next sibling t3
 
 =-=
 if (opts and |(not i or i < 0 < 3) && t.call() or true ){}
@@ -105,12 +105,20 @@ if (opts and |(not i or i < 0 < 3) && t.call() or true ){}
 if (opts and (not i or i < 0 < 3) && |t.call() or true ){}
 =-=-=
 
-Name: Move to next largest t4
+Name: Move to next sibling t4
 
 =-=
 if (opts and (not i or i < 0 < 3) && |t.call() or true ){}
 =-=
 if (opts and (not i or i < 0 < 3) && t.call() or |true ){}
+=-=-=
+
+Name: Move to next sibling t5
+
+=-=
+if(|opts.sort_by_word_no && items_hld.props.sorted.by_word_no > 3 && not t){}
+=-=
+if(opts.sort_by_word_no && |items_hld.props.sorted.by_word_no > 3 && not t){}
 =-=-=
 
 Code:

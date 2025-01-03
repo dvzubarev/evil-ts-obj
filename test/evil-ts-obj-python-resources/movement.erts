@@ -292,6 +292,59 @@ if ( v := d.get(k) ) is not None and (isinstance(v, int) or v) and v > 3:
 =-=-=
 
 
+Name: next sibling t16
+
+=-=
+if (
+    |t is None
+    or t.available()
+    and t.status
+    in (
+        UNKNOWN,
+        STOPPED,
+    )
+):
+    status = ALIVE
+=-=
+if (
+    t is None
+    or |t.available()
+    and t.status
+    in (
+        UNKNOWN,
+        STOPPED,
+    )
+):
+    status = ALIVE
+=-=-=
+
+Name: next sibling t17
+
+=-=
+if (
+    t is None
+    or t.available()
+    and |t.status
+    in (
+        UNKNOWN,
+        STOPPED,
+    )
+):
+    status = ALIVE
+=-=
+if (
+    t is None
+    or t.available()
+    and t.status
+    in (
+        UNKNOWN,
+        STOPPED,
+    )
+):
+    |status = ALIVE
+=-=-=
+
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
@@ -466,7 +519,7 @@ if ( v := d.get(k) ) is not None and |(isinstance(v, int) or v) and v > 3:
     pass
 =-=-=
 
-Name: next sibling t11
+Name: prev sibling t11
 
 =-=
 if ( v := d.get(k) ) is not None and |(isinstance(v, int) or v) and v > 3:
@@ -494,6 +547,59 @@ def func1():
 @dec.call()
 def func2():
     pass
+=-=-=
+
+
+Name: next sibling t13
+
+=-=
+if (
+    t is None
+    or |t.available()
+    and t.status
+    in (
+        UNKNOWN,
+        STOPPED,
+    )
+):
+    status = ALIVE
+=-=
+if (
+    |t is None
+    or t.available()
+    and t.status
+    in (
+        UNKNOWN,
+        STOPPED,
+    )
+):
+    status = ALIVE
+=-=-=
+
+Name: next sibling t14
+
+=-=
+if (
+    t is None
+    or t.available()
+    and |t.status
+    in (
+        UNKNOWN,
+        STOPPED,
+    )
+):
+    status = ALIVE
+=-=
+if (
+    t is None
+    or |t.available()
+    and t.status
+    in (
+        UNKNOWN,
+        STOPPED,
+    )
+):
+    status = ALIVE
 =-=-=
 
 Code:

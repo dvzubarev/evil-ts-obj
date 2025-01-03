@@ -797,8 +797,8 @@ If `CURRENT' is t, detect current thing at point and return this thing."
 ;;; Common predicates
 
 
-(defun evil-ts-obj--bool-expr? (node bool-ops)
-  "Return t if NODE is boolean expression.
+(defun evil-ts-obj--bool-expr-check-op (node bool-ops)
+  "Return t if NODE has field operator and its value from BOOL-OPS.
 BOOL-OPS is a list of possible valid boolean operators. If
 node\\='s operator: field is a member of bool-ops list, then this
 function returns t."
@@ -814,15 +814,18 @@ list of possible boolean operators."
               (parent-type (treesit-node-type parent))
               ((and (equal parent-type bool-op-type)
                     (member (treesit-node-field-name node) '("left" "right"))
-                    ;; bool-op-type may also used for comparison operator
-                    ;; (e.g. binary_expression).
+                    ;; Some languages (c++/bash - binary_expression) use the same node type for boolean expression
+                    ;; and the comparison/arithmetic operators.
                     ;; We do not want to match parts of comparison operators,
-                    ;; only the whole operator; see condition below
-                    (evil-ts-obj--bool-expr? parent bool-ops))))
+                    ;; only the whole operator. See also comments below.
+                    (evil-ts-obj--bool-expr-check-op parent bool-ops))))
 
+    ;; Match only left/right parts of an expression, not the whole boolean expression.
+    ;; 1. If the current node is not bool expression type, we are good.
+    ;; 2. If an operator that used in the current expresion is not in `bool-ops'
+    ;; than it might be just comparison or arithmetic operation.
     (or (not (equal (treesit-node-type node) bool-op-type))
-        ;; match only comparison operator, not boolean expressions
-        (not (evil-ts-obj--bool-expr? node bool-ops)))))
+        (not (evil-ts-obj--bool-expr-check-op node bool-ops)))))
 
 (defun evil-ts-obj-common-param-pred (parent-regex node)
   "Predicate for detecting param thing.
@@ -868,46 +871,77 @@ Return a next or previous sibling for `NODE' based on value of
     ('next (treesit-node-next-sibling node))
     ('prev (treesit-node-prev-sibling node))))
 
-(defun evil-ts-obj--get-sibling-bin-op (node-types dir node)
+(defun evil-ts-obj--get-sibling-bin-op (node-expr-types node-expr-ops dir node)
   "Traverse typical tree structure of binary operators.
-Return sibling of a given `NODE' in the specified direction
-`DIR'. Parent of the `NODE' should have one of the type from the
-`NODE-TYPES'. For a tree like below, when `NODE' is (3) and `DIR'
+Return sibling of a given `NODE' in the specified direction `DIR'.
+Parent of the `NODE' should have one of the type from the
+`NODE-EXPR-TYPES'. NODE-EXPR-OPS is a list of operators that separate
+statements in a tree. NODE-EXPR-OPS is used to distinguish between
+boolean expressions and comparison/arithmetic operations in languages,
+where there single node type is employed for all binary operations.
+For a tree like below (Example 1), when `NODE' is (3) and `DIR'
 is prev, jump to the the last child of its sibling (node (5)).
 When node is (5) and `DIR' is next jump to its grandparent's
-second child (node (3)).
-
+second child (node (3)). 
+Example 1:
          (1) bin_op----------
                |            |
          (2) bin_op------  (3) and i < 9
                |        |
          (4) bin_op    (5) and j < 3
                |
-    (6) i > 0 and j > 0"
+    (6) i > 0 and j > 0
+Example 2:
+         (1) bin_op ----------
+               |             |
+         (2) i > 0 and  (3) bin_op
+                             |
+                        (4) j < 3 and (5) i < 9"
+
 
   (when-let* ((parent (treesit-node-parent node))
-              ((member (treesit-node-type parent) node-types)))
+              ((member (treesit-node-type parent) node-expr-types)))
     (let ((sibling (evil-ts-obj--get-sibling-simple dir node)))
       (pcase (treesit-node-type sibling)
         ('()
-         (when-let* (((eq dir 'next))
-                     (grandparent (treesit-node-parent parent))
-                     ((member (treesit-node-type grandparent) node-types)))
-           (treesit-node-child grandparent 1)))
-        ((pred (seq-contains-p node-types))
-         (when (eq dir 'prev)
-           (treesit-node-child sibling -1)))
+         (when-let* ((grandparent (treesit-node-parent parent))
+                     ((member (treesit-node-type grandparent) node-expr-types)))
+           (if (eq dir 'next)
+               ;;Example 1: Handle transition between (5) -> (3).
+               ;;It also might be node (5) in Example 2, so check that
+               ;;sibling-cand is actually next sibling.
+               (when-let* ((sibling-cand (treesit-node-child grandparent 1))
+                           ((< (treesit-node-start node) (treesit-node-start sibling-cand))))
+                 sibling-cand)
+             ;; Example 2: Handle transition between (2) <- (4)
+             ;; Also check that it is not node (6) in Example 1.
+             (when-let* ((sibling-cand (treesit-node-child grandparent -2))
+                         ((< (treesit-node-end sibling-cand) (treesit-node-end node))))
+               sibling-cand))))
+        ((pred (seq-contains-p node-expr-types))
+         (if (eq dir 'prev)
+             ;;Example 1: handle transition (5) <- (3)
+             (if (evil-ts-obj--bool-expr-check-op sibling node-expr-ops)
+                 ;; This node is boolean expression so take the :right child of it.
+                 (treesit-node-child-by-field-name sibling "right")
+               sibling)
+           ;;Example 2: handle transition (2) -> (4)
+           (if (evil-ts-obj--bool-expr-check-op sibling node-expr-ops)
+               ;; This node is boolean expression so take the :left child of it.
+               (treesit-node-child-by-field-name sibling "left")
+             sibling)))
         (_ sibling)))))
 
-(defun evil-ts-obj--common-get-statement-sibling (dir node bool-expr-types)
+(defun evil-ts-obj--common-get-statement-sibling (dir node bool-expr-types bool-expr-ops)
   "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
-Return a next or previous sibling for `NODE' based on value of
-`DIR'. This function handles traversing of statements in boolean
-expressions. Boolean node names are passed in BOOL-EXPR-TYPE
-variable (see `evil-ts-obj--get-sibling-bin-op'). Fallback to
+Return a next or previous sibling for `NODE' based on value of `DIR'.
+This function handles traversing of statements in boolean expressions.
+Boolean node names are passed in BOOL-EXPR-TYPE variable, as well as
+list of boolean expression operators in BOOL-EXPR-OPS (see
+`evil-ts-obj--get-sibling-bin-op'). Fallback to
 `evil-ts-obj--get-sibling-simple', if NODE is not inside boolean
 expression."
-  (or (evil-ts-obj--get-sibling-bin-op bool-expr-types dir node)
+  (or (evil-ts-obj--get-sibling-bin-op bool-expr-types bool-expr-ops dir node)
       (evil-ts-obj--get-sibling-simple dir node)))
 
 (defun evil-ts-obj--nodes-on-the-same-line (node other-node)

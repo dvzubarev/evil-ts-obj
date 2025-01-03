@@ -184,7 +184,8 @@ and `NODE'."
                              :statement-sib-trav
                              (evil-ts-obj-trav-create
                               :fetcher (lambda (d n) (evil-ts-obj--common-get-statement-sibling
-                                                      d n '("binary_expression"))))
+                                                      d n '("binary_expression")
+                                                      evil-ts-obj-rust-statement-seps)))
                              :compound-brackets "{}"))
 
 (provide 'evil-ts-obj-rust)

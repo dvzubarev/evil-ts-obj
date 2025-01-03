@@ -130,7 +130,8 @@ Return a next or previous sibling for `NODE' based on value of
 more information. Fallback to `evil-ts-obj--get-sibling-simple',
 if NODE is not inside boolean operator. It also stops traversing
 when reaching {else,elif}_clause."
-  (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("list" "binary_expression") dir node)))
+  (if-let* ((sibling (evil-ts-obj--get-sibling-bin-op '("list" "binary_expression") evil-ts-obj-bash-statement-seps
+                                                      dir node)))
       sibling
     (let ((sibling (evil-ts-obj--get-sibling-simple dir node)))
       (pcase (treesit-node-type sibling)
