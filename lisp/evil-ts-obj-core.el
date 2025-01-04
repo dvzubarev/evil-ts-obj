@@ -159,7 +159,7 @@ exists. Return nil if no node can be found."
          node)))))
 (defun evil-ts-obj--child-identical? (node child)
   "Determine whether CHILD of a NODE is identical to NODE.
-They are concidered identical if their ranges are the same or if
+They are considered identical if their ranges are the same or if
 the only difference between CHILD and NODE is the termination
 symbol. To obtain termination symbols for current language
 variable `evil-ts-obj-conf-terms' is consulted."
@@ -176,7 +176,7 @@ variable `evil-ts-obj-conf-terms' is consulted."
 
 (defun evil-ts-obj--propagate-to-identical-parent (node thing)
   "Handle edge case when the parent is identical to a child NODE.
-Parent should also match with THING. They are concidered
+Parent should also match with THING. They are considered
 identical if `evil-ts-obj--child-identical?' returns t."
   (let ((init-start (treesit-node-start node)))
     (while-let ((parent (treesit-node-parent node))

@@ -135,6 +135,7 @@
       (when (and cursor
                  (< (treesit-node-start cursor) end)
                  (>= (treesit-node-start cursor) start))
+        (setq cursor (evil-ts-obj--propagate-to-identical-parent cursor thing))
         (iter-yield cursor)))
 
     ;; Since treesit-search-forward returns leafs first, we stopped on the first
@@ -146,6 +147,7 @@
       (when (and (< (treesit-node-start cursor) end)
                  (>= (treesit-node-start cursor) start )
                  (treesit-node-match-p cursor thing t))
+        (setq cursor (evil-ts-obj--propagate-to-identical-parent cursor thing))
         (iter-yield cursor)))))
 
 

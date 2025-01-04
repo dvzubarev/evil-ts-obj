@@ -51,7 +51,7 @@ Code:
       (apply #'evil-delete (evil-ts-obj-avy-compound-inner-text-obj)))
     (delete-trailing-whitespace))
 
-Name: delete avy compound inner text object t1
+Name: Avy delete compound inner text object t1
 
 =-=
 def temp():
@@ -76,7 +76,7 @@ Code:
       (setq-local evil-this-operator t)
       (apply #'evil-delete (evil-ts-obj-avy-param-outer-text-obj))))
 
-Name: delete avy param outer text object t1
+Name: Avy delete param outer text object t1
 
 =-=
 def temp(var, temp=(1,2)):
@@ -111,7 +111,7 @@ Code:
       (setq-local evil-this-operator t)
       (apply #'evil-delete (evil-ts-obj-avy-param-upper-text-obj))))
 
-Name: delete avy param upper text object t1
+Name: Avy delete param upper text object t1
 
 =-=
 def temp(var, |temp=(1,2)):
@@ -119,4 +119,25 @@ def temp(var, |temp=(1,2)):
 =-=
 def temp(|):
     pass
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-avy-tests-setup)
+    (evil-ts-obj-avy-tests-with-avy-input "ea"
+      (setq-local evil-this-operator t)
+      (apply #'evil-delete (evil-ts-obj-avy-statement-lower-text-obj))
+      (delete-trailing-whitespace)))
+
+Name: Avy delete statement lower t1
+
+=-=
+def func(args):
+    aa = 3
+    tempf()
+    ba = 3
+    bb = 3
+=-=
+def func(args):
+    aa = 3
 =-=-=
