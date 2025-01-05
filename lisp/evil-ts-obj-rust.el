@@ -110,7 +110,8 @@ its type is matched against `evil-ts-obj-rust-statement-regex'."
 (defcustom evil-ts-obj-rust-things
   `((compound ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-rust-compound-nodes) #'evil-ts-obj-rust-compound-pred))
     (statement evil-ts-obj-rust-statement-pred)
-    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-rust-param-parent-regex n))))
+    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-rust-param-parent-regex n)))
+    (str ,(format "^%s$" (regexp-opt '("string_literal" "raw_string_literal")))))
   "Things for rust."
   :type 'plist
   :group 'evil-ts-obj)
@@ -162,6 +163,8 @@ and `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:mod 'inner))
      (evil-ts-obj-rust-extract-compound-inner node))
+    ((pmap (:thing 'str) (:mod 'inner))
+     (evil-ts-obj-string-inner-c-style node))
     ((pmap (:thing 'compound) (:mod 'outer) (:act 'op))
      (evil-ts-obj-rust-compound-outer-ext node))))
 

@@ -40,6 +40,11 @@
   :type 'string
   :group 'evil-ts-obj)
 
+(defcustom evil-ts-obj-string-thing-key "q"
+  "Default key binding for string text objects."
+  :type 'string
+  :group 'evil-ts-obj)
+
 (defcustom evil-ts-obj-navigation-keys-prefix
   '((beginning-of . "(")
     (end-of . ")")
@@ -107,11 +112,13 @@ Also bind `KEY' to defined text objects in all appropriate keymaps."
 (evil-ts-obj-avy-setup-all-text-objects compound evil-ts-obj-compound-thing-key)
 (evil-ts-obj-avy-setup-all-text-objects statement evil-ts-obj-statement-thing-key)
 (evil-ts-obj-avy-setup-all-text-objects param evil-ts-obj-param-thing-key)
+(evil-ts-obj-avy-setup-all-text-objects str evil-ts-obj-string-thing-key)
 
 
 (evil-ts-obj-avy-define-all-paste-cmds compound evil-ts-obj-compound-thing-key)
 (evil-ts-obj-avy-define-all-paste-cmds statement evil-ts-obj-statement-thing-key)
 (evil-ts-obj-avy-define-all-paste-cmds param evil-ts-obj-param-thing-key)
+(evil-ts-obj-avy-define-all-paste-cmds str evil-ts-obj-string-thing-key)
 
 ;;;  interactive functions
 ;;;; Movement
@@ -506,6 +513,7 @@ topmost statments."
 (evil-ts-obj-setup-all-text-objects compound evil-ts-obj-compound-thing-key)
 (evil-ts-obj-setup-all-text-objects statement evil-ts-obj-statement-thing-key)
 (evil-ts-obj-setup-all-text-objects param evil-ts-obj-param-thing-key)
+(evil-ts-obj-setup-all-text-objects str evil-ts-obj-string-thing-key)
 
 
 (defvar evil-ts-obj-goto-beginning-of-map (make-sparse-keymap "Goto beginning of"))
@@ -518,6 +526,7 @@ topmost statments."
 (evil-ts-obj-setup-all-movement compound evil-ts-obj-compound-thing-key)
 (evil-ts-obj-setup-all-movement statement evil-ts-obj-statement-thing-key)
 (evil-ts-obj-setup-all-movement param evil-ts-obj-param-thing-key)
+(evil-ts-obj-setup-all-movement str evil-ts-obj-string-thing-key)
 
 
 (defun evil-ts-obj--set-generic-nav-bindings ()

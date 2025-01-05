@@ -95,7 +95,8 @@ its type is matched against `evil-ts-obj-cpp-statement-regex'."
   `((compound ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-cpp-compound-nodes)
                      #'evil-ts-obj-cpp-compound-pred))
     (statement evil-ts-obj-cpp-statement-pred)
-    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-cpp-param-parent-regex n))))
+    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-cpp-param-parent-regex n)))
+    (str ,(format "^%s$" (regexp-opt '("string_literal" "raw_string_literal")))))
   "Things for cpp."
   :type 'plist
   :group 'evil-ts-obj)
@@ -139,6 +140,8 @@ and `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:mod 'inner))
      (evil-ts-obj-cpp-extract-compound-inner node))
+    ((pmap (:thing 'str) (:mod 'inner))
+     (evil-ts-obj-string-inner-c-style node))
     ((pmap (:thing 'compound) (:mod 'outer) (:act 'op))
      (evil-ts-obj-c-compound-outer-ext node))
     ((pmap (:thing 'compound) (:mod 'outer) (:act 'nav))

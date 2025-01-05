@@ -658,3 +658,88 @@ trait T {
 }
 =-=-=
 
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-str-inner)))
+
+Name: Delete string inner t1
+
+=-=
+|call("")
+=-=
+call("|")
+=-=-=
+
+Name: Delete string inner t2
+
+=-=
+|let byte_escape = "I'm writing \x52\x75\x73\x74!";
+=-=
+let byte_escape = "|";
+=-=-=
+
+Name: Delete string inner t3
+
+=-=
+|let character_name = "\"DOUBLE-STRUCK CAPITAL R\"";
+=-=
+let character_name = "|";
+=-=-=
+
+Name: Delete string inner t4
+
+=-=
+|let long_string = "String literals
+                     can span multiple lines.
+                     The linebreak and indentation here ->\
+                     <- can be escaped too!";
+=-=
+let long_string = "|";
+=-=-=
+
+Name: Delete string inner t5
+
+=-=
+|let raw_bytestring = br"\u{211D} is not escaped here";
+=-=
+let raw_bytestring = br"|";
+=-=-=
+
+Name: Delete string inner t6
+
+=-=
+|let quotes = r#"And then I said: "There is no escape!""#;
+=-=
+let quotes = r#"|"#;
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-rust-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-str-outer)))
+
+Name: Delete string outer t1
+
+=-=
+|call("")
+=-=
+call(|)
+=-=-=
+
+Name: Delete string outer t2
+
+=-=
+|let raw_bytestring = br"\u{211D} is not escaped here";
+=-=
+let raw_bytestring = |;
+=-=-=
+
+Name: Delete string outer t3
+
+=-=
+|let quotes = r#"And then I said: "There is no escape!""#;
+=-=
+let quotes = |;
+=-=-=

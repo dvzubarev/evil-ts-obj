@@ -473,3 +473,69 @@ if (0< i < |3){}
 =-=
 if (|){}
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-str-inner)))
+
+Name: Delete string inner t1
+
+=-=
+|call("1 \ns-char-sequence");
+=-=
+call("|");
+=-=-=
+
+Name: Delete string inner t2
+
+=-=
+|call(u8" s-char-sequence ");
+=-=
+call(u8"|");
+=-=-=
+
+Name: Delete string inner t3
+
+=-=
+|call(R"(\t)");
+=-=
+call(R"(|)");
+=-=-=
+
+Name: Delete string inner t4
+
+=-=
+|call(uR"st(\)st");
+=-=
+call(uR"st(|)st");
+=-=-=
+
+Name: Delete string inner t5
+
+=-=
+|call("");
+=-=
+call("|");
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-str-outer)))
+
+Name: Delete string outer t1
+
+=-=
+|call(R"(\t)");
+=-=
+call(|);
+=-=-=
+
+Name: Delete string outer t2
+
+=-=
+|call(uR"st(\)st");
+=-=
+call(|);
+=-=-=

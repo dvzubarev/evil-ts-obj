@@ -115,7 +115,8 @@ its type is matched against `evil-ts-obj-python-statement-regex'."
   `((compound ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-python-compound-nodes)
                      #'evil-ts-obj-python-compound-pred))
     (statement evil-ts-obj-python-statement-pred)
-    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-python-param-parent-regex n))))
+    (param ,(lambda (n) (evil-ts-obj-common-param-pred evil-ts-obj-python-param-parent-regex n)))
+    (str "^string$"))
   "Things for python."
   :type 'plist
   :group 'evil-ts-obj)
@@ -174,6 +175,8 @@ and `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:mod 'inner))
      (evil-ts-obj-python-extract-compound-inner node))
+    ((pmap (:thing 'str) (:mod 'inner))
+     (evil-ts-obj-string-inner-py-style node))
     ((pmap (:thing 'compound) (:mod 'outer) (:act 'nav))
      (evil-ts-obj-python-compound-nav-mod node))))
 

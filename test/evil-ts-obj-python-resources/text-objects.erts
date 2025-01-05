@@ -981,3 +981,49 @@ def tempf():
     i = 0
     |
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-python-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-str-inner)))
+
+Name: Delete string inner t1
+
+=-=
+|s = "temp\nt"
+=-=
+s = "|"
+=-=-=
+
+Name: Delete string inner t2
+
+=-=
+|fs = f"temp {temp} temp"
+=-=
+fs = f"|"
+=-=-=
+
+Name: Delete string inner t3
+
+=-=
+|frs = fr'\d {fs} rs {rs}'
+=-=
+frs = fr'|'
+=-=-=
+
+Name: Delete string inner t4
+
+=-=
+|ds = """temp
+temp!"""
+=-=
+ds = """|"""
+=-=-=
+
+Name: Delete string inner t5
+
+=-=
+|s = ""
+=-=
+s = "|"
+=-=-=

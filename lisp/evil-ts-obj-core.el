@@ -1043,6 +1043,41 @@ NODE-THING, DIR, MATCH-THING see `evil-ts-obj--iter-siblings'."
 
 
 ;;; Modifiers
+;;;
+(defun evil-ts-obj-string-inner-py-style (node)
+  "Return rnage for a string inner text object.
+String is represented by a NODE. This function works when node has
+string_start and string_end childs."
+  (when-let* ((first-child (treesit-node-child node 0 t))
+              ((equal "string_start" (treesit-node-type first-child)))
+              (last-child (treesit-node-child node -1 t))
+              ((equal "string_end" (treesit-node-type last-child))))
+    (list (treesit-node-end first-child)
+          (treesit-node-start last-child))))
+
+(defun evil-ts-obj-string-inner-c-style (node)
+  "Return range for string inner text object represented by a NODE.
+NODE should be of type string_literal or raw_string_literal and has two
+anonymous children \"\"."
+
+  (pcase (treesit-node-type node)
+    ("string_literal"
+     ;; We can't use string_content node since there might be any number of
+     ;; escape_sequence nodes inside string_literal.
+     (when-let* ((first-child (treesit-node-child node 0))
+                 ((string-suffix-p "\"" (treesit-node-type first-child)))
+                 (last-child (treesit-node-child node -1))
+                 ((equal "\"" (treesit-node-type last-child))))
+
+       (list (treesit-node-end first-child)
+             (treesit-node-start last-child))))
+    ("raw_string_literal"
+     (when-let ((child (seq-find
+                        (lambda (n)
+                          (member (treesit-node-type n) '("raw_string_content" "string_content")))
+                        (treesit-node-children node t))))
+       (list (treesit-node-start child)
+             (treesit-node-end child))))))
 
 (defun evil-ts-obj--generic-find-sep-and-sibling (node node-kind-func next-node-func)
   "Return list (next-sibling next-sep next-term) for a `NODE'.
