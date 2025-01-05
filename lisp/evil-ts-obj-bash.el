@@ -83,7 +83,8 @@ Return t if `NODE' is a node that represents a parameter."
 (defcustom evil-ts-obj-bash-things
   `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-bash-compound-nodes))
     (statement evil-ts-obj-bash-statement-pred)
-    (param evil-ts-obj-bash-param-pred))
+    (param evil-ts-obj-bash-param-pred)
+    (str ,(format "^%s$" (regexp-opt '("string" "herestring_redirect" "heredoc_redirect")))))
   "Things for bash."
   :type 'plist
   :group 'evil-ts-obj)
@@ -122,6 +123,20 @@ Compound is represented by a `NODE'."
       (list (treesit-node-start first-child)
             (treesit-node-end last-child)))))
 
+(defun evil-ts-obj-bash-extract-string-inner (node)
+  "Return inner range for a string represented by a NODE."
+  (pcase (treesit-node-type node)
+    ("string" (evil-ts-obj-string-inner-c-style node :string-nodes '("string")))
+    ("herestring_redirect" (evil-ts-obj-string-inner-c-style
+                            (treesit-node-child node 0 t) :string-nodes '("string")))
+    ("heredoc_redirect"
+     (when-let* ((first-child (treesit-node-child node 0 t))
+                 ((equal "heredoc_start" (treesit-node-type first-child)))
+                 (last-child (treesit-node-child node -1 t))
+                 ((equal "heredoc_end" (treesit-node-type last-child))))
+       (list (treesit-node-end first-child)
+             (treesit-node-start last-child))))))
+
 (defun evil-ts-obj-bash-statement-get-sibling (dir node)
   "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.
 Return a next or previous sibling for `NODE' based on value of
@@ -157,7 +172,9 @@ and `NODE'."
 
   (pcase spec
     ((pmap (:thing 'compound) (:mod 'inner))
-     (evil-ts-obj-bash-extract-compound-inner node))))
+     (evil-ts-obj-bash-extract-compound-inner node))
+    ((pmap (:thing 'str) (:mod 'inner))
+     (evil-ts-obj-bash-extract-string-inner node))))
 
 (defcustom evil-ts-obj-bash-ext-func
   #'evil-ts-obj-bash-ext

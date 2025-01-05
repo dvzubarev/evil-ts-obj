@@ -199,3 +199,61 @@ Name: Delete list item UPPER t1
 - a:
     |- 444
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-delete)
+    (apply #'evil-delete (evil-ts-obj-str-inner)))
+
+Name: Delete string inner t1
+
+=-=
+---
+|calling-birds:
+   - "temp"
+=-=
+---
+calling-birds:
+   - "|"
+=-=-=
+
+Name: Delete string inner t2
+
+=-=
+---
+|calling-birds:
+   - 'temp
+       temp
+       temp'
+=-=
+---
+calling-birds:
+   - '|'
+=-=-=
+
+Name: Delete string inner t3
+
+=-=
+---
+|french-hens: 3
+calling-birds: four
+=-=
+---
+french-hens: 3
+calling-birds: |
+=-=-=
+
+Name: Delete string inner t4
+
+=-=
+---
+|golden-rings: >
+  temp 111
+  temp temp
+a:
+=-=
+---
+golden-rings: >|
+a:
+=-=-=

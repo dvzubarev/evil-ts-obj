@@ -87,7 +87,8 @@ Return t if `NODE' is named and it is matching against
   `((compound ,(evil-ts-obj-conf--make-nodes-regex evil-ts-obj-nix-compound-nodes))
     (statement ,(cons (evil-ts-obj-conf--make-nodes-regex evil-ts-obj-nix-statement-nodes)
                       #'evil-ts-obj-nix-statement-pred))
-    (param evil-ts-obj-nix-param-pred))
+    (param evil-ts-obj-nix-param-pred)
+    (str ,(format "^%s$" (regexp-opt '("string_expression" "indented_string_expression" "uri_expression")))))
   "Things for nix."
   :type 'plist
   :group 'evil-ts-obj)
@@ -112,7 +113,10 @@ See `evil-ts-obj-conf-thing-modifiers' for details about `SPEC'
 and `NODE'."
   (pcase spec
     ((pmap (:thing 'compound) (:mod 'inner))
-     (evil-ts-obj-nix-extract-compound-inner node))))
+     (evil-ts-obj-nix-extract-compound-inner node))
+    ((pmap (:thing 'str) (:mod 'inner))
+     (evil-ts-obj-string-inner-c-style
+      node :string-nodes '("string_expression" "indented_string_expression")))))
 
 (defcustom evil-ts-obj-nix-ext-func
   #'evil-ts-obj-nix-ext

@@ -799,3 +799,74 @@ echo here |temp str
 echo here |
 [[ -n "$mode" ]]
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-str-inner)))
+
+Name: Delete string inner t1
+
+=-=
+|args=("$@")
+=-=
+args=("|")
+=-=-=
+
+Name: Delete string inner t2
+
+=-=
+|args=""
+=-=
+args="|"
+=-=-=
+
+Name: Delete string inner t3
+
+=-=
+|echo <<<"Heere ${arr[@]} string"
+=-=
+echo <<<"|"
+=-=-=
+
+Name: Delete string inner t4
+
+=-=
+|    echo << MAN
+    MAN
+=-=
+    echo << MAN|MAN
+=-=-=
+
+Name: Delete string inner t5
+
+=-=
+|echo << MAN
+heredoc "$with"
+text
+MAN
+=-=
+echo << MAN|MAN
+=-=-=
+
+Name: Delete string inner t6
+
+=-=
+|netcat "$EM_HOST" "$EM_PORT" 2>&1  <<- EOF
+-auth "$EM_COOKIE" -dir "$cwd"
+EOF
+=-=
+netcat "|" "$EM_PORT" 2>&1  <<- EOF
+-auth "$EM_COOKIE" -dir "$cwd"
+EOF
+=-=-=
+
+Name: Delete string inner t7
+
+=-=
+netcat "$EM_HOST" "$EM_PORT" 2>&1|  <<- EOF
+-auth "$EM_COOKIE" -dir "$cwd"
+EOF
+=-=
+netcat "$EM_HOST" "$EM_PORT" 2>&1  <<- EOF|EOF
+=-=-=

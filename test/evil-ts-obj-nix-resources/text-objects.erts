@@ -142,3 +142,59 @@ import nixpkgs {|system = "x86_64-linux";}
 =-=
 import nixpkgs|
 =-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (apply #'evil-delete (evil-ts-obj-str-inner)))
+
+Name: Delete str inner t1
+
+=-=
+|estr = "";
+=-=
+estr = "|";
+=-=-=
+
+Name: Delete str inner t2
+
+=-=
+|str = "temp";
+=-=
+str = "|";
+=-=-=
+
+Name: Delete str inner t3
+
+=-=
+|str2 = "temp ${pypkgs} \n temp";
+=-=
+str2 = "|";
+=-=-=
+
+Name: Delete str inner t4
+
+=-=
+|str3 = http://example.org/foo.tar.bz2;
+=-=
+str3 = |;
+=-=-=
+
+Name: Delete str inner t5
+
+=-=
+|shellHook=''
+     echo ${pypkgs}
+     export MYNEWVAR=temp
+   '';
+=-=
+shellHook=''|'';
+=-=-=
+
+Name: Delete str inner t6
+
+=-=
+|eis = '''';
+=-=
+eis = ''|'';
+=-=-=

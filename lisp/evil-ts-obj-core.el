@@ -1055,19 +1055,25 @@ string_start and string_end childs."
     (list (treesit-node-end first-child)
           (treesit-node-start last-child))))
 
-(defun evil-ts-obj-string-inner-c-style (node)
+(cl-defun evil-ts-obj-string-inner-c-style (node &optional &key
+                                                             (string-nodes '("string_literal")))
   "Return range for string inner text object represented by a NODE.
-NODE should be of type string_literal or raw_string_literal and has two
-anonymous children \"\"."
-
+NODE should be of type passed in STRING-NODES (by default
+string_literal) and has two anonymous children.
+This function also supports or raw_string_literal nodes.
+It expects to find a child of type either raw_string_content or string_content."
   (pcase (treesit-node-type node)
-    ("string_literal"
+    ((pred (member _ string-nodes))
      ;; We can't use string_content node since there might be any number of
      ;; escape_sequence nodes inside string_literal.
+     ;; Also when string is emty it usually does not contain any string_content nodes.
+     ;; Assume that first and the last children are quote symbols.
+     ;; We don't check their surface strings since there are many variants in different languages.
+     ;; Just check that they are anonymous.
      (when-let* ((first-child (treesit-node-child node 0))
-                 ((string-suffix-p "\"" (treesit-node-type first-child)))
+                 ((not (treesit-node-check first-child 'named)))
                  (last-child (treesit-node-child node -1))
-                 ((equal "\"" (treesit-node-type last-child))))
+                 ((not (treesit-node-check last-child 'named))))
 
        (list (treesit-node-end first-child)
              (treesit-node-start last-child))))
