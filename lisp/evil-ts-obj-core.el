@@ -448,6 +448,7 @@ If `RETURN-NODE' is t, return cons of range and the treesit node."
                           (setq node (treesit-parent-until node thing)
                                 cur-range (evil-ts-obj--apply-modifiers node thing spec)))
                         cur-range)
+                    ;; Bounds is nil, just apply modifiers.
                     (evil-ts-obj--apply-modifiers node thing spec))))
       (when (and finalizer range)
         (setq range (funcall finalizer evil-ts-obj--last-text-obj-spec range)))

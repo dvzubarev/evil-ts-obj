@@ -16,6 +16,41 @@ def main():
     |
 =-=-=
 
+Name: Delete function inner t2
+
+=-=
+|def main():
+=-=
+def main():|
+=-=-=
+
+Name: Delete function with docstring inner t1
+
+=-=
+def main():
+    """docstring
+    """
+    |v=3
+    return v
+=-=
+def main():
+    """docstring
+    """
+    |
+=-=-=
+
+Name: Delete function with docstring inner t2
+
+=-=
+|def main():
+    """docstring
+    """
+=-=
+def main():
+    """docstring
+    """|
+=-=-=
+
 Name: Delete loop inner t1
 
 =-=

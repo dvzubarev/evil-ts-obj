@@ -73,6 +73,10 @@ level decorated_definition node as a thing."
   :group 'evil-ts-obj
   :set #'evil-ts-obj-conf-nodes-setter)
 
+(defun evil-ts-obj-python--looks-like-docstring? (node)
+  "Return t if NODE is an expression that with only string node."
+  (and (equal (treesit-node-type node) "expression_statement")
+       (equal (treesit-node-type (treesit-node-child node 0)) "string")))
 
 (defun evil-ts-obj-python-statement-pred (node)
   "Return t if NODE is a statement thing.
@@ -89,7 +93,10 @@ its type is matched against `evil-ts-obj-python-statement-regex'."
       (and (not (equal (treesit-node-type node) "boolean_operator"))
            (equal (treesit-node-type (treesit-node-parent node)) "boolean_operator")
            (member (treesit-node-field-name node) '("left" "right")))
-      (string-match-p evil-ts-obj-python-statement-regex (treesit-node-type node))))
+      (and
+       ;; Do not match strings as statements, they are used as docstrings.
+       (not (evil-ts-obj-python--looks-like-docstring? node))
+       (string-match-p evil-ts-obj-python-statement-regex (treesit-node-type node)))))
 
 (defvar evil-ts-obj-python-param-parent-regex nil
   "Regex is composed from `evil-ts-obj-python-param-parent-nodes'.")
@@ -148,8 +155,9 @@ child and jump to its beginning."
 (defun evil-ts-obj-python-extract-compound-inner (node)
   "Return range for a compound inner text object.
 Compound is represented by a `NODE'."
-  (when-let* ((block-node
-               (pcase (treesit-node-type node)
+  (when-let* ((node-t (treesit-node-type node))
+              (block-node
+               (pcase node-t
                  ((or "if_statement" "elif_clause" "case_clause")
                   (treesit-node-child-by-field-name node "consequence"))
                  ((or "except_clause" "finally_clause")
@@ -162,10 +170,18 @@ Compound is represented by a `NODE'."
                   (treesit-node-child-by-field-name node "body"))))
               ((equal (treesit-node-type block-node) "block")))
 
-    (let ((start (treesit-node-start block-node))
-          (end (treesit-node-end block-node)))
-      (when (equal (treesit-node-type node) "match_statement")
-        (setq start (treesit-node-start (treesit-node-child block-node 0 t))))
+    (let* ((first-inner (treesit-node-child block-node 0 t))
+           (last-inner (treesit-node-child block-node -1 t))
+           (start (treesit-node-start (if first-inner first-inner block-node)))
+           (end (treesit-node-end (if last-inner last-inner block-node))))
+      ;; exclude docstring from the inner object range.
+      (when (and (member node-t '("function_definition" "decorated_definition" "class_definition"))
+                 (evil-ts-obj-python--looks-like-docstring? first-inner))
+        (setq first-inner (treesit-node-child block-node 1 t))
+        (if first-inner
+            (setq start (treesit-node-start first-inner))
+          ;; Block contains only docstring.
+          (setq start end)))
       (list start end))))
 
 (defun evil-ts-obj-python-ext (spec node)

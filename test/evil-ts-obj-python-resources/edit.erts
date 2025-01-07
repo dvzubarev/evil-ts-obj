@@ -2683,6 +2683,26 @@ def main():
     i = call(i)
 =-=-=
 
+
+Name: Barf t5
+
+'pass' is not necessary, but it's ok for now.
+
+=-=
+|@dec
+def main():
+    """docstring
+    """
+    i = 3
+=-=
+i = 3
+|@dec
+def main():
+    """docstring
+    """
+    pass
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
