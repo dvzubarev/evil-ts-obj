@@ -136,25 +136,22 @@ Compound is represented by a `NODE'."
         ;; do not include enclosing braces
         (if-let ((first-child (treesit-node-child body-node 0 t))
                  (last-child  (treesit-node-child body-node -1 t)))
-            (list (treesit-node-start first-child)
-                  (treesit-node-end last-child))
+            (evil-ts-obj-node-range-create first-child last-child)
           ;; empty body
-          (list (treesit-node-end (treesit-node-child body-node 0))
-                (treesit-node-start (treesit-node-child body-node 1))))
+          (evil-ts-obj-node-range-create (treesit-node-child body-node 0) (treesit-node-child body-node 1)
+                                         :exclude-start t :exclude-end t))
 
-      (list (treesit-node-start body-node)
-            (treesit-node-end body-node))))))
+      body-node))))
 
 (defun evil-ts-obj-rust-compound-outer-ext (node)
   "Extend a compound range to include preceding attributes.
 Current thing is represented by `NODE'."
-  (let ((start (treesit-node-start node))
-        (end (treesit-node-end node))
+  (let ((node-range (evil-ts-obj-node-range-create node))
         (prev-node (treesit-node-prev-sibling node)))
     (while (equal (treesit-node-type prev-node) "attribute_item")
-      (setq start (treesit-node-start prev-node))
+      (evil-ts-obj-node-range-change-start node-range :node prev-node)
       (setq prev-node (treesit-node-prev-sibling prev-node)))
-    (list start end)))
+    node-range))
 
 (defun evil-ts-obj-rust-ext (spec node)
   "Main extension function for rust.

@@ -130,8 +130,7 @@ If NODE has type template_declaration find function, class or
 struct child and jump to its beginning."
   (when (equal (treesit-node-type node) "template_declaration")
     (let ((func-node (evil-ts-obj-cpp--find-func-in-template node)))
-      (list (treesit-node-start func-node)
-            (treesit-node-end func-node)))))
+      func-node)))
 
 (defun evil-ts-obj-cpp-ext (spec node)
   "Main extension function for cpp.

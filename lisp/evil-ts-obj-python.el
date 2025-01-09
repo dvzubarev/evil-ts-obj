@@ -149,8 +149,7 @@ If NODE has type decorated_definition, find function_definition
 child and jump to its beginning."
   (when (equal (treesit-node-type node) "decorated_definition")
     (when-let (func-node (treesit-node-child-by-field-name node "definition"))
-      (list (treesit-node-start func-node)
-            (treesit-node-end func-node)))))
+      func-node)))
 
 (defun evil-ts-obj-python-extract-compound-inner (node)
   "Return range for a compound inner text object.
@@ -172,17 +171,16 @@ Compound is represented by a `NODE'."
 
     (let* ((first-inner (treesit-node-child block-node 0 t))
            (last-inner (treesit-node-child block-node -1 t))
-           (start (treesit-node-start (if first-inner first-inner block-node)))
-           (end (treesit-node-end (if last-inner last-inner block-node))))
+           (node-range (evil-ts-obj-node-range-create (or first-inner block-node)
+                                                      (or last-inner block-node))))
       ;; exclude docstring from the inner object range.
       (when (and (member node-t '("function_definition" "decorated_definition" "class_definition"))
                  (evil-ts-obj-python--looks-like-docstring? first-inner))
-        (setq first-inner (treesit-node-child block-node 1 t))
-        (if first-inner
-            (setq start (treesit-node-start first-inner))
-          ;; Block contains only docstring.
-          (setq start end)))
-      (list start end))))
+        (if-let* ((next-after-docstring (treesit-node-child block-node 1 t)))
+            (evil-ts-obj-node-range-change-start node-range :node next-after-docstring)
+          ;; Block contains only docstring, so make empty node range.
+          (evil-ts-obj-node-range-change-start node-range :exclude t)))
+      node-range)))
 
 (defun evil-ts-obj-python-ext (spec node)
   "Main extension function for python.

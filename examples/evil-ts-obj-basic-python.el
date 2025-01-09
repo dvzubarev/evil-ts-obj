@@ -97,8 +97,7 @@ Compound is represented by a `NODE'."
                 (_
                  (treesit-node-child-by-field-name node "body"))))
               ((equal (treesit-node-type block-node) "block")))
-    (list (treesit-node-start block-node)
-          (treesit-node-end block-node))))
+    (evil-ts-obj-node-range-create block-node)))
 
 
 

@@ -103,8 +103,7 @@ Return t if `NODE' is named and it is matching against
   "Return range for a compound inner text object.
 Compound is represented by a `NODE'."
   (when-let* ((binding-set-node (treesit-node-child node 1)))
-    (list (treesit-node-start binding-set-node)
-          (treesit-node-end binding-set-node))))
+    binding-set-node))
 
 
 (defun evil-ts-obj-nix-ext (spec node)

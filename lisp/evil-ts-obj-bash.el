@@ -120,8 +120,7 @@ Compound is represented by a `NODE'."
          (setq first-child (treesit-node-child node first-child-idx t)
                last-child (treesit-node-child node -1 t)))))
     (when (and first-child last-child)
-      (list (treesit-node-start first-child)
-            (treesit-node-end last-child)))))
+      (evil-ts-obj-node-range-create first-child last-child))))
 
 (defun evil-ts-obj-bash-extract-string-inner (node)
   "Return inner range for a string represented by a NODE."
@@ -133,9 +132,10 @@ Compound is represented by a `NODE'."
      (when-let* ((first-child (treesit-node-child node 0 t))
                  ((equal "heredoc_start" (treesit-node-type first-child)))
                  (last-child (treesit-node-child node -1 t))
-                 ((equal "heredoc_end" (treesit-node-type last-child))))
-       (list (treesit-node-end first-child)
-             (treesit-node-start last-child))))))
+                 ((equal "heredoc_end" (treesit-node-type last-child)))
+                 (node-range (evil-ts-obj-node-range-create first-child last-child
+                                                            :exclude-start t :exclude-end t)))
+       node-range))))
 
 (defun evil-ts-obj-bash-statement-get-sibling (dir node)
   "Implementation of a node fetcher for `evil-ts-obj-conf-sibling-trav'.

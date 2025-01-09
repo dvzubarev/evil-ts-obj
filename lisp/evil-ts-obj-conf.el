@@ -33,11 +33,28 @@
 
 (defvar-local evil-ts-obj-conf-thing-modifiers nil
   "Plist that holds an extension function for each language in the buffer.
-A function returns a range (a list of two integers) of a text
-object or nil. If nil is returned than default range is
-calculated (see `evil-ts-obj--default-range'). The function
-should accept two arguments: SPEC and NODE.
+A function returns a range of a text object or nil. If nil is returned
+than default range is calculated (see `evil-ts-obj--default-range').
 
+Possible return values format:
+
+- Treesit node that represents text object.
+
+- List of two integers for start and end of the text object. In that
+  case the passed node is considered to represent the text object.
+
+- Node range created with function `evil-ts-obj-node-range-create'. Node
+  range is a list of two treesit nodes and an integer value that stores
+  flags. If text object spans multiple nodes you have to return node
+  range. You may exclude either of nodes from the range see
+  `evil-ts-obj--node-range-make-int-range' for details of how actual
+  range is calculated. See also `evil-ts-obj-node-range-change-start',
+  `evil-ts-obj-node-range-change-end'.
+
+- You may also compute integer range by yourself and return it along
+  node range in one list, e.g. (append (list start end) node-range).
+
+The function should accept two arguments: SPEC and NODE.
 SPEC is a plist that contains a context for a current text
 object. The possible fields are :thing, :mod, :act, :command and
 :visual. :thing should contain the current thing that is
@@ -55,8 +72,9 @@ collecting avy candidates)
 
 :command contains that current command that will operate on
 returned range. :visual is set to t if `evil-visual-state-p'
-returns t, when spec is created. Also see
-`evil-ts-obj--make-spec' and `evil-ts-obj--apply-modifiers'.")
+returns t, when spec is created.
+
+Also see `evil-ts-obj--make-spec' and `evil-ts-obj--apply-modifiers'.")
 
 (defvar-local evil-ts-obj-conf-range-finalizers nil
   "Finalizer function for each language.

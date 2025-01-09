@@ -79,8 +79,7 @@ with values."
               ;; the 1st child is "-" symbol
               ;; the second child is the list item
               (child (treesit-node-child node 1)))
-    (list (treesit-node-start child)
-          (treesit-node-end child))))
+    child))
 
 (defcustom evil-ts-obj-yaml-prohibit-param-inner-mod
   "\\(?:raise\\|extract\\|drag\\|inject\\|slurp\\|barf\\|convolute\\)"
@@ -97,8 +96,7 @@ with values."
     ("block_scalar"
      (when-let* ((first-child (treesit-node-child node 0))
                  ((not (treesit-node-check first-child 'named))))
-       (list (treesit-node-end first-child)
-             (treesit-node-end node))))))
+       (evil-ts-obj-node-range-create first-child node :exclude-start t)))))
 
 (defun evil-ts-obj-yaml-ext (spec node)
   "Main extension function for yaml.
@@ -108,8 +106,7 @@ and `NODE'."
   (pcase spec
     ((pmap (:thing 'param-compound) (:mod 'inner))
      (when-let ((comp-node (evil-ts-obj-yaml--param-compound-node node)))
-       (list (treesit-node-start comp-node)
-             (treesit-node-end comp-node))))
+       comp-node))
     ((pmap (:thing 'str) (:mod 'inner))
      (evil-ts-obj-yaml--string-inner node))
     ((pmap (:thing 'param) (:mod 'inner) (:act 'op)

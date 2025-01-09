@@ -29,8 +29,101 @@
 (defvar evil-ts-obj--command-num 0)
 (defvar-local evil-ts-obj--last-text-obj-spec nil)
 (defvar-local evil-ts-obj--last-text-obj-range nil)
+(defvar-local evil-ts-obj--last-text-obj-node-range nil)
 (defvar-local evil-ts-obj--last-traversed-sibling nil)
 
+
+;;; Range helpers
+(defconst evil-ts-obj--range-incl-both 0)
+(defconst evil-ts-obj--range-excl-start 1)
+(defconst evil-ts-obj--range-excl-end 2)
+
+;;;; Range functions
+(cl-defun evil-ts-obj-node-range-create (node &optional end &key
+                                              (exclude-start nil)
+                                              (exclude-end nil))
+  "Create node range from NODE.
+If END is not nil it is used as end node. If EXCLUDE-START or
+EXCLUDE-END is not exclude corresponding end node from the range. See
+`evil-ts-obj--node-range-make-int-range' for more information how
+exclusion works."
+  (let ((node-range (list node (if end end node) evil-ts-obj--range-incl-both)))
+    (when exclude-start
+      (evil-ts-obj-node-range-change-start node-range :exclude t))
+    (when exclude-end
+      (evil-ts-obj-node-range-change-end node-range :exclude t))
+    node-range))
+
+(defun evil-ts-obj--node-range-set-bounds-flags (node-range val exclude include)
+  ""
+  (when (and exclude include)
+    (user-error "Passed both exclude and include"))
+
+  (let ((cur (caddr node-range)))
+    (cond
+     (exclude
+      (setf (caddr node-range) (logior cur val)))
+     (include
+      ;; remove val from cur
+      (setf (caddr node-range) (logand cur (lognot val)))))))
+
+(cl-defun evil-ts-obj-node-range-change-start (node-range &optional &key
+                                                          (node nil)
+                                                          (exclude nil)
+                                                          (include nil))
+  "Change start node of the NODE-RANGE.
+If NODE is not set it as new start node of the NODE-RANGE. if EXCLUDE is
+not nil exclude start node from the range. The opposite is for INCLUDE."
+  (when node
+    (setf (car node-range) node))
+  (evil-ts-obj--node-range-set-bounds-flags node-range evil-ts-obj--range-excl-start exclude include))
+
+(cl-defun evil-ts-obj-node-range-change-end (node-range &optional &key
+                                                        (node nil)
+                                                        (exclude nil)
+                                                        (include nil))
+  "Change end node of the NODE-RANGE.
+If NODE is not set it as new end node of the NODE-RANGE. if EXCLUDE is
+not nil exclude end node from the range. The opposite is for INCLUDE."
+  (when node
+    (setf (cadr node-range) node))
+  (evil-ts-obj--node-range-set-bounds-flags node-range evil-ts-obj--range-excl-end exclude include))
+
+(defun evil-ts-obj-node-range-merge (node-range other-node-range)
+  "Merge NODE-RANGE and OTHER-NODE-RANGE.
+Node ranges should intersect and NODE-RANGE should precede other range."
+  (pcase-let* ((`(,start-node ,end-node ,flags) node-range)
+               (`(,other-start-node ,other-end-node ,other-flags) other-node-range))
+    (when (< (treesit-node-start other-start-node)
+             (treesit-node-start start-node))
+      (user-error "Start position of other node range should be after the start node range!"))
+    (when (< (treesit-node-end end-node)
+             (treesit-node-start other-start-node))
+      (user-error "Merge is supported only intersected node ranges!"))
+    (list start-node other-end-node
+          (logior
+           (logand flags evil-ts-obj--range-excl-start)
+           (logand other-flags evil-ts-obj--range-excl-end)))))
+
+(defun evil-ts-obj--node-range-make-int-range (node-range)
+  "Convert NODE-RANGE to the range of integers.
+Convert rules:
+- [n1, n2] - [(start-pos n1), (end-pos n2)];
+- (n1, n2] - [(end-pos n1), (end-pos n2)];
+- [n1, n2) - [(start-pos n1), (start-pos n2)];
+- (n1, n2) - [(end-pos n1), (start-pos n2)]."
+  (pcase-let* ((`(,start-node ,end-node ,flags) node-range)
+               (start (treesit-node-start start-node))
+               (end (treesit-node-end end-node)))
+    (unless (zerop (logand flags evil-ts-obj--range-excl-start))
+      (setq start (treesit-node-end start-node)))
+
+    (unless (zerop (logand flags evil-ts-obj--range-excl-end))
+      (setq end (treesit-node-start end-node)))
+
+    (list start end)))
+
+;;; Misc functions
 
 (defun evil-ts-obj--pre-command ()
   (cl-incf evil-ts-obj--command-num))
@@ -299,16 +392,18 @@ form (or thing1 thing2 ...). COMMAND is the same as for
                             nil command)))
 
 (defun evil-ts-obj--default-range (node spec)
-  "Return default text object range for a `NODE' based on `SPEC'."
-  (let ((start (treesit-node-start node))
-        (end (treesit-node-end node))
+  "Return default text object node range for a `NODE' based on `SPEC'.
+This function produces basic outer-{param,statement} and
+{upper,lower}-{param,statement} text objects. It returns node range - a
+list of start, end nodes and range flags."
+  (let ((node-range (evil-ts-obj-node-range-create node))
         (thing (plist-get spec :thing))
         (act (plist-get spec :act)))
 
     (if (eq act 'nav)
         ;; If we collecting text objects for movement or previewing of candidates,
         ;; we do not modify thing bounds for now by default.
-        (list start end)
+        node-range
       (if-let* ((lang (treesit-language-at (treesit-node-start node)))
                 (thing-trav (plist-get evil-ts-obj-conf-sibling-trav lang))
                 (trav (plist-get thing-trav thing))
@@ -319,7 +414,7 @@ form (or thing1 thing2 ...). COMMAND is the same as for
                                                            (plist-get evil-ts-obj-conf-seps lang)
                                                            thing))))
                 (upper-lower-extend (or (eq thing 'param) 'if-sep-found)))
-          ;; handle upper/lower using traverse functions
+          ;; Handle outer/upper/lower using traverse functions.
           (pcase spec
             ((pmap (:mod 'outer))
              (evil-ts-obj-generic-thing-with-sep-outer node kind-lambda fetcher
@@ -334,26 +429,26 @@ form (or thing1 thing2 ...). COMMAND is the same as for
             ((pmap (:mod 'LOWER))
              (evil-ts-obj-generic-thing-lower node kind-lambda fetcher upper-lower-extend))
             ((pmap (:mod 'all))
-             (list (car (evil-ts-obj-generic-thing-upper node kind-lambda fetcher nil))
-                   (cadr (evil-ts-obj-generic-thing-lower node kind-lambda fetcher nil))))
+             (evil-ts-obj-node-range-merge
+              (evil-ts-obj-generic-thing-upper node kind-lambda fetcher nil)
+              (evil-ts-obj-generic-thing-lower node kind-lambda fetcher nil)))
             (_
-             (list start end)))
+             node-range))
         ;; default handling of upper/lower text objects
         (let ((parent (treesit-node-parent node)))
           (pcase spec
             ((pmap (:mod (or 'upper 'UPPER)))
              (let ((final-sibling (treesit-node-child parent 0 t)))
-               (list (treesit-node-start final-sibling) end)))
+               (evil-ts-obj-node-range-change-start node-range :node final-sibling)))
             ((pmap (:mod (or 'lower 'LOWER)))
              (let ((final-sibling (treesit-node-child parent -1 t)))
-               (list start (treesit-node-end final-sibling))))
+               (evil-ts-obj-node-range-change-end node-range :node final-sibling)))
             ((pmap (:mod 'all))
              (let ((first-node (treesit-node-child parent 0 t))
                    (last-node (treesit-node-child parent -1 t)))
-               (list (treesit-node-start first-node)
-                     (treesit-node-end last-node))))
+               (evil-ts-obj-node-range-create first-node last-node)))
             (_
-             (list start end))))))))
+             node-range)))))))
 
 (defun evil-ts-obj--apply-modifiers (node thing spec &optional dont-set-last)
   "Apply modifiers for creating a text object from the `THING'.
@@ -361,11 +456,20 @@ THING may be a symbol or a list of multiple things. If thing is a
 list then one thing that represents the NODE is kept. In case if
 THING is symbol, SPEC is a plist that contains all context for
 the current operation, otherwise it is alist that maps thing to a
-spec. `THING' is transformed to range via transformation function
-from `evil-ts-obj-conf-thing-modifiers'. NODE and SPEC are passed
+spec. This function returns integer range that is obtained via transformation
+function from `evil-ts-obj-conf-thing-modifiers'. NODE and SPEC are passed
 to modifiers. If no modifier is found or modifier returns nil
-fallback to `evil-ts-obj--default-range'. If `DONT-SET-LAST' is t
-do not update `evil-ts-obj--last-text-obj-range' variable."
+fallback to `evil-ts-obj--default-range'.
+
+This function sets a number of local variables:
+
+- `evil-ts-obj--last-text-obj-spec' - the specification of the thing.
+- `evil-ts-obj--last-text-obj-range' - integer range after all extension
+- functions were applied.
+- `evil-ts-obj--last-text-obj-node-range' - range of nodes from which
+  integer range was derived.
+
+If `DONT-SET-LAST' is t do not update those variables."
   (when node
     (let* ((current-thing (evil-ts-obj--current-thing node thing))
            (current-spec (if (listp thing)
@@ -377,14 +481,35 @@ do not update `evil-ts-obj--last-text-obj-range' variable."
                                            (treesit-language-at pos)))
                       (r (funcall modifier current-spec node)))
                 r
-              (evil-ts-obj--default-range node current-spec))))
+              (evil-ts-obj--default-range node current-spec)))
+           int-range
+           node-range)
+      (pcase range
+        ((pred treesit-node-p)
+         (setq int-range (list (treesit-node-start range) (treesit-node-end range))
+               node-range (evil-ts-obj-node-range-create range)))
+        (`(,(pred integerp) ,(pred integerp))
+         (setq int-range range
+               node-range (evil-ts-obj-node-range-create node)))
+        (`(,(pred treesit-node-p) ,(pred treesit-node-p) ,(pred integerp))
+         (setq int-range (evil-ts-obj--node-range-make-int-range range)
+               node-range range))
+        (`(,(and (pred integerp) start) ,(and (pred integerp) end)
+           ,(pred treesit-node-p) ,(pred treesit-node-p) ,(pred integerp))
+         (setq int-range (list start end)
+               node-range (cddr range)))
+        (_ (user-error "Unknown range pattern %s" range)))
+
+
       (unless dont-set-last
         (setq evil-ts-obj--last-text-obj-spec (plist-put current-spec :cmd-num evil-ts-obj--command-num)
-              evil-ts-obj--last-text-obj-range (copy-sequence range)))
-      range)))
+              evil-ts-obj--last-text-obj-node-range (copy-sequence node-range)
+              evil-ts-obj--last-text-obj-range (copy-sequence int-range)))
+      int-range)))
 
 
 (defun evil-ts-obj--expand-active-region? (thing spec)
+  ""
   (when-let* (((not (listp thing)))       ;multiple things are not supported
               ((plist-get spec :visual))
               ((plist-get evil-ts-obj--last-text-obj-spec :visual))
@@ -417,15 +542,19 @@ removes trailing new lines for compound outer text objects."
                                                     return-node)
   "Return a range for text object described via `SPEC'.
 More information about `SPEC' and `THING' is in
-`evil-ts-obj--apply-modifiers' documentation. If `POS-OR-NODE' is
-not treesit-node, then it is considered to be position in the
-buffer. In that case, find `THING' that is around this position
-using `evil-ts-obj--thing-around'. If `EXTEND-OVER-RANGE' is not
-nil or region is active and the last returned range is equal to
-the active region, expand that region. It is done by searching
-for a matching parent of the current thing. Otherwise apply range
-modifiers to the found thing and return range of a text-object.
-If `RETURN-NODE' is t, return cons of range and the treesit node."
+`evil-ts-obj--apply-modifiers' documentation. If `POS-OR-NODE' is not
+treesit-node, then it is considered to be position in the buffer. In
+that case, find `THING' that is around this position using
+`evil-ts-obj--thing-around'. If `EXTEND-OVER-RANGE' is not nil or region
+is active and the last returned range is equal to the active region,
+expand that region. It is done by searching for a matching parent of the
+current thing. Otherwise apply range modifiers to the found thing and
+return range of a text-object. If `RETURN-NODE' is t, return original
+node that represents THING. Node is appended to the returned range. This
+is node that is passed to `evil-ts-obj--apply-modifiers', so it is
+generally not the node that was used for computing range returned by
+this function. Consult `evil-ts-obj--apply-modifiers' for information
+about access to nodes from which returned range was derived."
 
   (when-let ((node (if (treesit-node-p pos-or-node)
                        pos-or-node
@@ -1052,9 +1181,11 @@ string_start and string_end childs."
   (when-let* ((first-child (treesit-node-child node 0 t))
               ((equal "string_start" (treesit-node-type first-child)))
               (last-child (treesit-node-child node -1 t))
-              ((equal "string_end" (treesit-node-type last-child))))
-    (list (treesit-node-end first-child)
-          (treesit-node-start last-child))))
+              ((equal "string_end" (treesit-node-type last-child)))
+              (node-range (evil-ts-obj-node-range-create first-child last-child
+                                                         :exclude-start t :exclude-end t)))
+
+    node-range))
 
 (cl-defun evil-ts-obj-string-inner-c-style (node &optional &key
                                                              (string-nodes '("string_literal")))
@@ -1074,17 +1205,17 @@ It expects to find a child of type either raw_string_content or string_content."
      (when-let* ((first-child (treesit-node-child node 0))
                  ((not (treesit-node-check first-child 'named)))
                  (last-child (treesit-node-child node -1))
-                 ((not (treesit-node-check last-child 'named))))
+                 ((not (treesit-node-check last-child 'named)))
+                 (node-range (evil-ts-obj-node-range-create first-child last-child
+                                                            :exclude-start t :exclude-end t)))
 
-       (list (treesit-node-end first-child)
-             (treesit-node-start last-child))))
+       node-range))
     ("raw_string_literal"
      (when-let ((child (seq-find
                         (lambda (n)
                           (member (treesit-node-type n) '("raw_string_content" "string_content")))
                         (treesit-node-children node t))))
-       (list (treesit-node-start child)
-             (treesit-node-end child))))))
+       (evil-ts-obj-node-range-create child)))))
 
 (defun evil-ts-obj--generic-find-sep-and-sibling (node node-kind-func next-node-func)
   "Return list (next-sibling next-sep next-term) for a `NODE'.
@@ -1132,8 +1263,7 @@ term, then start of term node becomes new end of the outer range.
 If there is no next sibling, outer range is extended to the end
 of the previous sibling. It does so only if no trailing
 separators were found."
-  (pcase-let* ((start-pos (treesit-node-start node))
-               (end-pos (treesit-node-end node))
+  (pcase-let* ((node-range (evil-ts-obj-node-range-create node))
                (`(,next-sibling ,next-sep ,next-term)
                 (evil-ts-obj--generic-find-sep-and-sibling
                  node node-kind-func
@@ -1141,11 +1271,11 @@ separators were found."
 
     (cond ((or (and (not strict) next-sibling)
                (and strict next-sep next-sibling))
-           (setq end-pos (treesit-node-start next-sibling)))
+           (evil-ts-obj-node-range-change-end node-range :node next-sibling :exclude t))
           ((and extend-to-term next-term)
-           (setq end-pos (treesit-node-start next-term)))
+           (evil-ts-obj-node-range-change-end node-range :node next-term :exclude t))
           (next-sep
-           (setq end-pos (treesit-node-end next-sep))))
+           (evil-ts-obj-node-range-change-end node-range :node next-sep)))
 
     (unless next-sibling
       ;; this is the last thing in a sequence
@@ -1158,14 +1288,14 @@ separators were found."
                     (or (not strict) (and strict prev-sep)))
                ;; There was not trailing separator.
                ;; So we can assume that the previous one should be included.
-               (setq start-pos (treesit-node-end prev-sibling)))
+               (evil-ts-obj-node-range-change-start node-range :node prev-sibling :exclude t))
               ((and extend-to-term prev-term)
-               (setq start-pos (treesit-node-end prev-term)))
+               (evil-ts-obj-node-range-change-start node-range :node prev-term :exclude t))
               ((and next-sep prev-sep)
                ;; There was trailing separator.
                ;; Extend to the end of the previous separator.
-               (setq start-pos (treesit-node-end prev-sep))))))
-    (list start-pos end-pos)))
+               (evil-ts-obj-node-range-change-start node-range :node prev-sep :exclude t)))))
+    node-range))
 
 (defun evil-ts-obj-thing-with-sep-outer (node seps &optional strict extend-to-term)
   "Create a range for an outer text object that is associated with the `NODE'.
@@ -1202,8 +1332,7 @@ the `NODE-FETCHER' in the prev direction. It stops on the first
 node, which kind is not either sibling or sep (kind is obtained
 from `NODE-KIND-FUNC'). The range start is a start of the last
 sibling node returned by the `NODE-FETCHER'."
-  (let ((start-pos (treesit-node-start node))
-        (end-pos (treesit-node-end node)))
+  (let ((node-range (evil-ts-obj-node-range-create node)))
 
     (when extend-to-next
       (pcase-let ((`(,next-sibling ,next-sep ,next-term)
@@ -1213,9 +1342,9 @@ sibling node returned by the `NODE-FETCHER'."
         (when (or (eq extend-to-next t)
                   (and (eq extend-to-next 'if-sep-found) next-sep))
           (if next-sibling
-              (setq end-pos (treesit-node-start next-sibling))
+              (evil-ts-obj-node-range-change-end node-range :node next-sibling :exclude t)
             (when next-term
-              (setq end-pos (treesit-node-start next-term)))))))
+              (evil-ts-obj-node-range-change-end node-range :node next-term :exclude t))))))
 
     (let ((final-sibling node)
           prev
@@ -1225,9 +1354,9 @@ sibling node returned by the `NODE-FETCHER'."
                   (setq node prev)
                   (memq cur-kind '(sibling sep)))
         (setq final-sibling node))
-      (setq start-pos (treesit-node-start final-sibling)))
+      (evil-ts-obj-node-range-change-start node-range :node final-sibling))
 
-    (list start-pos end-pos)))
+    node-range))
 
 (defun evil-ts-obj-param-upper-mod (node seps)
 "Create parameter upper text object.
@@ -1259,8 +1388,7 @@ the next direction. It stops on the first node, which kind is not
 either sibling or sep (the kind is obtained from
 `NODE-KIND-FUNC'). The range end is an end of the last sibling
 node returned by the `NODE-FETCHER'."
-  (let ((start-pos (treesit-node-start node))
-        (end-pos (treesit-node-end node)))
+  (let ((node-range (evil-ts-obj-node-range-create node)))
 
     (when extend-to-prev
       (pcase-let ((`(,prev-sibling ,prev-sep ,prev-term)
@@ -1270,9 +1398,9 @@ node returned by the `NODE-FETCHER'."
         (when (or (eq extend-to-prev t)
                   (and (eq extend-to-prev 'if-sep-found) prev-sep))
           (if prev-sibling
-              (setq start-pos (treesit-node-end prev-sibling))
+              (evil-ts-obj-node-range-change-start node-range :node prev-sibling :exclude t)
             (when prev-term
-              (setq start-pos (treesit-node-end prev-term)))))))
+              (evil-ts-obj-node-range-change-start node-range :node prev-term :exclude t))))))
 
 
     (let ((final-sibling node)
@@ -1283,9 +1411,8 @@ node returned by the `NODE-FETCHER'."
                   (setq node next)
                   (memq cur-kind '(sibling sep)))
         (setq final-sibling node))
-      (setq end-pos (treesit-node-end final-sibling)))
-
-    (list start-pos end-pos)))
+      (evil-ts-obj-node-range-change-end node-range :node final-sibling))
+    node-range))
 
 (defun evil-ts-obj-param-lower-mod (node seps)
   "Create parameter lower text object.
