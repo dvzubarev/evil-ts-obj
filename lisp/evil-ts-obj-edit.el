@@ -442,8 +442,9 @@ See `evil-ts-obj-edit--handle-cloned-orig-text' for more information."
 
 ;;; Helper functions
 
-(defun evil-ts-obj-edit--thing-from-rules (rules-alist)
-  (append '(or) (mapcar #'car rules-alist)))
+(defun evil-ts-obj-edit--thing-from-rules (rules-alist &rest extra-things)
+  ""
+  (append '(or) (mapcar #'car rules-alist) extra-things))
 
 (defun evil-ts-obj-edit--release-markers (range)
   (pcase-let ((`(,start . ,end) range))
@@ -761,6 +762,17 @@ select Nth parent."
 ;;;; Inject
 
 (defun evil-ts-obj-edit--inject-handle-placeholders (place-range place-node)
+  "Handle empty compound body when injecting statements into it.
+Compound thing is represented with PLACE-RANGE and PLACE-NODE.
+The function returns a new body range.
+There are two cases:
+
+1. If language is configured with placeholders, then if body consists
+entirely from any of the placeholder, it is deleted.
+
+2. If language is configured with brackets then brackets are inserted if
+they are not found in the body yet."
+
   (let* ((lang (treesit-language-at (car place-range)))
          (placeholders (plist-get evil-ts-obj-conf-statement-placeholder lang))
          (brackets (plist-get evil-ts-obj-conf-compound-brackets lang))
@@ -794,6 +806,7 @@ select Nth parent."
     new-range))
 
 (defun evil-ts-obj-edit--find-largest-thing-in-range (pos range thing)
+  ""
   (let* ((cursor (treesit-node-at pos))
          (include-self t)
          node)
@@ -807,6 +820,16 @@ select Nth parent."
       (setq node cursor
             include-self nil))
     node))
+
+(defun evil-ts-obj-edit--next-non-comment-sibling (node dir)
+  ""
+  (while (and node
+              (treesit-node-match-p node 'comment t))
+    (setq node
+          (if (eq dir 'next)
+              (treesit-node-next-sibling node t)
+            (treesit-node-prev-sibling node t))))
+  node)
 
 (defun evil-ts-obj-edit--inject-operator-impl (start end &optional count up?)
   "Teleport text from START END range inside next text object.
@@ -983,7 +1006,7 @@ topmost statments."
                                       (plist-put evil-ts-obj--last-text-obj-spec :mod 'inner)))
                   (point-pos (evil-ts-obj--slurp-point-position place-node place-thing))
                   (text-rules-alist (funcall barf-rules-func 'text))
-                  (text-things (evil-ts-obj-edit--thing-from-rules text-rules-alist))
+                  (text-things (evil-ts-obj-edit--thing-from-rules text-rules-alist 'comment))
                   (text-spec (evil-ts-obj--make-spec text-rules-alist 'op)))
 
         (let* ((dir (if (eq point-pos 'beg) 'next 'prev))
@@ -992,6 +1015,7 @@ topmost statments."
                             (cadr place-inner-range)))
                (text-start-node (evil-ts-obj-edit--find-largest-thing-in-range
                                  start-pos place-inner-range text-things))
+               (text-start-node (evil-ts-obj-edit--next-non-comment-sibling text-start-node dir))
                start-node-thing
                text-end-node)
 

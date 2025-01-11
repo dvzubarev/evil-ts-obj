@@ -242,7 +242,9 @@ See `evil-ts-obj-conf-convolute-rules' for description of RANGE-TYPE."
                                      (compound-brackets nil)
                                      (statement-placeholder nil))
   "Set default values for language LANG.
-THINGS are added to `treesit-thing-settings' variable.
+THINGS are added to `treesit-thing-settings' variable. If THINGS does
+not contain a thing for the comment, then simle regexp \"^comment$\"  is
+added as the comment thing.
 
 
 Possible keyword values: If EXT-FUNC is not nil, it is added
@@ -284,6 +286,9 @@ And other default rules to its corresponding variables."
 
 
   (make-local-variable 'treesit-thing-settings)
+  (when (not (assq 'comment things))
+    (cl-callf append things '((comment "^comment$"))))
+
   (cl-callf append (alist-get lang treesit-thing-settings) things)
 
   (when ext-func
@@ -336,7 +341,9 @@ And other default rules to its corresponding variables."
                                           (clone-indent-policy nil))
 
   "Set default values for language LANG.
-THINGS are added to `treesit-thing-settings' variable.
+THINGS are added to `treesit-thing-settings' variable. If THINGS does
+not contain a thing for the comment, then simle regexp \"^comment$\" is
+added as the comment thing.
 
 
 Possible keyword values: If EXT-FUNC is not nil, it is added
@@ -354,6 +361,9 @@ This function also adds `evil-ts-obj-def-raise-rules' to
 `evil-ts-obj-def-conf-lang-raise-rules'."
 
   (make-local-variable 'treesit-thing-settings)
+  (when (not (assq 'comment things))
+    (cl-callf append things '((comment "^comment$"))))
+
   (cl-callf append (alist-get lang treesit-thing-settings) things)
 
   (when ext-func

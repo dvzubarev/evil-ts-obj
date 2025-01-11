@@ -1193,6 +1193,29 @@ void f (){
 }
 =-=-=
 
+
+Name: Slurp t5
+
+=-=
+t=0;
+//comment
+
+|void f (){
+    //temp
+    i--;
+}
+=-=
+
+//comment
+
+|void f (){
+    t=0;
+    //temp
+    i--;
+}
+=-=-=
+
+
 Code:
   (lambda ()
     (evil-ts-obj-cpp-tests-setup)
@@ -1277,6 +1300,48 @@ void f (){
         {}
     i = 3;
 }
+=-=-=
+
+Name: Barf t5
+
+=-=
+|void f (){
+    //temp
+    //o
+
+    if (i > 0)
+        i--;
+}
+=-=
+if (i > 0)
+    i--;
+|void f (){
+    //temp
+    //o
+
+
+}
+=-=-=
+
+Name: Barf t6
+
+=-=
+void |f (){
+    if (i > 0)
+        i--;
+    //temp
+    //o
+}
+//after
+=-=
+void |f (){
+
+    //temp
+    //o
+}
+if (i > 0)
+    i--;
+//after
 =-=-=
 
 Code:

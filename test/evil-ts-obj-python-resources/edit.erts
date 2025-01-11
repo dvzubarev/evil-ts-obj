@@ -2703,6 +2703,26 @@ def main():
     pass
 =-=-=
 
+Name: Barf t6
+
+This test wouldn't work w/o docstring.
+Because comment node is before block node if a comment is the first line in the compound statement.
+
+=-=
+|def main():
+    """
+    """
+    #c
+
+    i = 3
+=-=
+i = 3
+|def main():
+    """
+    """
+    #c
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-python-tests-setup)
