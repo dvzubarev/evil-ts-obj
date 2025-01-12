@@ -3,9 +3,9 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-rust-tests-setup)
-    (evil-ts-obj-drag-up 1))
+    (evil-ts-obj-swap-dwim-up 1))
 
-Name: drag up t1
+Name: swap-dwim up t1
 
 =-=
 struct S1 {}
@@ -27,7 +27,7 @@ impl S1 {
 }
 =-=-=
 
-Name: drag up t2
+Name: swap-dwim up t2
 
 =-=
 fn func () {

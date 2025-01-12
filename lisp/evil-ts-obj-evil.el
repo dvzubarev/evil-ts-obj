@@ -388,20 +388,20 @@ TYPE are arguments from evil operator."
   (interactive "<c>")
   (evil-ts-obj-edit--raise-dwim count))
 
-(evil-define-operator evil-ts-obj-drag-up (count)
+(evil-define-operator evil-ts-obj-swap-dwim-up (count)
   "Swap a current text object with the previous sibling.
 When COUNT is greater then 1, swap current text object with the
 Nth sibling."
 
   (interactive "<c>")
-  (evil-ts-obj-edit--drag 'prev count))
+  (evil-ts-obj-edit--swap-dwim 'prev count))
 
-(evil-define-operator evil-ts-obj-drag-down (count)
+(evil-define-operator evil-ts-obj-swap-dwim-down (count)
   "Swap a current text object with the next sibling.
 When COUNT is greater then 1, swap current text object with the
 Nth sibling."
   (interactive "<c>")
-  (evil-ts-obj-edit--drag 'next count))
+  (evil-ts-obj-edit--swap-dwim 'next count))
 
 (evil-define-operator evil-ts-obj-extract-up (beg end type count)
   "Teleport text from BEG END range before parent text object.
@@ -573,8 +573,8 @@ topmost statments."
     "zS" #'evil-ts-obj-inject-up)
   (evil-define-key 'normal 'evil-ts-obj-mode
     (kbd "M-r") #'evil-ts-obj-raise-dwim
-    (kbd "M-j") #'evil-ts-obj-drag-down
-    (kbd "M-k") #'evil-ts-obj-drag-up
+    (kbd "M-J") #'evil-ts-obj-swap-dwim-down
+    (kbd "M-K") #'evil-ts-obj-swap-dwim-up
     (kbd "M-c") #'evil-ts-obj-clone-after-dwim
     (kbd "M-C") #'evil-ts-obj-clone-before-dwim
     (kbd "M-h") #'evil-ts-obj-extract-up-dwim

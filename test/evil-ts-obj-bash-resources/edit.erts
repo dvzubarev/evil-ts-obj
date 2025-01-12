@@ -94,9 +94,9 @@ echo e | echo k "t t"
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-drag-down 1))
+    (evil-ts-obj-swap-dwim-down 1))
 
-Name: drag down pipelined cmds t1
+Name: swap-dwim down pipelined cmds t1
 
 =-=
 echo t | @echo e | echo k "t t"
@@ -109,9 +109,9 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-drag-up 1))
+    (evil-ts-obj-swap-dwim-up 1))
 
-Name: drag up t1
+Name: swap-dwim up t1
 
 =-=
 echo pr pr2 |pr3
@@ -119,7 +119,7 @@ echo pr pr2 |pr3
 echo pr |pr3 pr2
 =-=-=
 
-Name: drag up t2
+Name: swap-dwim up t2
 
 =-=
 echo --pr=setm --var temp \
@@ -131,7 +131,7 @@ echo --pr=setm --var temp \
      --kwarg2
 =-=-=
 
-Name: drag up t3
+Name: swap-dwim up t3
 
 =-=
 echo --pr=setm --var temp \
@@ -143,7 +143,7 @@ echo --pr=setm --var |--kwarg3="value with space" \
      --kwarg2
 =-=-=
 
-Name: drag up t4
+Name: swap-dwim up t4
 
 =-=
 echo str1
@@ -155,7 +155,7 @@ echo str1
 echo str4
 =-=-=
 
-Name: drag up t5
+Name: swap-dwim up t5
 
 =-=
 echo str1
@@ -169,7 +169,7 @@ echo str1; echo str2
 echo str4
 =-=-=
 
-Name: drag up t6
+Name: swap-dwim up t6
 
 =-=
 if [[ -n "$mode" ]] ; then
@@ -185,9 +185,9 @@ fi
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
-    (evil-ts-obj-drag-down 1))
+    (evil-ts-obj-swap-dwim-down 1))
 
-Name: drag down t1
+Name: swap-dwim down t1
 
 =-=
 |echo str1
@@ -201,7 +201,7 @@ echo str2
 echo str4
 =-=-=
 
-Name: drag down t1
+Name: swap-dwim down t1
 
 =-=
 echo str2

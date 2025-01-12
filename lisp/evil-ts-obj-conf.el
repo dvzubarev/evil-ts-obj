@@ -150,18 +150,18 @@ possible to specify multiple potential text objects. See
 `evil-ts-obj-def-raise-rules' as an example of this function
 implementation.")
 
-(defvar-local evil-ts-obj-conf-drag-rules nil
-  "This is a plist that maps language to a function that returns drag rules.
-This function is invoked by `evil-ts-obj-edit--drag'to determine
+(defvar-local evil-ts-obj-conf-swap-dwim-rules nil
+  "This is a plist that maps language to a function that returns swap-dwim rules.
+This function is invoked by swap-dwim and swap-dwim to determine
 what things it should operate on. The function should accept
 RANGE-TYPE. RANGE-TYPE is a symbol that value is either first or
 second. If RANGE-TYPE is first then function should return text
-object, which will be dragged. If RANGE-TYPE is second then it
-returns the object that should be swapped with the dragged one.
+object, which will be swap-dwim. If RANGE-TYPE is second then it
+returns the object that should be swapped with the swap-dwim one.
 The second object is searched across the first object siblings.
 In both cases it should return alist, for example \\='((statement
 . inner) (compound . outer)). So it is possible to specify
-multiple potential text objects. See `evil-ts-obj-def-drag-rules'
+multiple potential text objects. See `evil-ts-obj-def-swap-dwim-rules'
 as an example of this function implementation.")
 
 (defvar-local evil-ts-obj-conf-clone-rules nil

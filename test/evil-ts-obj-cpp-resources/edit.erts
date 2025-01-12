@@ -3,9 +3,9 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-cpp-tests-setup)
-    (evil-ts-obj-drag-up 1))
+    (evil-ts-obj-swap-dwim-up 1))
 
-Name: drag up t1
+Name: swap-dwim up t1
 
 =-=
 struct s1_t {};
@@ -37,7 +37,7 @@ func1(T t, U u){
 }
 =-=-=
 
-Name: drag up t2
+Name: swap-dwim up t2
 
 =-=
 void func () {
@@ -50,7 +50,6 @@ void func () {
    auto i = 3;
 }
 =-=-=
-
 
 Code:
   (lambda ()

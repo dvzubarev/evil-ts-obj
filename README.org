@@ -211,14 +211,14 @@ DWIM commands have some use for numeric argument.
 See examples in the [[docs/edit-demo.org][file]].
 
 
-- drag-{down,up} ::
-  Commands: =evil-ts-obj-drag-down=, =evil-ts-obj-drag-up=
+- swap-dwim-{down,up} ::
+  Commands: =evil-ts-obj-swap-dwim-down=, =evil-ts-obj-swap-dwim-up=
 
   Swap a current text object with the previous/next sibling.
   When numeric argument is provided, swap current text object with
   the Nth sibling.
 
-  Default keys: =M-j=, =M-k=
+  Default keys: =M-J=, =M-K=
 
 - raise ::
   Dwim command: =evil-ts-obj-raise-dwim=

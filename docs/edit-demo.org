@@ -1,10 +1,10 @@
 #+title: Edit operators in action
-** Drag operator
+** Swap dwim operator
 
 #+BEGIN_HTML
 <table border="0"> <tr>
 <td>Original<img width="260" height="1"></td>
-<td>After <b>M-k (drag-up)</b><img width="260" height="1"></td>
+<td>After <b>M-K (swap-dwim-up)</b><img width="260" height="1"></td>
 </tr> <tr> <td>
 #+END_HTML
 
@@ -35,7 +35,7 @@ def main(|t=call(nest1,
 #+BEGIN_HTML
 <table border="0"> <tr>
 <td>Original<img width="260" height="1"></td>
-<td>After <b>M-k (drag up)</b><img width="260" height="1"></td>
+<td>After <b>M-K (swap-dwim up)</b><img width="260" height="1"></td>
 </tr> <tr> <td>
 #+END_HTML
 
@@ -79,7 +79,7 @@ func1(T t, U u){
 #+BEGIN_HTML
 <table border="0"> <tr>
 <td>Original<img width="260" height="1"></td>
-<td>After <b>M-k (drag up)</b><img width="260" height="1"></td>
+<td>After <b>M-K (swap-dwim up)</b><img width="260" height="1"></td>
 </tr> <tr> <td>
 #+END_HTML
 
@@ -106,13 +106,13 @@ echo --pr=setm --var temp \
 #+BEGIN_HTML
 <table border="0"> <tr>
 <td>Original<img width="260" height="1"></td>
-<td>After <b>2 M-j (drag down)</b><img width="260" height="1"></td>
+<td>After <b>2 M-J (swap-dwim down)</b><img width="260" height="1"></td>
 </tr> <tr> <td>
 #+END_HTML
 
 #+begin_src python
-if |i < 8 and i > 0 and #comm
-   i is not None:
+if (|i < 8 and i > 0 and #comm
+   i is not None):
    pass
 #+end_src
 
@@ -121,8 +121,8 @@ if |i < 8 and i > 0 and #comm
 #+END_HTML
 
 #+begin_src python
-if i is not None and i > 0 and #comm
-   |i < 8:
+if (i is not None and i > 0 and #comm
+   |i < 8):
    pass
 #+end_src
 

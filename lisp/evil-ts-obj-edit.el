@@ -601,12 +601,13 @@ Nth parent."
         (evil-ts-obj-edit--raise-operator (car range) (cadr range) count))
     (evil-ts-obj-edit--cleanup)))
 
-;;;; Drag
+;;;; Swap dwim
 
-(defun evil-ts-obj-edit--drag (dir &optional count)
-  "Drag a current text object in DIR direction.
+
+(defun evil-ts-obj-edit--swap-dwim (dir &optional count)
+  "Swap a current text object in DIR direction.
 Text objects is determined based on rules from
-`evil-ts-obj-conf-drag-rules'. When COUNT is greater then 1, swap
+`evil-ts-obj-conf-swap-dwim-rules'. When COUNT is greater then 1, swap
 current text object with the Nth sibling."
 
   ;; clean unfinished edit operations
@@ -614,8 +615,8 @@ current text object with the Nth sibling."
   (unwind-protect
       ;; find first text object
       (when-let* ((lang (treesit-language-at (point)))
-                  (drag-rules-func (plist-get evil-ts-obj-conf-drag-rules lang))
-                  (rules-alist (funcall drag-rules-func 'first))
+                  (swap-dwim-rules-func (plist-get evil-ts-obj-conf-swap-dwim-rules lang))
+                  (rules-alist (funcall swap-dwim-rules-func 'first))
                   (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
                   (spec (evil-ts-obj--make-spec rules-alist 'op))
                   (range (evil-ts-obj--get-text-obj-range (point) thing spec nil t))
@@ -624,7 +625,7 @@ current text object with the Nth sibling."
         ;; Find sibling to swap with.
 
         (when-let* ((first-thing (plist-get evil-ts-obj--last-text-obj-spec :thing))
-                    (second-rules-alist (funcall drag-rules-func 'second))
+                    (second-rules-alist (funcall swap-dwim-rules-func 'second))
                     (second-thing (evil-ts-obj-edit--thing-from-rules second-rules-alist))
                     (second-spec (evil-ts-obj--make-spec second-rules-alist 'op))
                     (sibling (evil-ts-obj--find-matching-sibling node first-thing dir second-thing
@@ -838,7 +839,7 @@ Next/previous text objects are determined by the
 `evil-ts-obj-conf-inject-rules' variable. Usually inner compounds
 are used as place for injection. When COUNT is set select N-1th
 child of next/previous text object."
-  ;; clean unfinished edit operations
+  ;; Clean up unfinished edit operations.
   (evil-ts-obj-edit--cleanup)
   (if up?
       (evil-ts-obj-edit--teleport-after-operator start end)
