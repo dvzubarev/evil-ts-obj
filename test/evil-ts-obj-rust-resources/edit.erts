@@ -93,7 +93,6 @@ struct St<T, |U, U> {}
 =-=-=
 
 Name: Clone after dwim t5
-Skip: t
 
 =-=
 if |opts && (!i || i < 0 < 3) && t.call() || true  {
@@ -104,26 +103,28 @@ if |opts && opts && (!i || i < 0 < 3) && t.call() || true  {
 =-=-=
 
 Name: Clone after dwim t6
-Skip: t
 
 =-=
 if opts && |(!i || i < 0 < 3) && t.call() || true  {
 }
 =-=
-if |opts && |(!i || i < 0 < 3) && (!i || i < 0 < 3) && t.call() || true  {
+if opts && |(!i || i < 0 < 3) && (!i || i < 0 < 3) && t.call() || true  {
 }
 =-=-=
+
+Point-Char: @
 
 Name: Clone after dwim t7
-Skip: t
 
 =-=
-if |opts && (!i || i < 0 < 3) && t.call() || |true  {
+if opts && (!i || i < 0 < 3) && t.call() || @true  {
 }
 =-=
-if |opts && (!i || i < 0 < 3) && t.call() || |true || true  {
+if opts && (!i || i < 0 < 3) && t.call() || @true || true  {
 }
 =-=-=
+
+Point-Char: |
 
 Name: Clone after dwim t8
 
@@ -138,7 +139,6 @@ if true {
 =-=-=
 
 Name: Clone after dwim t9
-Skip: t
 
 =-=
 if true {
