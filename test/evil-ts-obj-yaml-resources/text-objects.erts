@@ -92,32 +92,6 @@ Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)
     (setq-local evil-this-operator 'evil-delete)
-    (apply #'evil-delete (evil-ts-obj-compound-inner)))
-
-Name: Delete multiline string
-
-This should work with string text object
-Skip: t
-=-=
----
-- a:
-    golden-rings: >
-     temp 111
-     te|sm fen
-- aa
-=-=
----
-- a:
-    golden-rings: |
-- aa
-=-=-=
-
-=-=-=
-
-Code:
-  (lambda ()
-    (evil-ts-obj-yaml-tests-setup)
-    (setq-local evil-this-operator 'evil-delete)
     (apply #'evil-delete (evil-ts-obj-param-lower)))
 
 Name: Delete list item lower t1
