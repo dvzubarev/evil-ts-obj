@@ -143,7 +143,7 @@ and `NODE'."
      (evil-ts-obj-string-inner-c-style node))
     ((pmap (:thing 'compound) (:mod 'outer) (:act 'op))
      (evil-ts-obj-c-compound-outer-ext node))
-    ((pmap (:thing 'compound) (:mod 'outer) (:act 'nav))
+    ((pmap (:thing 'compound) (:act 'nav))
      (evil-ts-obj-cpp-compound-nav-mod node))))
 
 (defcustom evil-ts-obj-cpp-ext-func

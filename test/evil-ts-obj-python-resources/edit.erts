@@ -2703,6 +2703,25 @@ def main():
     pass
 =-=-=
 
+Name: Barf t5-2
+
+'pass' is not necessary, but it's ok for now.
+
+=-=
+@dec
+|def main():
+    """docstring
+    """
+    i = 3
+=-=
+i = 3
+@dec
+|def main():
+    """docstring
+    """
+    pass
+=-=-=
+
 Name: Barf t6
 
 This test wouldn't work w/o docstring.

@@ -1008,10 +1008,11 @@ child of next/previous text object."
     (evil-ts-obj-edit--cleanup)))
 
 (defun evil-ts-obj--slurp-point-position (place-node place-thing)
+  ""
   (pcase-let* ((nav-spec (evil-ts-obj--make-nav-spec place-thing))
                (`(,start ,end) (evil-ts-obj--apply-modifiers place-node place-thing nav-spec t)))
     (cond
-     ((= (point) start) 'beg)
+     ((<= (point) start) 'beg)
      ((= (point) (1- end)) 'end)
      (t 'mid))))
 

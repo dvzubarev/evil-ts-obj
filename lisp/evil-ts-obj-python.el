@@ -191,7 +191,7 @@ and `NODE'."
      (evil-ts-obj-python-extract-compound-inner node))
     ((pmap (:thing 'str) (:mod 'inner))
      (evil-ts-obj-string-inner-py-style node))
-    ((pmap (:thing 'compound) (:mod 'outer) (:act 'nav))
+    ((pmap (:thing 'compound) (:act 'nav))
      (evil-ts-obj-python-compound-nav-mod node))))
 
 (defcustom evil-ts-obj-python-ext-func
