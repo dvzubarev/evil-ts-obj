@@ -5,7 +5,7 @@ Code:
     (evil-ts-obj-bash-tests-setup)
     (evil-ts-obj-next-sibling))
 
-Name: Move to next largest t1
+Name: Move to next sibling t1
 
 =-=
 if [[ -n@ "$send_mode" && move || "$A" == "$B" ]] ; then
@@ -17,7 +17,7 @@ if [[ -n "$send_mode" && @move || "$A" == "$B" ]] ; then
 fi
 =-=-=
 
-Name: Move to next largest t2
+Name: Move to next sibling t2
 
 =-=
 if [[ -n "$send_mode" && @move || "$A" == "$B" ]] ; then
@@ -34,7 +34,7 @@ Code:
     (evil-ts-obj-bash-tests-setup)
     (evil-ts-obj-previous-sibling))
 
-Name: Move to next largest t1
+Name: Move to prev sibling t1
 
 =-=
 if [[ -n "$send_mode" && move || @"$A" == "$B" ]] ; then
@@ -46,7 +46,7 @@ if [[ -n "$send_mode" && @move || "$A" == "$B" ]] ; then
 fi
 =-=-=
 
-Name: Move to next largest t2
+Name: Move to prev sibling t2
 
 =-=
 if [[ -n "$send_mode" && @move || "$A" == "$B" ]] ; then
@@ -58,6 +58,21 @@ if [[ @-n "$send_mode" && move || "$A" == "$B" ]] ; then
 fi
 =-=-=
 
+Name: Move to prev sibling t3
+
+=-=
+call && echo || @exit
+=-=
+call && @echo || exit
+=-=-=
+
+Name: Move to prev sibling t4
+
+=-=
+call && @echo || exit
+=-=
+@call && echo || exit
+=-=-=
 
 Code:
   (lambda ()

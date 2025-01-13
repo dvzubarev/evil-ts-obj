@@ -932,9 +932,16 @@ If `CURRENT' is t, detect current thing at point and return this thing."
 BOOL-OPS is a list of possible valid boolean operators. If
 node\\='s operator: field is a member of bool-ops list, then this
 function returns t."
-  (member (treesit-node-type
-           (treesit-node-child-by-field-name node "operator"))
-          bool-ops))
+
+  (or
+   (member (treesit-node-type
+            (treesit-node-child-by-field-name node "operator"))
+           bool-ops)
+   ;; Bash does not have field operator in list structure.
+   ;; Just search for anonymous nodes that equal to some of bool-ops.
+   (seq-some (lambda (node)
+               (member (treesit-node-type node) bool-ops))
+             (treesit-node-children node))))
 
 (defun evil-ts-obj--common-bool-expr-pred (node bool-op-type bool-ops)
   "Return t if NODE is a part of a boolean expression.
@@ -1053,12 +1060,16 @@ Example 2:
              ;;Example 1: handle transition (5) <- (3)
              (if (evil-ts-obj--bool-expr-check-op sibling node-expr-ops)
                  ;; This node is boolean expression so take the :right child of it.
-                 (treesit-node-child-by-field-name sibling "right")
+                 (or (treesit-node-child-by-field-name sibling "right")
+                     ;; Again bash...
+                     ;; List node does not have fielts right/left...
+                     (treesit-node-child sibling -1 t))
                sibling)
            ;;Example 2: handle transition (2) -> (4)
            (if (evil-ts-obj--bool-expr-check-op sibling node-expr-ops)
                ;; This node is boolean expression so take the :left child of it.
-               (treesit-node-child-by-field-name sibling "left")
+               (or (treesit-node-child-by-field-name sibling "left")
+                   (treesit-node-child sibling 0 t))
              sibling)))
         (_ sibling)))))
 

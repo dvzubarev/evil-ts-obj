@@ -43,7 +43,6 @@
     "variable_assignment"
     "redirected_statement"
     "pipeline"
-    "list"
     "subshell")
   "Nodes that designate simple statement in bash."
   :type '(repeat string)
