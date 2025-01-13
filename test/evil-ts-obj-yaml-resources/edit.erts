@@ -1,5 +1,152 @@
 Point-Char: |
 
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-drag-down)
+    (evil-ts-obj-drag-down 2)
+    (delete-trailing-whitespace))
+
+
+Name: drag down 2 times t1
+
+=-=
+---
+- name:| install rofi
+  community.general.pacman:
+    te: t
+
+  #com
+
+  become: yes
+=-=
+---
+-
+  community.general.pacman:
+    te: t
+
+  #com
+
+  become: yes
+  |name: install rofi
+=-=-=
+
+Name: drag down 2 times t2
+
+=-=
+---
+- a: 1
+  |bb: 2
+
+  l:
+    - my
+    - list
+
+- b: 3
+=-=
+---
+- a: 1
+
+  l:
+    - my
+    - list
+  |bb: 2
+
+- b: 3
+=-=-=
+
+Name: drag down 2 times t3
+
+=-=
+---
+|- c: 4
+- b: 3
+
+- a: 1
+
+- b: 3
+=-=
+---
+- b: 3
+
+- a: 1
+|- c: 4
+
+- b: 3
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-yaml-tests-setup)
+    (setq-local evil-this-operator 'evil-ts-obj-drag-up)
+    (evil-ts-obj-drag-up 2)
+    (delete-trailing-whitespace))
+
+
+Name: drag up 2 times t1
+
+=-=
+---
+- name: install rofi
+
+  community.general.pacman:
+    te: t
+  #com
+
+  become:| yes
+=-=
+---
+- |become: yes
+  name: install rofi
+
+  community.general.pacman:
+    te: t
+  #com
+=-=-=
+
+Name: drag up 2 times t2
+
+=-=
+---
+- a: 1
+  bb: 2
+
+  l|:
+    - my
+    - list
+- b: 3
+=-=
+---
+- |l:
+    - my
+    - list
+  a: 1
+  bb: 2
+
+- b: 3
+=-=-=
+
+Name: drag up 2 times t3
+
+=-=
+---
+- c: 4
+
+- b: 3
+
+|- a: 1
+- d: 3
+=-=
+---
+|- a: 1
+- c: 4
+
+- b: 3
+
+- d: 3
+=-=-=
+
 Code:
   (lambda ()
     (evil-ts-obj-yaml-tests-setup)

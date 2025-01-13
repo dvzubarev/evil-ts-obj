@@ -1127,11 +1127,12 @@ possible termination nodes: \) ,\] ,end ,fi, etc.)."
    ((when (evil-ts-obj--nodes-on-the-same-line node cur-node)
       'term))))
 
-(iter-defun evil-ts-obj--iter-siblings (node node-thing dir match-thing)
+(iter-defun evil-ts-obj--iter-siblings (node node-thing dir match-thing &optional yield-all)
   "Return sibling of a NODE in a direction DIR.
-DIR is either prev or next. NODE-THING is a thing that is
-represented by the NODE. Returned sibling will match with the
-thing specified in MATCH-THING."
+DIR is either prev or next. NODE-THING is a thing that is represented by
+the NODE. Returned sibling will match with the thing specified in
+MATCH-THING. If YIELD-ALL is t yield every node that either is sibling
+or separator. MATCH-THING is ignored"
   (let* ((lang (treesit-language-at (treesit-node-start node)))
          (trav-things (plist-get evil-ts-obj-conf-sibling-trav lang))
          (trav (plist-get trav-things node-thing))
@@ -1151,8 +1152,9 @@ thing specified in MATCH-THING."
                 (setq cur-node node)
                 (memq cur-kind '(sibling sep)))
       (setq evil-ts-obj--last-traversed-sibling cur-node)
-      (when (and (eq cur-kind 'sibling)
-                 (treesit-node-match-p node match-thing t))
+      (when (or yield-all
+                (and (eq cur-kind 'sibling)
+                     (treesit-node-match-p node match-thing t)))
         (iter-yield node)))))
 
 (defun evil-ts-obj--find-matching-sibling (node node-thing dir match-thing &optional count)

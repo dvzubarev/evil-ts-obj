@@ -43,7 +43,8 @@
     "variable_assignment"
     "redirected_statement"
     "pipeline"
-    "list")
+    "list"
+    "subshell")
   "Nodes that designate simple statement in bash."
   :type '(repeat string)
   :group 'evil-ts-obj

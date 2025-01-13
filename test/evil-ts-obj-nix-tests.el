@@ -39,7 +39,9 @@
   (skip-unless (treesit-ready-p 'nix))
   (ert-test-erts-file (ert-resource-file "movement.erts")))
 
-
+(ert-deftest evil-ts-obj-nix-edit-test ()
+  (skip-unless (treesit-ready-p 'nix))
+  (ert-test-erts-file (ert-resource-file "edit.erts")))
 
 
 (provide 'evil-ts-obj-nix-tests)

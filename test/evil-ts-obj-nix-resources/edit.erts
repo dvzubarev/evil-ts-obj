@@ -1,0 +1,68 @@
+Point-Char: |
+
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (evil-ts-obj-drag-down 1))
+
+
+Name: drag down t1
+
+=-=
+buildInputs = [
+  pkgs|.ccls
+  # pkgs.python311
+  pkgs.nodePackages.pyright
+]
+=-=
+buildInputs = [
+  # pkgs.python311
+  pkgs.nodePackages.pyright
+  |pkgs.ccls
+]
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (evil-ts-obj-drag-up 1))
+
+
+Name: drag up t1
+
+=-=
+buildInputs = [
+  pkgs.ccls
+  # pkgs.python311
+  pkgs|.nodePackages.pyright
+]
+=-=
+buildInputs = [
+  |pkgs.nodePackages.pyright
+  pkgs.ccls
+  # pkgs.python311
+]
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-nix-tests-setup)
+    (evil-ts-obj-swap-dwim-down 1))
+
+
+Name: swap-dwim down t1
+
+=-=
+buildInputs = [
+  pkgs|.ccls
+  # pkgs.python311
+  pkgs.nodePackages.pyright
+]
+=-=
+buildInputs = [
+  pkgs.nodePackages.pyright
+  # pkgs.python311
+  |pkgs.ccls
+]
+=-=-=

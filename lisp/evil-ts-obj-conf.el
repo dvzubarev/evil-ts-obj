@@ -63,10 +63,10 @@ modifier (inner/outer etc.). :act is a type of a current
 operation with the text object. :act can be one of the following
 symbols:
 
-* op - any evil operator or other modification operations like
+* \\='op - any evil operator or other modification operations like
   avy actions.
 
-* nav - any movement command like evil-ts-obj-next-thing. Also it
+* \\='nav - any movement command like evil-ts-obj-next-thing. Also it
 is used when selecting a text object for preview (e.g. when
 collecting avy candidates)
 
@@ -105,15 +105,21 @@ direction (next or prev) and node. It should return the immediate
 sibling of the passed node. For example, see
 `evil-ts-obj--get-sibling-simple'.
 
-:kind-func is a function that accepts three arguments: current
-node, current node kind, target node and optionally separators
-regexp. It should classify the passed target node and return its
-kind: sep, sibling, term or nil. sep - means that passed node is
-a recognized separator. sibling - denotes named node that is a
-sibling of the current node. term - signals that this node is a
-terminator of a sequence of things. When nil returned, act as if
-current-node is the last node in the sequence. See
-`evil-ts-obj--get-node-kind' or
+:kind-func is a function that accepts three arguments: current node,
+current node kind, target node and optionally separators regexp. It
+should classify the passed target node and return its kind: \\='sep,
+\\='sibling, \\='term or nil.
+
+- \\='sep - means that passed node is a recognized separator.
+
+- \\='sibling - denotes named node that is a sibling of the current
+node.
+
+- \\='term - signals that this node is a terminator of a sequence of
+things. When nil returned, act as if current-node is the last node in
+the sequence.
+
+ See `evil-ts-obj--get-node-kind' or
 `evil-ts-obj--get-node-kind-strict'.")
 
 (defvar-local evil-ts-obj-conf-seps nil
@@ -137,48 +143,60 @@ they differ only by the termination symbol.")
 
 (defvar-local evil-ts-obj-conf-raise-rules nil
   "This is a plist that maps language to a function that returns raise rules.
-This function is invoked by `evil-ts-obj-edit--raise-operator'
-and `evil-ts-obj-edit--raise-dwim' to determine what things they
-should operate on. The function should accept RANGE-TYPE.
-RANGE-TYPE can be either text or place. If RANGE-TYPE is text
-then function should return a text object, content of which will
-be used in raise operator. If RANGE-TYPE is place then function
-should return a text object that should be replaced by the
-selected content. In both cases it should return alist, for
-example \\='((statement . inner) (compound . outer)). So it is
-possible to specify multiple potential text objects. See
-`evil-ts-obj-def-raise-rules' as an example of this function
+This function is invoked by `evil-ts-obj-edit--raise-operator' and
+`evil-ts-obj-edit--raise-dwim' to determine what things they should
+operate on. The function should accept RANGE-TYPE. RANGE-TYPE can be
+either \\='text or \\='place. If RANGE-TYPE is \\='text then function
+should return a text object, content of which will be used in raise
+operator. If RANGE-TYPE is \\='place then function should return a text
+object that should be replaced by the selected content. In both cases it
+should return alist, for example \\='((statement . inner) (compound .
+outer)). So it is possible to specify multiple potential text objects.
+See `evil-ts-obj-def-raise-rules' as an example of this function
 implementation.")
 
 (defvar-local evil-ts-obj-conf-swap-dwim-rules nil
   "This is a plist that maps language to a function that returns swap-dwim rules.
-This function is invoked by swap-dwim and swap-dwim to determine
-what things it should operate on. The function should accept
-RANGE-TYPE. RANGE-TYPE is a symbol that value is either first or
-second. If RANGE-TYPE is first then function should return text
-object, which will be swap-dwim. If RANGE-TYPE is second then it
-returns the object that should be swapped with the swap-dwim one.
-The second object is searched across the first object siblings.
-In both cases it should return alist, for example \\='((statement
-. inner) (compound . outer)). So it is possible to specify
-multiple potential text objects. See `evil-ts-obj-def-swap-dwim-rules'
-as an example of this function implementation.")
+This function is invoked by swap-dwim operator to determine what things
+it should operate on. The function should accept RANGE-TYPE. RANGE-TYPE
+is a symbol that value is either \\='first or \\='second. If RANGE-TYPE
+is \\='first then function should return text object, which will be
+swapped. If RANGE-TYPE is \\='second then it returns the object that
+should be swapped with the swap-dwim operator. The second object is
+searched across the first object siblings. In both cases it should
+return alist, for example \\='((statement . inner) (compound . outer)).
+So it is possible to specify multiple potential text objects. See
+`evil-ts-obj-def-swap-dwim-rules' as an example of this function
+implementation.")
+
+(defvar-local evil-ts-obj-conf-drag-rules nil
+  "This is a plist that maps language to a function that returns drag rules.
+This function is invoked by drag operator to determine what things it
+should operate on. The function should accept RANGE-TYPE. RANGE-TYPE is
+a symbol that value is either \\='first or \\='second. If RANGE-TYPE is
+\\='first then function should return text object, which will be
+dragged. If RANGE-TYPE is \\='second then it returns the object that
+should be swapped with the dragged one. The second object is searched
+across the first object siblings. In both cases it should return alist,
+for example \\='((statement . inner) (compound . outer)). So it is
+possible to specify multiple potential text objects. See
+`evil-ts-obj-def-drag-rules' as an example of this function
+implementation.")
 
 (defvar-local evil-ts-obj-conf-clone-rules nil
   "This is a plist that maps language to a function that returns clone DWIM rules.
 This function is invoked by `evil-ts-obj-edit--clone-dwim-impl'to
-determine what things it should operate on. The function should
-accept RANGE-TYPE. RANGE-TYPE is a symbol that value is either
-text or place. If RANGE-TYPE is text then function should return
-a text object, content of which will be cloned. If RANGE-TYPE is
-place then function should return a text object that denotes
-position to insert the selected content. If clone-before then
-start of text object is the insert position, if clone-after then
-text is inserted at the end of the range. In both cases it should
-return alist, for example \\='((statement . inner) (compound .
-outer)). So it is possible to specify multiple potential text
-objects. See `evil-ts-obj-def-clone-rules' as an example of this
-function implementation.")
+determine what things it should operate on. The function should accept
+RANGE-TYPE. RANGE-TYPE is a symbol that value is either \\='text or
+\\='place. If RANGE-TYPE is \\='text then function should return a text
+object, content of which will be cloned. If RANGE-TYPE is \\='place then
+function should return a text object that denotes position to insert the
+selected content. If clone-before then start of text object is the
+insert position, if clone-after then text is inserted at the end of the
+range. In both cases it should return alist, for example \\='((statement
+. inner) (compound . outer)). So it is possible to specify multiple
+potential text objects. See `evil-ts-obj-def-clone-rules' as an example
+of this function implementation.")
 
 (defvar-local evil-ts-obj-conf-clone-indent-policy nil
   "Map a language to a symbol that determines clone policy on newlines indentation.
@@ -190,22 +208,20 @@ the place range is used as an indentation level.")
 
 (defvar-local evil-ts-obj-conf-extract-rules nil
   "This variable maps language to a function that returns extract DWIM rules.
-This function is invoked by
-`evil-ts-obj-edit--extract-operator-impl' and
-`evil-ts-obj-edit--extract-dwim-impl' to determine what things
-they should operate on. The function should accept RANGE-TYPE.
-RANGE-TYPE is a symbol that value is either text or place. If
-RANGE-TYPE is text then function should return a text object,
-content of which will be extracted. If RANGE-TYPE is place then
-function should return a text object that denotes position to
-insert the selected content. If extract-up then start of text
-object is the insert position, if extract-down then text is
-inserted at the end of the range. In both cases it should return
-alist, for example \\='((statement . inner) (compound . outer)).
-So it is possible to specify multiple potential text objects. See
-`evil-ts-obj-def-extract-rules' and
-`evil-ts-obj-def-conf-lang-extract-rules' as examples of this
-function implementation.")
+This function is invoked by `evil-ts-obj-edit--extract-operator-impl'
+and `evil-ts-obj-edit--extract-dwim-impl' to determine what things they
+should operate on. The function should accept RANGE-TYPE. RANGE-TYPE is
+a symbol that value is either \\='text or \\='place. If RANGE-TYPE is
+\\='text then function should return a text object, content of which
+will be extracted. If RANGE-TYPE is \\='place then function should
+return a text object that denotes position to insert the selected
+content. If extract-up then start of text object is the insert position,
+if extract-down then text is inserted at the end of the range. In both
+cases it should return alist, for example \\='((statement .
+inner) (compound . outer)). So it is possible to specify multiple
+potential text objects. See `evil-ts-obj-def-extract-rules' and
+`evil-ts-obj-def-conf-lang-extract-rules' as examples of this function
+implementation.")
 
 (defvar-local evil-ts-obj-conf-statement-placeholder nil
   "List of placeholder statements for each language.
@@ -223,74 +239,67 @@ extract/inject operators. Purpose is the same as for
 
 (defvar-local evil-ts-obj-conf-inject-rules nil
   "This variable maps language to a function that returns inject DWIM rules.
-This function is invoked by
-`evil-ts-obj-edit--inject-operator-impl' and
-`evil-ts-obj-edit--inject-dwim-impl' to determine what things
-they should operate on. The function should accept RANGE-TYPE.
-RANGE-TYPE is a symbol that value is either text or place. If
-RANGE-TYPE is text then function should return a text object,
-content of which will be injected into new place. If RANGE-TYPE
-is place then function should return a text object, to which text
-will be injected. Usually, compound inner text objects is used as
-a place for injection. If inject-up then end of text object is
-the insert position, if inject-down then text is inserted at the
-start of the range. In both cases it should return alist, for
-example \\='((statement . inner) (compound . outer)). So it is
-possible to specify multiple potential text objects. See
-`evil-ts-obj-def-inject-rules' and
-`evil-ts-obj-def-conf-lang-inject-rules' as examples of this
-function implementation.")
+This function is invoked by `evil-ts-obj-edit--inject-operator-impl' and
+`evil-ts-obj-edit--inject-dwim-impl' to determine what things they
+should operate on. The function should accept RANGE-TYPE. RANGE-TYPE is
+a symbol that value is either \\='text or \\='place. If RANGE-TYPE is
+\\='text then function should return a text object, content of which
+will be injected into new place. If RANGE-TYPE is \\='place then
+function should return a text object, to which text will be injected.
+Usually, compound inner text objects is used as a place for injection.
+If inject-up then end of text object is the insert position, if
+inject-down then text is inserted at the start of the range. In both
+cases it should return alist, for example \\='((statement .
+inner) (compound . outer)). So it is possible to specify multiple
+potential text objects. See `evil-ts-obj-def-inject-rules' and
+`evil-ts-obj-def-conf-lang-inject-rules' as examples of this function
+implementation.")
 
 (defvar-local evil-ts-obj-conf-slurp-rules nil
   "This variable maps language to a function that returns slurp rules.
-This function is invoked by `evil-ts-obj-edit--slurp' to
-determine what text objects it should operate on. It should
-return alist, for example \\='((statement . inner) (compound .
-outer)). So it is possible to specify multiple potential text
-objects. The function should accept RANGE-TYPE. RANGE-TYPE is a
-symbol that value is either text or place. Place text object
-defines two aspects. Treesit node that represents text object:
-siblings of that node will be \"slurped\". Start and end of a
-text object determines the insert positions for slurped siblings.
-Concrete insert position depends on the point position. Usually,
-compound inner text objects is used as a place text object. If
-RANGE-TYPE is text then function should return a text object,
-content of which will be injected into new place. See
-`evil-ts-obj-def-slurp-rules' and
-`evil-ts-obj-def-conf-lang-slurp-rules' as examples of this
-function implementation.")
+This function is invoked by `evil-ts-obj-edit--slurp' to determine what
+text objects it should operate on. It should return alist, for example
+\\='((statement . inner) (compound . outer)). So it is possible to
+specify multiple potential text objects. The function should accept
+RANGE-TYPE. RANGE-TYPE is a symbol that value is either \\='text or
+\\='place. Place text object defines two aspects. Treesit node that
+represents text object: siblings of that node will be \"slurped\". Start
+and end of a text object determines the insert positions for slurped
+siblings. Concrete insert position depends on the point position.
+Usually, compound inner text objects is used as a place text object. If
+RANGE-TYPE is text then function should return a text object, content of
+which will be injected into new place. See `evil-ts-obj-def-slurp-rules'
+and `evil-ts-obj-def-conf-lang-slurp-rules' as examples of this function
+implementation.")
 
 (defvar-local evil-ts-obj-conf-barf-rules nil
   "This variable maps language to a function that returns barf rules.
-This function is invoked by `evil-ts-obj-edit--barf' to determine
-what text objects it should operate on. It should return alist,
-for example \\='((statement . inner) (compound . outer)). So it
-is possible to specify multiple potential text objects. The
-function should accept RANGE-TYPE. RANGE-TYPE is a symbol that
-value is either text or place. Place text object defines two
-aspects. Start and end of a text object determines the insert
-positions for barfed siblings. Concrete insert position depends
-on the point position. Inner text object is used to find text
-objects that will be \"barfed\". Usually, compound outer text
-objects is used as a place text object. If RANGE-TYPE is text
-then function should return a text object, content of which will
-be extracted from the place place. See
-`evil-ts-obj-def-barf-rules' and
-`evil-ts-obj-def-conf-lang-barf-rules' as examples of this
-function implementation.")
+This function is invoked by `evil-ts-obj-edit--barf' to determine what
+text objects it should operate on. It should return alist, for example
+\\='((statement . inner) (compound . outer)). So it is possible to
+specify multiple potential text objects. The function should accept
+RANGE-TYPE. RANGE-TYPE is a symbol that value is either \\='text or
+\\='place. Place text object defines two aspects. Start and end of a
+text object determines the insert positions for barfed siblings.
+Concrete insert position depends on the point position. Inner text
+object is used to find text objects that will be \"barfed\". Usually,
+compound outer text objects is used as a place text object. If
+RANGE-TYPE is text then function should return a text object, content of
+which will be extracted from the place place. See
+`evil-ts-obj-def-barf-rules' and `evil-ts-obj-def-conf-lang-barf-rules'
+as examples of this function implementation.")
 
 (defvar-local evil-ts-obj-conf-convolute-rules nil
   "This is a plist that maps language to a function that returns convolute rules.
-This function is invoked by `evil-ts-obj-edit--convolute' to
-determine what things they should operate on. The function should
-accept RANGE-TYPE. RANGE-TYPE can be either text or parent. If
-RANGE-TYPE is text then function should return a text object,
-which will be used for determining parent nodes. If RANGE-TYPE is
-parent then function should return a text object that is used to
-determine parent and grandparent nodes of the text object. In
-both cases it should return alist, for example \\='((statement .
-inner) (compound . outer)). So it is possible to specify multiple
-potential text objects. See
+This function is invoked by `evil-ts-obj-edit--convolute' to determine
+what things they should operate on. The function should accept
+RANGE-TYPE. RANGE-TYPE can be either \\='text or \\='parent. If
+RANGE-TYPE is \\='text then function should return a text object, which
+will be used for determining parent nodes. If RANGE-TYPE is \\='parent
+then function should return a text object that is used to determine
+parent and grandparent nodes of the text object. In both cases it should
+return alist, for example \\='((statement . inner) (compound . outer)).
+So it is possible to specify multiple potential text objects. See
 `evil-ts-obj-def-conf-lang-convolute-rules' as an example of this
 function implementation.")
 

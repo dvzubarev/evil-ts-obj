@@ -64,6 +64,21 @@ RANGE-TYPE."
         '((statement . inner)
           (param . all)))))))
 
+;;;;; drag rules
+
+(defun evil-ts-obj-def-drag-rules (_range-type)
+  "Return default drag rules.
+See `evil-ts-obj-conf-drag-rules' for description of RANGE-TYPE."
+  '((param . inner)
+    (statement . inner)
+    (compound . outer)))
+
+(defun evil-ts-obj-def-conf-lang-drag-rules (_range-type)
+  "Return default drag rules for configuration languages like YAML.
+See `evil-ts-obj-conf-drag-rules' for description of RANGE-TYPE."
+  '((param . inner)
+    (compound . outer)))
+
 ;;;;; swap-dwim rules
 
 (defun evil-ts-obj-def-swap-dwim-rules (_range-type)
@@ -318,6 +333,7 @@ And other default rules to its corresponding variables."
 
   (cl-callf plist-put evil-ts-obj-conf-range-finalizers lang #'evil-ts-obj--finalize-text-obj-range)
   (cl-callf plist-put evil-ts-obj-conf-raise-rules lang #'evil-ts-obj-def-raise-rules)
+  (cl-callf plist-put evil-ts-obj-conf-drag-rules lang #'evil-ts-obj-def-drag-rules)
   (cl-callf plist-put evil-ts-obj-conf-swap-dwim-rules lang #'evil-ts-obj-def-swap-dwim-rules)
   (cl-callf plist-put evil-ts-obj-conf-clone-rules lang #'evil-ts-obj-def-clone-rules)
   (cl-callf plist-put evil-ts-obj-conf-clone-indent-policy lang clone-indent-policy)
@@ -389,6 +405,8 @@ This function also adds `evil-ts-obj-def-raise-rules' to
 
   (cl-callf plist-put evil-ts-obj-conf-raise-rules
     lang #'evil-ts-obj-def-conf-lang-raise-rules)
+  (cl-callf plist-put evil-ts-obj-conf-drag-rules
+    lang #'evil-ts-obj-def-conf-lang-drag-rules)
   (cl-callf plist-put evil-ts-obj-conf-swap-dwim-rules
     lang #'evil-ts-obj-def-conf-lang-swap-dwim-rules)
   (cl-callf plist-put evil-ts-obj-conf-clone-rules

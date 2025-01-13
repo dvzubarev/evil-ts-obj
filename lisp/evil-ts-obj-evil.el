@@ -388,6 +388,18 @@ TYPE are arguments from evil operator."
   (interactive "<c>")
   (evil-ts-obj-edit--raise-dwim count))
 
+(evil-define-operator evil-ts-obj-drag-up (count)
+  "Swap a current text object with the previous sibling.
+When COUNT is greater then 1, drag current text object N times."
+  (interactive "<c>")
+  (evil-ts-obj-edit--drag 'prev count))
+
+(evil-define-operator evil-ts-obj-drag-down (count)
+  "Swap a current text object with the next sibling.
+When COUNT is greater then 1, drag current text object N times."
+  (interactive "<c>")
+  (evil-ts-obj-edit--drag 'next count))
+
 (evil-define-operator evil-ts-obj-swap-dwim-up (count)
   "Swap a current text object with the previous sibling.
 When COUNT is greater then 1, swap current text object with the
@@ -573,6 +585,8 @@ topmost statments."
     "zS" #'evil-ts-obj-inject-up)
   (evil-define-key 'normal 'evil-ts-obj-mode
     (kbd "M-r") #'evil-ts-obj-raise-dwim
+    (kbd "M-j") #'evil-ts-obj-drag-down
+    (kbd "M-k") #'evil-ts-obj-drag-up
     (kbd "M-J") #'evil-ts-obj-swap-dwim-down
     (kbd "M-K") #'evil-ts-obj-swap-dwim-up
     (kbd "M-c") #'evil-ts-obj-clone-after-dwim

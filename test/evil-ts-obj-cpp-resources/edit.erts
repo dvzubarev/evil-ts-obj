@@ -3,6 +3,56 @@ Point-Char: |
 Code:
   (lambda ()
     (evil-ts-obj-cpp-tests-setup)
+    (evil-ts-obj-drag-down 2))
+
+Name: Drag down 2 times t1
+
+=-=
+void func () {
+   |auto i = 3;
+   call(i);
+
+   //comment
+
+   call2(i);
+}
+=-=
+void func () {
+   call(i);
+
+   //comment
+
+   call2(i);
+   |auto i = 3;
+}
+=-=-=
+
+
+Name: Drag down 2 times t2
+
+=-=
+template <class| T, class U, class Y>
+struct faktory_t{};
+=-=
+template <class U, class Y, |class T>
+struct faktory_t{};
+=-=-=
+
+Name: Drag down 2 times t3
+
+=-=
+template <class| T, //temp
+          class U, class Y>
+struct faktory_t{};
+=-=
+template <class U, //temp
+          class Y, |class T>
+struct faktory_t{};
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-cpp-tests-setup)
     (evil-ts-obj-swap-dwim-up 1))
 
 Name: swap-dwim up t1

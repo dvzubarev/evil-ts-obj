@@ -265,12 +265,22 @@ When OP-TYPE is nil text is left untouched.
 Otherwise some function is invoked on provided TEXT-RANGE:
 - safe: `evil-ts-obj-edit--delete-compound-inner',
 - comment: `comment-region',
+- delete-w-empty-line - delete also empty line that left after teleporting.
 - t: `delete-region'."
   (pcase-let ((`(,start . ,end) text-range))
     (with-current-buffer (marker-buffer start)
       (pcase op-type
         ('safe (evil-ts-obj-edit--delete-compound-inner text-range))
         ('comment (comment-region start end))
+        ('delete-w-empty-line
+         (delete-region start end)
+         ;; Check that line is empty ignoring whitespaces.
+         (save-excursion
+           (goto-char start)
+           (when (= (current-indentation)
+                    (- (line-end-position) (line-beginning-position)))
+             (beginning-of-line)
+             (kill-line))))
         ('t (delete-region start end))))))
 
 (defun evil-ts-obj-edit--clone-after (text-range place-range &optional delete-range)
@@ -500,7 +510,7 @@ by `evil-ts-obj-last-range'."
                          (pcase args
                            ((or '() '(nil)) (nth 2 evil-ts-obj-edit--saved-range))
                            (_ args))))
-          (evil-ts-obj-edit--cleanup second-markers))))))
+            (evil-ts-obj-edit--cleanup second-markers))))))
 
 ;;; Operators
 
@@ -523,9 +533,11 @@ by `evil-ts-obj-last-range'."
    (when comment? 'comment)))
 
 (defun evil-ts-obj-edit--teleport-after-operator (start end &optional del-type)
+  ""
   (evil-ts-obj-edit--save-range-or-call-op
    'teleport start end
-   (lambda (r or) (evil-ts-obj-edit--clone-after r or (or del-type t)))))
+   #'evil-ts-obj-edit--clone-after
+   (or del-type t)))
 
 (defun evil-ts-obj-edit--clone-before-operator (start end &optional comment?)
   ""
@@ -540,9 +552,11 @@ by `evil-ts-obj-last-range'."
    (when comment? 'comment)))
 
 (defun evil-ts-obj-edit--teleport-before-operator (start end &optional del-type)
+  ""
   (evil-ts-obj-edit--save-range-or-call-op
    'teleport start end
-   (lambda (r or) (evil-ts-obj-edit--clone-before r or (or del-type t)))))
+   #'evil-ts-obj-edit--clone-before
+   (or del-type t)))
 
 
 ;;;; Raise
@@ -635,6 +649,80 @@ current text object with the Nth sibling."
           (goto-char (car evil-ts-obj--last-text-obj-range))))
     (evil-ts-obj-edit--cleanup)))
 
+;;;; Drag
+(defun evil-ts-obj-edit--find-sibling-for-drag (node node-thing dir match-thing)
+  ""
+  (let ((iter (evil-ts-obj--iter-siblings node node-thing dir nil t))
+        (swap-only nil)
+        (done nil)
+        sibling)
+
+    (condition-case nil
+        (progn
+          (while (and (null done)
+                      (setq sibling (iter-next iter)))
+            (cond
+             ((treesit-node-match-p sibling match-thing t)
+              (setq swap-only (or swap-only (evil-ts-obj--nodes-on-the-same-line node sibling))
+                    done t))
+             ((treesit-node-match-p sibling 'comment t)
+              ;; do nothing
+              t)
+             (t
+              ;; It is either separator or other anonymous node.
+              ;; It is hard to use teleport for draging parameters or statements in boolean expressions,
+              ;; so set swap-onwly flag.
+              (setq swap-only t))))
+          (iter-close iter))
+      (iter-end-of-sequence nil))
+
+    (cons sibling swap-only)))
+
+
+(defun evil-ts-obj-edit--drag (dir &optional count)
+  "Drag a current text object in DIR direction.
+Text objects is determined based on rules from
+`evil-ts-obj-conf-drag-rules'. When COUNT is greater then 1, drag
+current text object N times."
+
+  ;; clean unfinished edit operations
+  (evil-ts-obj-edit--cleanup)
+  (unwind-protect
+      ;; find first text object
+      (when-let* ((count (or count 1))
+                  (pos (point))
+                  (lang (treesit-language-at (point)))
+                  (drag-rules-func (plist-get evil-ts-obj-conf-drag-rules lang))
+                  (rules-alist (funcall drag-rules-func 'first))
+                  (thing (evil-ts-obj-edit--thing-from-rules rules-alist))
+                  (spec (evil-ts-obj--make-spec rules-alist 'op))
+                  (second-rules-alist (funcall drag-rules-func 'second))
+                  (second-thing (evil-ts-obj-edit--thing-from-rules second-rules-alist))
+                  (second-spec (evil-ts-obj--make-spec second-rules-alist 'op)))
+        (cl-dotimes (_ count)
+          ;; Find sibling to swap with.
+          (when-let* ((range (evil-ts-obj--get-text-obj-range pos thing spec nil t))
+                      (node (caddr range))
+                      (first-thing (plist-get evil-ts-obj--last-text-obj-spec :thing)))
+            (pcase-let* ((`(,sibling . ,swap-only) (evil-ts-obj-edit--find-sibling-for-drag node first-thing dir second-thing))
+                         (`(,place-start ,place-end) (evil-ts-obj--get-text-obj-range sibling second-thing second-spec)))
+              (when sibling
+                (if ;; (or (eq first-thing 'param) swap-only)
+                    swap-only
+                    (progn
+                      (evil-ts-obj-edit--swap-operator (car range) (cadr range))
+                      (evil-ts-obj-edit--swap-operator place-start place-end))
+
+                  ;; first teleport invocation may be after or before it does not matter.
+                  (evil-ts-obj-edit--teleport-after-operator (car range) (cadr range))
+                  (if (eq dir 'next)
+                      (evil-ts-obj-edit--teleport-after-operator place-start place-end 'delete-w-empty-line)
+                    (evil-ts-obj-edit--teleport-before-operator place-start place-end 'delete-w-empty-line)))))
+
+
+            (setq pos (car evil-ts-obj--last-text-obj-range)))))
+    (goto-char (car evil-ts-obj--last-text-obj-range))
+    (evil-ts-obj-edit--cleanup)))
 
 ;;;; Clone
 

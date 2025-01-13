@@ -181,6 +181,102 @@ if [[ -n "$mode" ]] ; then
 fi
 =-=-=
 
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (evil-ts-obj-drag-up 1))
+
+Name: drag up t1
+
+=-=
+echo pr pr2 |pr3
+=-=
+echo pr |pr3 pr2
+=-=-=
+
+Name: drag up t2
+skip: t
+=-=
+echo --pr=setm --var temp \
+     --kwarg2 \
+     --kwarg3|="value with space"
+=-=
+echo --pr=setm --var temp \
+     |--kwarg3="value with space" \
+     --kwarg2
+=-=-=
+=-=-=
+
+Name: drag up t3
+skip: t
+=-=
+echo --pr=setm --var temp \
+     |--kwarg3="value with space" \
+     --kwarg2
+=-=
+echo --pr=setm --var |--kwarg3="value with space" \
+     temp \
+     --kwarg2
+=-=-=
+=-=-=
+
+Name: drag up t4
+
+=-=
+echo str1
+echo str2; |echo str3
+echo str4
+=-=
+echo str1
+|echo str3; echo str2
+echo str4
+=-=-=
+
+Name: drag up t5
+
+=-=
+echo str1
+#comment
+
+|echo str3; echo str2
+echo str4
+=-=
+|echo str3
+echo str1
+#comment
+
+; echo str2
+echo str4
+=-=-=
+
+Name: drag up t6
+
+=-=
+echo str3; echo str2
+
+#com
+
+|echo str4
+=-=
+echo str3; |echo str4
+echo str2
+
+#com
+
+=-=-=
+
+Name: drag up t7
+
+=-=
+if [[ -n "$mode" ]] ; then
+    |quoted_arg=$(_quote_arg "$buffer")
+fi
+=-=
+if [[ -n "$mode" ]] ; then
+    |quoted_arg=$(_quote_arg "$buffer")
+fi
+=-=-=
+
 
 Code:
   (lambda ()
@@ -201,7 +297,7 @@ echo str2
 echo str4
 =-=-=
 
-Name: swap-dwim down t1
+Name: swap-dwim down t2
 
 =-=
 echo str2
@@ -213,6 +309,51 @@ echo str3; |echo str1
 echo str4
 =-=-=
 
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
+    (evil-ts-obj-drag-down 1)
+    (delete-trailing-whitespace))
+
+Name: drag down t1
+
+=-=
+|echo str1
+#comment
+
+echo str2; echo str3
+echo str4
+=-=
+#comment
+
+echo str2 |echo str1; echo str3
+echo str4
+=-=-=
+
+Name: drag down t2
+
+=-=
+echo str1; |echo str2; echo str3
+echo str4
+=-=
+echo str1; echo str3; |echo str2
+echo str4
+=-=-=
+
+Name: drag down t3
+
+=-=
+echo str1; echo str2; |echo str3
+
+
+echo str4
+=-=
+echo str1; echo str2;
+
+
+echo str4
+|echo str3
+=-=-=
 
 Code:
   (lambda ()
