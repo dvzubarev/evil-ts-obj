@@ -358,6 +358,34 @@ echo str4
 Code:
   (lambda ()
     (evil-ts-obj-bash-tests-setup)
+    (evil-ts-obj-drag-down 2)
+    (delete-trailing-whitespace))
+
+Name: drag down 2 times t1
+
+=-=
+em (){
+   | [[ -n "$send_mode" && -n "$copy_mode" ]] && eval_mode="1" && echo "ok"
+
+    (
+        echo 1 ; echo 2 ; echo 3
+    )
+    echo te && true
+}
+=-=
+em (){
+
+    (
+        echo 1 ; echo 2 ; echo 3
+    )
+    echo te && true
+    |[[ -n "$send_mode" && -n "$copy_mode" ]] && eval_mode="1" && echo "ok"
+}
+=-=-=
+
+Code:
+  (lambda ()
+    (evil-ts-obj-bash-tests-setup)
     (evil-ts-obj-clone-after-dwim nil))
 
 Name: clone after dwim t1

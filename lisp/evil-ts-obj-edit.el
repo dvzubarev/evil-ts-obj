@@ -690,6 +690,7 @@ current text object N times."
   (unwind-protect
       ;; find first text object
       (when-let* ((count (or count 1))
+                  (rel-pos 'undefine)
                   (pos (point))
                   (lang (treesit-language-at (point)))
                   (drag-rules-func (plist-get evil-ts-obj-conf-drag-rules lang))
@@ -700,14 +701,18 @@ current text object N times."
                   (second-thing (evil-ts-obj-edit--thing-from-rules second-rules-alist))
                   (second-spec (evil-ts-obj--make-spec second-rules-alist 'op)))
         (cl-dotimes (_ count)
-          ;; Find sibling to swap with.
           (when-let* ((range (evil-ts-obj--get-text-obj-range pos thing spec nil t))
                       (node (caddr range))
                       (first-thing (plist-get evil-ts-obj--last-text-obj-spec :thing)))
+            (when (eq rel-pos 'undefine)
+              ;; Save position of the cursor relative to the start of the dragged thing.
+              (setq rel-pos (- pos (car range))))
+            ;; Find sibling to swap with.
             (pcase-let* ((`(,sibling . ,swap-only) (evil-ts-obj-edit--find-sibling-for-drag node first-thing dir second-thing))
                          (`(,place-start ,place-end) (evil-ts-obj--get-text-obj-range sibling second-thing second-spec)))
               (when sibling
-                (if ;; (or (eq first-thing 'param) swap-only)
+                (if ;; See skipped tests in bash.
+                    ;; (or (eq first-thing 'param) swap-only)
                     swap-only
                     (progn
                       (evil-ts-obj-edit--swap-operator (car range) (cadr range))
@@ -720,13 +725,14 @@ current text object N times."
                     (evil-ts-obj-edit--teleport-before-operator place-start place-end 'delete-w-empty-line)))))
 
 
-            (setq pos (car evil-ts-obj--last-text-obj-range)))))
+            (setq pos (+ rel-pos (car evil-ts-obj--last-text-obj-range))))))
     (goto-char (car evil-ts-obj--last-text-obj-range))
     (evil-ts-obj-edit--cleanup)))
 
 ;;;; Clone
 
 (defun evil-ts-obj-edit--clone-dwim-impl (after? &optional comment?)
+  ""
   ;; clean unfinished edit operations
   (evil-ts-obj-edit--cleanup)
   (unwind-protect
